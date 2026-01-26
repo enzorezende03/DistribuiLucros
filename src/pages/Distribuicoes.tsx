@@ -1,0 +1,425 @@
+import { useState } from 'react';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useDistribuicoes, useUpdateDistribuicaoStatus, type StatusDistribuicao } from '@/hooks/useDistribuicoes';
+import { useClientes } from '@/hooks/useClientes';
+import { useAuth } from '@/contexts/AuthContext';
+import { formatCurrency, formatCompetencia, formatDate, getCompetenciaAnterior } from '@/lib/format';
+import { Link } from 'react-router-dom';
+import {
+  Plus,
+  Search,
+  FileText,
+  Loader2,
+  Download,
+  Eye,
+  MoreHorizontal,
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
+
+const statusConfig: Record<StatusDistribuicao, { label: string; className: string }> = {
+  RECEBIDA: { label: 'Recebida', className: 'status-recebida' },
+  EM_VALIDACAO: { label: 'Em validação', className: 'status-em-validacao' },
+  APROVADA: { label: 'Aprovada', className: 'status-aprovada' },
+  AJUSTE_SOLICITADO: { label: 'Ajuste solicitado', className: 'status-ajuste-solicitado' },
+  CANCELADA: { label: 'Cancelada', className: 'status-cancelada' },
+};
+
+export default function DistribuicoesPage() {
+  const { isAdmin, clienteId } = useAuth();
+  const { data: clientes } = useClientes();
+  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
+  const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
+  
+  const queryClienteId = isAdmin ? selectedClienteId : clienteId;
+  const { data: distribuicoes, isLoading } = useDistribuicoes(
+    queryClienteId,
+    selectedCompetencia || undefined
+  );
+  const [search, setSearch] = useState('');
+  const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
+
+  // Gerar opções de competência (últimos 12 meses)
+  const competenciaOptions = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  });
+
+  let filteredDistribuicoes = distribuicoes;
+  if (selectedStatus) {
+    filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.status === selectedStatus);
+  }
+  if (search) {
+    filteredDistribuicoes = filteredDistribuicoes?.filter(
+      (d) =>
+        d.recibo_numero?.toLowerCase().includes(search.toLowerCase()) ||
+        d.cliente?.razao_social?.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+
+  return (
+    <SidebarLayout>
+      <div className="p-6 space-y-6">
+        <div className="page-header">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Distribuições</h1>
+            <p className="text-muted-foreground">
+              {isAdmin ? 'Gerencie todas as distribuições de lucros' : 'Suas distribuições de lucros'}
+            </p>
+          </div>
+          {!isAdmin && (
+            <Link to="/distribuicoes/nova">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nova Distribuição
+              </Button>
+            </Link>
+          )}
+        </div>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-4">
+              <CardTitle className="text-lg">Lista de Distribuições</CardTitle>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {isAdmin && (
+                  <Select
+                    value={selectedClienteId || 'all'}
+                    onValueChange={(v) => setSelectedClienteId(v === 'all' ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os clientes</SelectItem>
+                      {clientes?.map((cliente) => (
+                        <SelectItem key={cliente.id} value={cliente.id}>
+                          {cliente.razao_social}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Select
+                  value={selectedCompetencia || 'all'}
+                  onValueChange={(v) => setSelectedCompetencia(v === 'all' ? null : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por competência" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as competências</SelectItem>
+                    {competenciaOptions.map((comp) => (
+                      <SelectItem key={comp} value={comp}>
+                        {formatCompetencia(comp)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={selectedStatus || 'all'}
+                  onValueChange={(v) => setSelectedStatus(v === 'all' ? null : (v as StatusDistribuicao))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os status</SelectItem>
+                    {Object.entries(statusConfig).map(([key, { label }]) => (
+                      <SelectItem key={key} value={key}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : filteredDistribuicoes && filteredDistribuicoes.length > 0 ? (
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Recibo</TableHead>
+                      {isAdmin && <TableHead>Cliente</TableHead>}
+                      <TableHead>Competência</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDistribuicoes.map((dist) => (
+                      <TableRow key={dist.id} className="table-row-interactive">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center">
+                              <FileText className="h-4 w-4 text-accent" />
+                            </div>
+                            <span className="font-mono text-sm">{dist.recibo_numero}</span>
+                          </div>
+                        </TableCell>
+                        {isAdmin && (
+                          <TableCell className="font-medium">
+                            {dist.cliente?.razao_social}
+                          </TableCell>
+                        )}
+                        <TableCell>{formatCompetencia(dist.competencia)}</TableCell>
+                        <TableCell>{formatDate(dist.data_distribuicao)}</TableCell>
+                        <TableCell className="text-right font-semibold money-value">
+                          {formatCurrency(Number(dist.valor_total))}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={dist.status} />
+                        </TableCell>
+                        <TableCell>
+                          <DistribuicaoActions
+                            distribuicao={dist}
+                            isAdmin={isAdmin}
+                            onView={() => setViewingDistribuicao(dist.id)}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="empty-state py-12">
+                <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">Nenhuma distribuição encontrada</p>
+                {!isAdmin && (
+                  <Link to="/distribuicoes/nova">
+                    <Button variant="outline" className="mt-4 gap-2">
+                      <Plus className="h-4 w-4" />
+                      Registrar primeira distribuição
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <DistribuicaoDetailDialog
+        distribuicaoId={viewingDistribuicao}
+        onClose={() => setViewingDistribuicao(null)}
+        isAdmin={isAdmin}
+      />
+    </SidebarLayout>
+  );
+}
+
+function StatusBadge({ status }: { status: StatusDistribuicao }) {
+  const config = statusConfig[status] || { label: status, className: '' };
+
+  return (
+    <Badge variant="outline" className={cn('text-xs', config.className)}>
+      {config.label}
+    </Badge>
+  );
+}
+
+interface DistribuicaoActionsProps {
+  distribuicao: {
+    id: string;
+    recibo_pdf_url: string | null;
+    status: StatusDistribuicao;
+  };
+  isAdmin: boolean;
+  onView: () => void;
+}
+
+function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActionsProps) {
+  const updateStatus = useUpdateDistribuicaoStatus();
+
+  const handleStatusChange = async (status: StatusDistribuicao) => {
+    await updateStatus.mutateAsync({ id: distribuicao.id, status });
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onView}>
+          <Eye className="mr-2 h-4 w-4" />
+          Ver detalhes
+        </DropdownMenuItem>
+        {distribuicao.recibo_pdf_url && (
+          <DropdownMenuItem asChild>
+            <a href={distribuicao.recibo_pdf_url} target="_blank" rel="noopener noreferrer">
+              <Download className="mr-2 h-4 w-4" />
+              Baixar recibo
+            </a>
+          </DropdownMenuItem>
+        )}
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            {Object.entries(statusConfig).map(([key, { label }]) => (
+              <DropdownMenuItem
+                key={key}
+                onClick={() => handleStatusChange(key as StatusDistribuicao)}
+                disabled={distribuicao.status === key || updateStatus.isPending}
+              >
+                Marcar como: {label}
+              </DropdownMenuItem>
+            ))}
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+interface DistribuicaoDetailDialogProps {
+  distribuicaoId: string | null;
+  onClose: () => void;
+  isAdmin: boolean;
+}
+
+function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: DistribuicaoDetailDialogProps) {
+  const { data: distribuicoes } = useDistribuicoes();
+  const distribuicao = distribuicoes?.find((d) => d.id === distribuicaoId);
+
+  if (!distribuicao) {
+    return null;
+  }
+
+  return (
+    <Dialog open={!!distribuicaoId} onOpenChange={() => onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-accent" />
+            Distribuição {distribuicao.recibo_numero}
+          </DialogTitle>
+          <DialogDescription>
+            Detalhes da distribuição de lucros
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Competência</p>
+              <p className="font-medium">{formatCompetencia(distribuicao.competencia)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Data da Distribuição</p>
+              <p className="font-medium">{formatDate(distribuicao.data_distribuicao)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Status</p>
+              <StatusBadge status={distribuicao.status} />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Forma de Pagamento</p>
+              <p className="font-medium">{distribuicao.forma_pagamento}</p>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <p className="text-sm text-muted-foreground mb-2">Rateio por Sócio</p>
+            <div className="space-y-2">
+              {distribuicao.itens?.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                >
+                  <div>
+                    <p className="font-medium">{item.socio?.nome}</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      CPF: {item.socio?.cpf}
+                    </p>
+                  </div>
+                  <p className="font-semibold money-value">
+                    {formatCurrency(Number(item.valor))}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t pt-4 flex items-center justify-between">
+            <p className="text-lg font-semibold">Total</p>
+            <p className="text-2xl font-bold money-value text-accent">
+              {formatCurrency(Number(distribuicao.valor_total))}
+            </p>
+          </div>
+
+          <div className="border-t pt-4">
+            <p className="text-sm text-muted-foreground">Solicitante</p>
+            <p className="font-medium">{distribuicao.solicitante_nome}</p>
+            <p className="text-sm text-muted-foreground">{distribuicao.solicitante_email}</p>
+          </div>
+
+          {distribuicao.recibo_pdf_url && (
+            <Button asChild className="w-full gap-2">
+              <a href={distribuicao.recibo_pdf_url} target="_blank" rel="noopener noreferrer">
+                <Download className="h-4 w-4" />
+                Baixar Recibo PDF
+              </a>
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
