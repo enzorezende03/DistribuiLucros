@@ -26,14 +26,14 @@ export function ExportDistribuicoesDialog({ open, onOpenChange }: ExportDistribu
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
 
-  // Generate last 24 months as options
+  // Generate last 24 months as options, sorted chronologically (oldest first)
   const monthOptions = Array.from({ length: 24 }, (_, i) => {
     const date = new Date();
     date.setMonth(date.getMonth() - i);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     return `${year}-${month}`;
-  });
+  }).reverse();
 
   const toggleMonth = (month: string) => {
     setSelectedMonths((prev) =>
