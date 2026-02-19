@@ -78,6 +78,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const createConfirmacao = useCreateConfirmacao();
 
   const [alertasDialogOpen, setAlertasDialogOpen] = useState(false);
+  const [totalMesDialogOpen, setTotalMesDialogOpen] = useState(false);
   const competenciaAnterior = getCompetenciaAnterior();
   const hasConfirmacao = confirmacoes?.some(c => c.competencia === competenciaAnterior);
   const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior);
@@ -164,7 +165,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => setTotalMesDialogOpen(true)}>
           <div className="stat-card-accent bg-info" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -173,6 +174,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardHeader>
           <CardContent>
             <p className="money-value-lg">{formatCurrency(totalMes)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Clique para ver detalhes</p>
           </CardContent>
         </Card>
 
@@ -235,7 +237,51 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
         </DialogContent>
       </Dialog>
 
-      {/* Notificações */}
+      {/* Dialog de Total no Mês por Sócio */}
+      <Dialog open={totalMesDialogOpen} onOpenChange={setTotalMesDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-info" />
+              Detalhes do Mês — {formatCompetencia(competenciaAnterior)}
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const distMes = distribuicoes?.filter(d => d.competencia === competenciaAnterior) || [];
+            const socioMap = new Map<string, { nome: string; total: number }>();
+            for (const dist of distMes) {
+              for (const item of dist.itens || []) {
+                const nome = item.socio?.nome || 'Desconhecido';
+                const existing = socioMap.get(item.socio_id) || { nome, total: 0 };
+                existing.total += Number(item.valor);
+                socioMap.set(item.socio_id, existing);
+              }
+            }
+            const socioList = Array.from(socioMap.values()).sort((a, b) => b.total - a.total);
+
+            return socioList.length > 0 ? (
+              <div className="space-y-3">
+                {socioList.map((s, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border">
+                    <span className="font-medium">{s.nome}</span>
+                    <span className="font-semibold money-value">{formatCurrency(s.total)}</span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <span className="font-bold">Total</span>
+                  <span className="font-bold money-value">{formatCurrency(totalMes)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhuma distribuição neste mês</p>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
       {notificacoes && notificacoes.length > 0 && (
         <Card className="border-info/50 bg-info/5">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
