@@ -133,6 +133,50 @@ export type Database = {
           },
         ]
       }
+      distribuicao_historico: {
+        Row: {
+          created_at: string
+          distribuicao_id: string
+          id: string
+          observacao: string | null
+          status_anterior:
+            | Database["public"]["Enums"]["status_distribuicao"]
+            | null
+          status_novo: Database["public"]["Enums"]["status_distribuicao"]
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          distribuicao_id: string
+          id?: string
+          observacao?: string | null
+          status_anterior?:
+            | Database["public"]["Enums"]["status_distribuicao"]
+            | null
+          status_novo: Database["public"]["Enums"]["status_distribuicao"]
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          distribuicao_id?: string
+          id?: string
+          observacao?: string | null
+          status_anterior?:
+            | Database["public"]["Enums"]["status_distribuicao"]
+            | null
+          status_novo?: Database["public"]["Enums"]["status_distribuicao"]
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distribuicao_historico_distribuicao_id_fkey"
+            columns: ["distribuicao_id"]
+            isOneToOne: false
+            referencedRelation: "distribuicoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       distribuicao_itens: {
         Row: {
           created_at: string
@@ -224,6 +268,51 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacoes: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          distribuicao_id: string | null
+          id: string
+          lida: boolean
+          mensagem: string
+          titulo: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          distribuicao_id?: string | null
+          id?: string
+          lida?: boolean
+          mensagem: string
+          titulo: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          distribuicao_id?: string | null
+          id?: string
+          lida?: boolean
+          mensagem?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificacoes_distribuicao_id_fkey"
+            columns: ["distribuicao_id"]
+            isOneToOne: false
+            referencedRelation: "distribuicoes"
             referencedColumns: ["id"]
           },
         ]
