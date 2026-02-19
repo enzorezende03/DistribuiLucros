@@ -247,7 +247,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-medium">{cliente?.razao_social}</p>
+                        <p className="font-medium">{alerta.socio?.nome || cliente?.razao_social}</p>
                         <p className="text-sm">{alerta.descricao}</p>
                       </div>
                       <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
