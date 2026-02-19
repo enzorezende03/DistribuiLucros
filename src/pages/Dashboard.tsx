@@ -175,62 +175,106 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
         </Card>
       </div>
 
-      {/* Últimas Distribuições */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Últimas Distribuições</CardTitle>
-          <Link to="/distribuicoes">
-            <Button variant="ghost" size="sm">
-              Ver todas
-            </Button>
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {loadingDist ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : distribuicoes && distribuicoes.length > 0 ? (
-            <div className="space-y-3">
-              {distribuicoes.slice(0, 5).map((dist) => (
-                <div
-                  key={dist.id}
-                  className="flex items-center justify-between p-4 rounded-lg border table-row-interactive"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-accent" />
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Alertas Ativos */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              Alertas Ativos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingAlertas ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : alertas && alertas.length > 0 ? (
+              <div className="space-y-3">
+                {alertas.slice(0, 5).map((alerta) => (
+                  <div
+                    key={alerta.id}
+                    className={cn(
+                      'p-4 rounded-lg border',
+                      alerta.tipo === 'ALERTA_50K' ? 'alert-50k' : 'alert-pendente'
+                    )}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-medium">{cliente?.razao_social}</p>
+                        <p className="text-sm">{alerta.descricao}</p>
+                      </div>
+                      <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
+                        {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
+                      </Badge>
                     </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state py-8">
+                <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
+                <p className="text-muted-foreground">Nenhum alerta ativo</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Últimas Distribuições */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-accent" />
+              Últimas Distribuições
+            </CardTitle>
+            <Link to="/distribuicoes">
+              <Button variant="ghost" size="sm">
+                Ver todas
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {loadingDist ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : distribuicoes && distribuicoes.length > 0 ? (
+              <div className="space-y-3">
+                {distribuicoes.slice(0, 5).map((dist) => (
+                  <div
+                    key={dist.id}
+                    className="flex items-center justify-between p-4 rounded-lg border table-row-interactive"
+                  >
                     <div>
-                      <p className="font-medium">{formatCompetencia(dist.competencia)}</p>
+                      <p className="font-medium">{cliente?.razao_social}</p>
                       <p className="text-sm text-muted-foreground">
-                        {dist.recibo_numero}
+                        {formatCompetencia(dist.competencia)} • {dist.recibo_numero}
                       </p>
                     </div>
+                    <div className="text-right">
+                      <p className="font-semibold money-value">
+                        {formatCurrency(Number(dist.valor_total))}
+                      </p>
+                      <StatusBadge status={dist.status} />
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold money-value">
-                      {formatCurrency(Number(dist.valor_total))}
-                    </p>
-                    <StatusBadge status={dist.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state py-8">
-              <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <p className="text-muted-foreground">Nenhuma distribuição registrada</p>
-              <Link to="/distribuicoes/nova">
-                <Button variant="outline" className="mt-4 gap-2">
-                  <PlusCircle className="h-4 w-4" />
-                  Registrar primeira distribuição
-                </Button>
-              </Link>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state py-8">
+                <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">Nenhuma distribuição registrada</p>
+                <Link to="/distribuicoes/nova">
+                  <Button variant="outline" className="mt-4 gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    Registrar primeira distribuição
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </>
   );
 }
