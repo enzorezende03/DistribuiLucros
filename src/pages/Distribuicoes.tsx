@@ -275,7 +275,22 @@ export default function DistribuicoesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {isAdmin && <TableHead className="w-[40px]"></TableHead>}
+                      {isAdmin && (
+                        <TableHead className="w-[40px]">
+                          <input
+                            type="checkbox"
+                            checked={filteredDistribuicoes!.length > 0 && filteredDistribuicoes!.every((d) => selectedIds.has(d.id))}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedIds(new Set(filteredDistribuicoes!.map((d) => d.id)));
+                              } else {
+                                setSelectedIds(new Set());
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-input"
+                          />
+                        </TableHead>
+                      )}
                       <TableHead>Recibo</TableHead>
                       {isAdmin && <TableHead>Cliente</TableHead>}
                       <TableHead>Competência</TableHead>
