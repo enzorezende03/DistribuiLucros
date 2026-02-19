@@ -246,7 +246,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                     className="flex items-center justify-between p-4 rounded-lg border table-row-interactive"
                   >
                     <div>
-                      <p className="font-medium">{cliente?.razao_social}</p>
+                      <p className="font-medium">{dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}</p>
                       <p className="text-sm text-muted-foreground">
                         {formatCompetencia(dist.competencia)} • {dist.recibo_numero}
                       </p>
