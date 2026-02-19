@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useDistribuicoes, useUpdateDistribuicaoStatus, type StatusDistribuicao } from '@/hooks/useDistribuicoes';
+import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, type StatusDistribuicao } from '@/hooks/useDistribuicoes';
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +35,7 @@ import {
   Download,
   Eye,
   MoreHorizontal,
+  Trash2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -50,6 +51,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 
 const statusConfig: Record<StatusDistribuicao, { label: string; className: string }> = {
@@ -321,6 +333,7 @@ interface DistribuicaoActionsProps {
 
 function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActionsProps) {
   const updateStatus = useUpdateDistribuicaoStatus();
+  const deleteDistribuicao = useDeleteDistribuicao();
   const [downloading, setDownloading] = useState(false);
 
   const handleDownloadPdf = useCallback(async () => {
@@ -332,7 +345,6 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
 
       if (error) throw error;
 
-      // data is the HTML string
       const html = typeof data === 'string' ? data : await new Response(data).text();
       const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -354,38 +366,70 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
     await updateStatus.mutateAsync({ id: distribuicao.id, status });
   };
 
+  const canDelete = !isAdmin && distribuicao.status === 'RECEBIDA';
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={onView}>
-          <Eye className="mr-2 h-4 w-4" />
-          Ver detalhes
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleDownloadPdf} disabled={downloading}>
-          <Download className="mr-2 h-4 w-4" />
-          {downloading ? 'Gerando...' : 'Baixar Recibo PDF'}
-        </DropdownMenuItem>
-        {isAdmin && (
-          <>
-            <DropdownMenuSeparator />
-            {Object.entries(statusConfig).map(([key, { label }]) => (
-              <DropdownMenuItem
-                key={key}
-                onClick={() => handleStatusChange(key as StatusDistribuicao)}
-                disabled={distribuicao.status === key || updateStatus.isPending}
-              >
-                Marcar como: {label}
-              </DropdownMenuItem>
-            ))}
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <AlertDialog>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onView}>
+            <Eye className="mr-2 h-4 w-4" />
+            Ver detalhes
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDownloadPdf} disabled={downloading}>
+            <Download className="mr-2 h-4 w-4" />
+            {downloading ? 'Gerando...' : 'Baixar Recibo PDF'}
+          </DropdownMenuItem>
+          {isAdmin && (
+            <>
+              <DropdownMenuSeparator />
+              {Object.entries(statusConfig).map(([key, { label }]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => handleStatusChange(key as StatusDistribuicao)}
+                  disabled={distribuicao.status === key || updateStatus.isPending}
+                >
+                  Marcar como: {label}
+                </DropdownMenuItem>
+              ))}
+            </>
+          )}
+          {canDelete && (
+            <>
+              <DropdownMenuSeparator />
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir distribuição
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir distribuição?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tem certeza que deseja excluir a distribuição {distribuicao.recibo_numero}? Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => deleteDistribuicao.mutate(distribuicao.id)}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {deleteDistribuicao.isPending ? 'Excluindo...' : 'Excluir'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

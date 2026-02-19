@@ -150,6 +150,36 @@ export function useCreateDistribuicao() {
   });
 }
 
+export function useDeleteDistribuicao() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Delete itens first (foreign key)
+      const { error: itensError } = await supabase
+        .from('distribuicao_itens')
+        .delete()
+        .eq('distribuicao_id', id);
+
+      if (itensError) throw itensError;
+
+      const { error } = await supabase
+        .from('distribuicoes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['distribuicoes'] });
+      toast.success('Distribuição excluída com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao excluir distribuição: ' + error.message);
+    },
+  });
+}
+
 export function useUpdateDistribuicaoStatus() {
   const queryClient = useQueryClient();
 
