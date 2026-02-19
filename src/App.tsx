@@ -10,7 +10,7 @@ import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/Register";
 import DashboardPage from "@/pages/Dashboard";
 import ClientesPage from "@/pages/Clientes";
-import SociosPage from "@/pages/Socios";
+
 import DistribuicoesPage from "@/pages/Distribuicoes";
 import NovaDistribuicaoPage from "@/pages/NovaDistribuicao";
 import AlertasPage from "@/pages/Alertas";
@@ -50,7 +50,7 @@ function AppRoutes() {
       {/* Protected routes */}
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/clientes" element={<ProtectedRoute requireAdmin><ClientesPage /></ProtectedRoute>} />
-      <Route path="/socios" element={<ProtectedRoute requireAdmin><SociosPage /></ProtectedRoute>} />
+      <Route path="/socios" element={<Navigate to="/clientes" replace />} />
       <Route path="/distribuicoes" element={<ProtectedRoute><DistribuicoesPage /></ProtectedRoute>} />
       <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
       <Route path="/alertas" element={<ProtectedRoute requireAdmin><AlertasPage /></ProtectedRoute>} />
