@@ -465,7 +465,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
         <div className="space-y-2">
           {links.map((link) => (
             <div key={link.id} className="flex items-center justify-between p-2 rounded-md border text-sm">
-              <span className="font-mono text-xs text-muted-foreground truncate">{link.user_id}</span>
+              <span className="text-sm truncate">{link.email || link.user_id}</span>
               <Button
                 variant="ghost"
                 size="icon"

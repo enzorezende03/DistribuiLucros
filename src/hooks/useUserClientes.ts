@@ -7,6 +7,7 @@ export interface UserClienteLink {
   user_id: string;
   cliente_id: string;
   created_at: string;
+  email?: string;
 }
 
 export function useUserClientes(clienteId: string | null) {
@@ -20,7 +21,17 @@ export function useUserClientes(clienteId: string | null) {
         .eq('cliente_id', clienteId);
 
       if (error) throw error;
-      return data as UserClienteLink[];
+      
+      // Fetch emails for each user
+      const links = data as UserClienteLink[];
+      const withEmails = await Promise.all(
+        links.map(async (link) => {
+          const { data: email } = await supabase.rpc('get_user_email', { _user_id: link.user_id });
+          return { ...link, email: email || link.user_id };
+        })
+      );
+      
+      return withEmails;
     },
     enabled: !!clienteId,
   });
@@ -31,7 +42,6 @@ export function useLinkUserByEmail() {
 
   return useMutation({
     mutationFn: async ({ email, clienteId }: { email: string; clienteId: string }) => {
-      // Look up user by email using security definer function
       const { data: users, error: lookupError } = await supabase
         .rpc('find_user_by_email', { _email: email });
 
@@ -42,7 +52,6 @@ export function useLinkUserByEmail() {
 
       const userId = users[0].user_id;
 
-      // Check if link already exists
       const { data: existing } = await supabase
         .from('user_clientes')
         .select('id')
@@ -52,6 +61,21 @@ export function useLinkUserByEmail() {
 
       if (existing) {
         throw new Error('Este usuário já está vinculado a esta empresa.');
+      }
+
+      // Also ensure user has 'cliente' role
+      const { data: roleExists } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('role', 'cliente')
+        .maybeSingle();
+
+      if (!roleExists) {
+        // Create cliente role for this user
+        await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'cliente', cliente_id: clienteId });
       }
 
       const { data, error } = await supabase
