@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,7 @@ import { useDistribuicoes, useUpdateDistribuicaoStatus, type StatusDistribuicao 
 import { useClientes } from '@/hooks/useClientes';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatCompetencia, formatDate, getCompetenciaAnterior } from '@/lib/format';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
   Plus,
@@ -275,6 +277,7 @@ function StatusBadge({ status }: { status: StatusDistribuicao }) {
 interface DistribuicaoActionsProps {
   distribuicao: {
     id: string;
+    recibo_numero: string | null;
     recibo_pdf_url: string | null;
     status: StatusDistribuicao;
   };
@@ -284,6 +287,34 @@ interface DistribuicaoActionsProps {
 
 function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActionsProps) {
   const updateStatus = useUpdateDistribuicaoStatus();
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPdf = useCallback(async () => {
+    setDownloading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gerar-recibo-pdf', {
+        body: { distribuicao_id: distribuicao.id },
+      });
+
+      if (error) throw error;
+
+      // data is the HTML string
+      const html = typeof data === 'string' ? data : await new Response(data).text();
+      const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, '_blank');
+      if (w) {
+        w.onload = () => {
+          URL.revokeObjectURL(url);
+          setTimeout(() => w.print(), 500);
+        };
+      }
+    } catch (err: any) {
+      toast.error('Erro ao gerar recibo: ' + (err.message || 'erro desconhecido'));
+    } finally {
+      setDownloading(false);
+    }
+  }, [distribuicao.id]);
 
   const handleStatusChange = async (status: StatusDistribuicao) => {
     await updateStatus.mutateAsync({ id: distribuicao.id, status });
@@ -301,14 +332,10 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
           <Eye className="mr-2 h-4 w-4" />
           Ver detalhes
         </DropdownMenuItem>
-        {distribuicao.recibo_pdf_url && (
-          <DropdownMenuItem asChild>
-            <a href={distribuicao.recibo_pdf_url} target="_blank" rel="noopener noreferrer">
-              <Download className="mr-2 h-4 w-4" />
-              Baixar recibo
-            </a>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={handleDownloadPdf} disabled={downloading}>
+          <Download className="mr-2 h-4 w-4" />
+          {downloading ? 'Gerando...' : 'Baixar Recibo PDF'}
+        </DropdownMenuItem>
         {isAdmin && (
           <>
             <DropdownMenuSeparator />
@@ -337,6 +364,32 @@ interface DistribuicaoDetailDialogProps {
 function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: DistribuicaoDetailDialogProps) {
   const { data: distribuicoes } = useDistribuicoes();
   const distribuicao = distribuicoes?.find((d) => d.id === distribuicaoId);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (!distribuicaoId) return;
+    setDownloading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gerar-recibo-pdf', {
+        body: { distribuicao_id: distribuicaoId },
+      });
+      if (error) throw error;
+      const html = typeof data === 'string' ? data : await new Response(data).text();
+      const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, '_blank');
+      if (w) {
+        w.onload = () => {
+          URL.revokeObjectURL(url);
+          setTimeout(() => w.print(), 500);
+        };
+      }
+    } catch (err: any) {
+      toast.error('Erro ao gerar recibo: ' + (err.message || 'erro desconhecido'));
+    } finally {
+      setDownloading(false);
+    }
+  }, [distribuicaoId]);
 
   if (!distribuicao) {
     return null;
@@ -410,14 +463,10 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
             <p className="text-sm text-muted-foreground">{distribuicao.solicitante_email}</p>
           </div>
 
-          {distribuicao.recibo_pdf_url && (
-            <Button asChild className="w-full gap-2">
-              <a href={distribuicao.recibo_pdf_url} target="_blank" rel="noopener noreferrer">
-                <Download className="h-4 w-4" />
-                Baixar Recibo PDF
-              </a>
-            </Button>
-          )}
+          <Button onClick={handleDownloadPdf} disabled={downloading} className="w-full gap-2">
+            <Download className="h-4 w-4" />
+            {downloading ? 'Gerando...' : 'Baixar Recibo PDF'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
