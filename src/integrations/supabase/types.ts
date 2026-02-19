@@ -362,6 +362,7 @@ export type Database = {
       }
       gerar_numero_recibo: { Args: never; Returns: string }
       get_user_cliente_id: { Args: { _user_id: string }; Returns: string }
+      get_user_email: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
