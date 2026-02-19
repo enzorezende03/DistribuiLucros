@@ -423,8 +423,12 @@ function AdminDashboard() {
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-medium">{alerta.socio?.nome || alerta.cliente?.razao_social}</p>
-                        <p className="text-sm">{alerta.descricao}</p>
+                        <p className="font-medium">{alerta.cliente?.razao_social}</p>
+                        <p className="text-sm">
+                          {alerta.socio?.nome
+                            ? alerta.descricao.replace(/^Sócio/, alerta.socio.nome)
+                            : alerta.descricao}
+                        </p>
                       </div>
                       <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
                         {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
