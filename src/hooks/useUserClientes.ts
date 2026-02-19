@@ -37,6 +37,23 @@ export function useUserClientes(clienteId: string | null) {
   });
 }
 
+export function useUserAllClientes(userId: string | null) {
+  return useQuery({
+    queryKey: ['user_all_clientes', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from('user_clientes')
+        .select('id, cliente_id, clientes:clientes(razao_social, cnpj)')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      return data as { id: string; cliente_id: string; clientes: { razao_social: string; cnpj: string } }[];
+    },
+    enabled: !!userId,
+  });
+}
+
 export function useLinkUserByEmail() {
   const queryClient = useQueryClient();
 
