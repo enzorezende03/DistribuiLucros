@@ -231,6 +231,17 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   <span className="font-bold">Total</span>
                   <span className="font-bold money-value">{formatCurrency(totalMes)}</span>
                 </div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => {
+                    setTotalMesDialogOpen(false);
+                    navigate(`/distribuicoes?competencia=${competenciaAnterior}`);
+                  }}
+                >
+                  <FileText className="h-4 w-4" />
+                  Ver com Mais Detalhes
+                </Button>
               </div>
             ) : (
               <div className="text-center py-8">
@@ -301,6 +312,17 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   <span className="font-bold">Total no Ano</span>
                   <span className="font-bold money-value">{formatCurrency(totalAno)}</span>
                 </div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => {
+                    setTotalAnoDialogOpen(false);
+                    navigate(`/distribuicoes?competencia=${anoAtual}`);
+                  }}
+                >
+                  <FileText className="h-4 w-4" />
+                  Ver com Mais Detalhes
+                </Button>
               </div>
             ) : (
               <div className="text-center py-8">

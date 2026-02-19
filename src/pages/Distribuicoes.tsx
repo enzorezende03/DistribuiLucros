@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ExportDistribuicoesDialog } from '@/components/ExportDistribuicoesDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -80,11 +81,13 @@ const statusConfig: Record<StatusDistribuicao, { label: string; className: strin
 export default function DistribuicoesPage() {
   const { isAdmin, clienteId } = useAuth();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const competenciaParam = searchParams.get('competencia');
   const { data: clientes } = useClientes();
   const queryClienteId = isAdmin ? null : clienteId;
   const { data: socios } = useSocios(queryClienteId);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
-  const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(null);
+  const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(competenciaParam);
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
   const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
