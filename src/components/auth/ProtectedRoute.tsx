@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { user, loading, isAdmin, userRole } = useAuth();
+  const { user, loading, isAdmin, userRole, needsCompanySelection } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -27,7 +27,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Usuário logado mas sem role ainda (pode estar sendo carregado)
+  // Usuário logado mas sem role ainda
   if (!userRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -42,6 +42,11 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         </div>
       </div>
     );
+  }
+
+  // Cliente needs to select a company first
+  if (needsCompanySelection && location.pathname !== '/selecionar-empresa') {
+    return <Navigate to="/selecionar-empresa" replace />;
   }
 
   if (requireAdmin && !isAdmin) {

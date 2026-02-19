@@ -46,9 +46,10 @@ const navItems: NavItem[] = [
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
-  const { user, signOut, isAdmin, isCliente, isImpersonating, impersonatedClienteId, startImpersonating, stopImpersonating } = useAuth();
+  const { user, signOut, isAdmin, isCliente, isImpersonating, impersonatedClienteId, startImpersonating, stopImpersonating, userClientes, selectedClienteId, selectCliente } = useAuth();
   const userRoleRaw = useAuth().userRole;
   const isRealAdmin = userRoleRaw?.role === 'admin';
+  const isClienteWithMultiple = userRoleRaw?.role === 'cliente' && userClientes.length > 1;
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -126,6 +127,33 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                 {clientes?.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.razao_social}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Company switcher for clients with multiple companies */}
+        {isClienteWithMultiple && (
+          <div className="border-t border-sidebar-border p-4">
+            <p className="text-xs text-sidebar-foreground/50 mb-2 px-1 flex items-center gap-1">
+              <Building2 className="h-3 w-3" />
+              Empresa ativa
+            </p>
+            <Select
+              value={selectedClienteId || ''}
+              onValueChange={(v) => {
+                selectCliente(v);
+              }}
+            >
+              <SelectTrigger className="w-full text-xs h-9 bg-sidebar-accent/30 border-sidebar-border">
+                <SelectValue placeholder="Selecione uma empresa" />
+              </SelectTrigger>
+              <SelectContent>
+                {userClientes.map((uc) => (
+                  <SelectItem key={uc.cliente_id} value={uc.cliente_id}>
+                    {uc.razao_social}
                   </SelectItem>
                 ))}
               </SelectContent>
