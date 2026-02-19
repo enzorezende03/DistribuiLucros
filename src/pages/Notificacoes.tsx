@@ -1,0 +1,104 @@
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNotificacoes, useMarkNotificacaoLida, useMarkAllNotificacoesLidas } from '@/hooks/useDistribuicoes';
+import { Bell, CheckCheck, Check, FileText } from 'lucide-react';
+import { formatDate } from '@/lib/format';
+import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+
+export default function NotificacoesPage() {
+  const { clienteId } = useAuth();
+  const { data: notificacoes, isLoading } = useNotificacoes(clienteId, false);
+  const markLida = useMarkNotificacaoLida();
+  const markAllLidas = useMarkAllNotificacoesLidas();
+  const navigate = useNavigate();
+
+  const handleMarkAll = () => {
+    if (clienteId) markAllLidas.mutate(clienteId);
+  };
+
+  return (
+    <SidebarLayout>
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Notificações</h1>
+            <p className="text-muted-foreground">Acompanhe as atualizações das suas distribuições</p>
+          </div>
+          {notificacoes && notificacoes.length > 0 && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleMarkAll}>
+              <CheckCheck className="h-4 w-4" />
+              Marcar todas como lidas
+            </Button>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : !notificacoes || notificacoes.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Bell className="h-12 w-12 mb-4 opacity-30" />
+              <p className="text-lg font-medium">Nenhuma notificação pendente</p>
+              <p className="text-sm">Você será notificado quando houver atualizações nas suas distribuições.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {notificacoes.map((n) => (
+              <Card
+                key={n.id}
+                className={cn(
+                  'transition-all hover:shadow-md',
+                  !n.lida && 'border-primary/30 bg-primary/5'
+                )}
+              >
+                <CardContent className="flex items-start gap-4 p-4">
+                  <div className="mt-1 rounded-full bg-primary/10 p-2">
+                    <Bell className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">{n.titulo}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{n.mensagem}</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {formatDate(n.created_at)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {n.distribuicao_id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1 text-xs"
+                        onClick={() => navigate(`/distribuicoes`)}
+                      >
+                        <FileText className="h-3 w-3" />
+                        Ver
+                      </Button>
+                    )}
+                    {!n.lida && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1 text-xs"
+                        onClick={() => markLida.mutate(n.id)}
+                      >
+                        <Check className="h-3 w-3" />
+                        Lida
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </SidebarLayout>
+  );
+}

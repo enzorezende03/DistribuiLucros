@@ -24,6 +24,7 @@ import {
   TrendingUp,
   Eye,
   ArrowLeft,
+  Bell,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   { href: '/clientes', label: 'Clientes', icon: <Building2 className="h-5 w-5" />, adminOnly: true },
   { href: '/distribuicoes', label: 'Distribuições', icon: <FileText className="h-5 w-5" /> },
   { href: '/alertas', label: 'Alertas', icon: <AlertTriangle className="h-5 w-5" /> },
+  { href: '/notificacoes', label: 'Notificações', icon: <Bell className="h-5 w-5" /> },
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
