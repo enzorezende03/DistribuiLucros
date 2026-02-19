@@ -2,7 +2,15 @@ import { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useClientes } from '@/hooks/useClientes';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   LayoutDashboard,
   Building2,
@@ -14,6 +22,8 @@ import {
   X,
   ChevronRight,
   TrendingUp,
+  Eye,
+  ArrowLeft,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -37,10 +47,13 @@ const navItems: NavItem[] = [
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
-  const { user, signOut, isAdmin, isCliente } = useAuth();
+  const { user, signOut, isAdmin, isCliente, isImpersonating, impersonatedClienteId, startImpersonating, stopImpersonating } = useAuth();
+  const userRoleRaw = useAuth().userRole;
+  const isRealAdmin = userRoleRaw?.role === 'admin';
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: clientes } = useClientes();
 
   const handleSignOut = async () => {
     await signOut();
@@ -87,6 +100,39 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
             <NavLink key={item.href} item={item} />
           ))}
         </nav>
+
+        {/* Impersonation selector for admin */}
+        {isRealAdmin && (
+          <div className="border-t border-sidebar-border p-4">
+            <p className="text-xs text-sidebar-foreground/50 mb-2 px-1 flex items-center gap-1">
+              <Eye className="h-3 w-3" />
+              Ver como cliente
+            </p>
+            <Select
+              value={impersonatedClienteId || 'none'}
+              onValueChange={(v) => {
+                if (v === 'none') {
+                  stopImpersonating();
+                } else {
+                  startImpersonating(v);
+                  navigate('/dashboard');
+                }
+              }}
+            >
+              <SelectTrigger className="w-full text-xs h-9 bg-sidebar-accent/30 border-sidebar-border">
+                <SelectValue placeholder="Selecione um cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Visão Admin —</SelectItem>
+                {clientes?.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.razao_social}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="border-t border-sidebar-border p-4">
           <div className="mb-3 px-3">
@@ -151,14 +197,44 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
         {/* Mobile Content */}
         <main className="flex-1 overflow-auto">
+          <ImpersonationBanner />
           {children}
         </main>
       </div>
 
       {/* Desktop Content */}
       <main className="hidden md:flex flex-1 flex-col overflow-auto">
+        <ImpersonationBanner />
         {children}
       </main>
+    </div>
+  );
+}
+
+function ImpersonationBanner() {
+  const { isImpersonating, impersonatedClienteId, stopImpersonating } = useAuth();
+  const { data: clientes } = useClientes();
+
+  if (!isImpersonating) return null;
+
+  const clienteName = clientes?.find(c => c.id === impersonatedClienteId)?.razao_social;
+
+  return (
+    <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2 text-sm">
+        <Eye className="h-4 w-4 text-primary" />
+        <span className="font-medium">Visualizando como:</span>
+        <span className="text-primary font-semibold">{clienteName || 'Cliente'}</span>
+      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="gap-1 text-xs h-7"
+        onClick={stopImpersonating}
+      >
+        <ArrowLeft className="h-3 w-3" />
+        Voltar ao Admin
+      </Button>
     </div>
   );
 }
