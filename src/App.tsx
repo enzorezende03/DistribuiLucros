@@ -10,7 +10,7 @@ import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/Register";
 import DashboardPage from "@/pages/Dashboard";
 import ClientesPage from "@/pages/Clientes";
-
+import SelecionarEmpresaPage from "@/pages/SelecionarEmpresa";
 import DistribuicoesPage from "@/pages/Distribuicoes";
 import NovaDistribuicaoPage from "@/pages/NovaDistribuicao";
 import AlertasPage from "@/pages/Alertas";
@@ -22,8 +22,8 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 min
-      gcTime: 10 * 60 * 1000, // 10 min
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -47,6 +47,9 @@ function AppRoutes() {
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
 
+      {/* Company selection */}
+      <Route path="/selecionar-empresa" element={<ProtectedRoute><SelecionarEmpresaPage /></ProtectedRoute>} />
+
       {/* Protected routes */}
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/clientes" element={<ProtectedRoute requireAdmin><ClientesPage /></ProtectedRoute>} />
@@ -55,7 +58,7 @@ function AppRoutes() {
       <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
       <Route path="/alertas" element={<ProtectedRoute requireAdmin><AlertasPage /></ProtectedRoute>} />
 
-      {/* Redirect root to dashboard or login */}
+      {/* Redirect root */}
       <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
 
       {/* 404 */}
