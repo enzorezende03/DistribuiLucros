@@ -20,6 +20,11 @@ interface AuthContextType {
   isAdmin: boolean;
   isCliente: boolean;
   clienteId: string | null;
+  // Impersonation
+  isImpersonating: boolean;
+  impersonatedClienteId: string | null;
+  startImpersonating: (clienteId: string) => void;
+  stopImpersonating: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [impersonatedClienteId, setImpersonatedClienteId] = useState<string | null>(null);
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -108,6 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserRole(null);
   };
 
+  const isRealAdmin = userRole?.role === 'admin';
+  const isImpersonating = isRealAdmin && impersonatedClienteId !== null;
+
   const value: AuthContextType = {
     user,
     session,
@@ -116,9 +125,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signOut,
-    isAdmin: userRole?.role === 'admin',
-    isCliente: userRole?.role === 'cliente',
-    clienteId: userRole?.cliente_id ?? null,
+    isAdmin: isRealAdmin && !isImpersonating,
+    isCliente: userRole?.role === 'cliente' || isImpersonating,
+    clienteId: isImpersonating ? impersonatedClienteId : (userRole?.cliente_id ?? null),
+    isImpersonating,
+    impersonatedClienteId,
+    startImpersonating: (clienteId: string) => setImpersonatedClienteId(clienteId),
+    stopImpersonating: () => setImpersonatedClienteId(null),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
