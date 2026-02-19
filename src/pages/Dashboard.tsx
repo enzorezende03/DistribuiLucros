@@ -79,6 +79,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
 
   const [alertasDialogOpen, setAlertasDialogOpen] = useState(false);
   const [totalMesDialogOpen, setTotalMesDialogOpen] = useState(false);
+  const [totalAnoDialogOpen, setTotalAnoDialogOpen] = useState(false);
   const competenciaAnterior = getCompetenciaAnterior();
   const hasConfirmacao = confirmacoes?.some(c => c.competencia === competenciaAnterior);
   const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior);
@@ -153,7 +154,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => setTotalAnoDialogOpen(true)}>
           <div className="stat-card-accent bg-accent" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -162,6 +163,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardHeader>
           <CardContent>
             <p className="money-value-lg">{formatCurrency(totalAno)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Clique para ver detalhes</p>
           </CardContent>
         </Card>
 
@@ -276,6 +278,76 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
                 <p className="text-muted-foreground">Nenhuma distribuição neste mês</p>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Total no Ano por Sócio/Mês */}
+      <Dialog open={totalAnoDialogOpen} onOpenChange={setTotalAnoDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-accent" />
+              Detalhes do Ano — {new Date().getFullYear()}
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const anoAtual = String(new Date().getFullYear());
+            const distAno = distribuicoes?.filter(d => d.competencia.startsWith(anoAtual)) || [];
+            
+            // Build: socio -> { month -> total }
+            const socioMap = new Map<string, { nome: string; meses: Map<string, number>; total: number }>();
+            const allMonths = new Set<string>();
+
+            for (const dist of distAno) {
+              allMonths.add(dist.competencia);
+              for (const item of dist.itens || []) {
+                const nome = item.socio?.nome || 'Desconhecido';
+                if (!socioMap.has(item.socio_id)) {
+                  socioMap.set(item.socio_id, { nome, meses: new Map(), total: 0 });
+                }
+                const s = socioMap.get(item.socio_id)!;
+                s.meses.set(dist.competencia, (s.meses.get(dist.competencia) || 0) + Number(item.valor));
+                s.total += Number(item.valor);
+              }
+            }
+
+            const sortedMonths = Array.from(allMonths).sort();
+            const socioList = Array.from(socioMap.values()).sort((a, b) => b.total - a.total);
+
+            return socioList.length > 0 ? (
+              <div className="space-y-4">
+                {socioList.map((s, i) => (
+                  <div key={i} className="rounded-lg border overflow-hidden">
+                    <div className="flex items-center justify-between p-3 bg-muted/30">
+                      <span className="font-semibold">{s.nome}</span>
+                      <span className="font-bold money-value">{formatCurrency(s.total)}</span>
+                    </div>
+                    <div className="divide-y">
+                      {sortedMonths.map((month) => {
+                        const val = s.meses.get(month);
+                        if (!val) return null;
+                        return (
+                          <div key={month} className="flex items-center justify-between px-3 py-2 text-sm">
+                            <span className="text-muted-foreground">{formatCompetencia(month)}</span>
+                            <span className="font-medium money-value">{formatCurrency(val)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <span className="font-bold">Total no Ano</span>
+                  <span className="font-bold money-value">{formatCurrency(totalAno)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhuma distribuição neste ano</p>
               </div>
             );
           })()}
