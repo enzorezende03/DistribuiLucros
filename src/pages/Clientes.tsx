@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ImportDialog } from '@/components/ImportDialog';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ import {
   Loader2,
   Building2,
   MoreHorizontal,
+  FileSpreadsheet,
   Users,
   ChevronDown,
   ChevronRight,
@@ -88,6 +90,7 @@ export default function ClientesPage() {
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
   const [expandedCliente, setExpandedCliente] = useState<string | null>(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   const filteredClientes = clientes?.filter(
     (cliente) =>
@@ -105,16 +108,26 @@ export default function ClientesPage() {
               Gerencie os clientes e seus sócios
             </p>
           </div>
-          <Button
-            className="gap-2"
-            onClick={() => {
-              setEditingCliente(null);
-              setIsFormOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            Novo Cliente
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => setIsImportOpen(true)}
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Importar
+            </Button>
+            <Button
+              className="gap-2"
+              onClick={() => {
+                setEditingCliente(null);
+                setIsFormOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Novo Cliente
+            </Button>
+          </div>
         </div>
 
         <Card>
@@ -197,6 +210,8 @@ export default function ClientesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
     </SidebarLayout>
   );
 }
