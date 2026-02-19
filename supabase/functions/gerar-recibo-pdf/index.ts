@@ -111,9 +111,8 @@ function buildHtml(dist: any, cliente: any, itens: any[]): string {
     </table>
   </div>
 
-  <div class="signatures">
+  <div style="margin-top:50px;max-width:300px;margin-left:auto;margin-right:auto;">
     <div class="sig-line">Responsável pela Empresa</div>
-    <div class="sig-line">Contador Responsável</div>
   </div>
 
   <div class="footer">
