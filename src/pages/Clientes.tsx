@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { ImportDialog } from '@/components/ImportDialog';
 import { useUserClientes, useUserAllClientes, useLinkUserByEmail, useUnlinkUserFromCliente } from '@/hooks/useUserClientes';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -303,18 +304,6 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           <Users className="h-4 w-4 text-accent" />
           Sócios
         </h4>
-        <Button
-          size="sm"
-          variant="outline"
-          className="gap-1 h-7 text-xs"
-          onClick={() => {
-            setEditingSocio(null);
-            setIsFormOpen(true);
-          }}
-        >
-          <Plus className="h-3 w-3" />
-          Novo Sócio
-        </Button>
       </div>
 
       {isLoading ? (
@@ -587,6 +576,10 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     status: 'ativo',
   });
 
+  const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string }[]>([
+    { nome: '', cpf: '', percentual: '' },
+  ]);
+
   useState(() => {
     if (open && cliente) {
       setFormData({
@@ -606,6 +599,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         telefone: '',
         status: 'ativo',
       });
+      setSocios([{ nome: '', cpf: '', percentual: '' }]);
     }
   });
 
@@ -620,8 +614,38 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     });
   }
 
+  const addSocio = () => {
+    setSocios([...socios, { nome: '', cpf: '', percentual: '' }]);
+  };
+
+  const removeSocio = (index: number) => {
+    if (socios.length <= 1) return;
+    setSocios(socios.filter((_, i) => i !== index));
+  };
+
+  const updateSocio = (index: number, field: string, value: string) => {
+    const updated = [...socios];
+    updated[index] = { ...updated[index], [field]: value };
+    setSocios(updated);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate sócios when creating
+    if (!isEditing) {
+      const validSocios = socios.filter((s) => s.nome.trim() && s.cpf.trim());
+      if (validSocios.length === 0) {
+        toast.error('É obrigatório cadastrar pelo menos um sócio.');
+        return;
+      }
+      for (const s of validSocios) {
+        if (unmask(s.cpf).length !== 11) {
+          toast.error(`CPF inválido para o sócio "${s.nome}".`);
+          return;
+        }
+      }
+    }
 
     const data = {
       ...formData,
@@ -633,7 +657,15 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     if (isEditing) {
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
     } else {
-      await createCliente.mutateAsync(data);
+      const validSocios = socios
+        .filter((s) => s.nome.trim() && s.cpf.trim())
+        .map((s) => ({
+          nome: s.nome.trim(),
+          cpf: unmask(s.cpf),
+          percentual: s.percentual ? parseFloat(s.percentual) : undefined,
+        }));
+
+      await createCliente.mutateAsync({ ...data, socios: validSocios });
     }
 
     onOpenChange(false);
@@ -645,19 +677,20 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       telefone: '',
       status: 'ativo',
     });
+    setSocios([{ nome: '', cpf: '', percentual: '' }]);
   };
 
   const isPending = createCliente.isPending || updateCliente.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
           <DialogDescription>
             {isEditing
               ? 'Atualize as informações do cliente'
-              : 'Preencha os dados do novo cliente'}
+              : 'Preencha os dados do novo cliente e seus sócios'}
           </DialogDescription>
         </DialogHeader>
 
@@ -737,6 +770,71 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               </SelectContent>
             </Select>
           </div>
+
+          {/* Sócios section - only for creation */}
+          {!isEditing && (
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  <Users className="h-4 w-4 text-accent" />
+                  Sócios *
+                </Label>
+                <Button type="button" size="sm" variant="outline" className="gap-1 h-7 text-xs" onClick={addSocio} disabled={isPending}>
+                  <Plus className="h-3 w-3" />
+                  Adicionar Sócio
+                </Button>
+              </div>
+
+              {socios.map((socio, index) => (
+                <div key={index} className="rounded-md border p-3 space-y-2 relative">
+                  {socios.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeSocio(index)}
+                      disabled={isPending}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  <p className="text-xs font-medium text-muted-foreground">Sócio {index + 1}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="sm:col-span-1">
+                      <Input
+                        placeholder="Nome completo *"
+                        value={socio.nome}
+                        onChange={(e) => updateSocio(index, 'nome', e.target.value)}
+                        disabled={isPending}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        placeholder="CPF *"
+                        value={socio.cpf}
+                        onChange={(e) => updateSocio(index, 'cpf', maskCPF(e.target.value))}
+                        maxLength={14}
+                        disabled={isPending}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        placeholder="Percentual (%)"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        value={socio.percentual}
+                        onChange={(e) => updateSocio(index, 'percentual', e.target.value)}
+                        disabled={isPending}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>

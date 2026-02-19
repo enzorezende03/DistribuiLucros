@@ -153,6 +153,13 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           }
         }
 
+        // Validate that each client has at least one sócio
+        for (const [, client] of clientMap) {
+          if (client.socios.length === 0) {
+            client.errors.push('Sócio obrigatório');
+          }
+        }
+
         setParsedClients(Array.from(clientMap.values()));
         setStep('preview');
       } catch {
