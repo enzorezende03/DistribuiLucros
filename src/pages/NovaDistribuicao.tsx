@@ -379,6 +379,28 @@ export default function NovaDistribuicaoPage() {
                   </>
                 )}
 
+                {/* Alerta IR 50k */}
+                {rateio.some((item) => parseFloat(item.valor) > 50000) && (
+                  <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-200 [&>svg]:text-yellow-600">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-sm font-medium">
+                      <strong>Atenção:</strong> Distribuições acima de R$ 50.000,00 por sócio podem estar sujeitas à incidência de <strong>Imposto de Renda (IR) de 10%</strong> sobre o valor excedente. Consulte seu contador para mais informações.
+                      {rateio
+                        .filter((item) => parseFloat(item.valor) > 50000)
+                        .map((item) => {
+                          const socio = sociosAtivos.find((s) => s.id === item.socio_id);
+                          const valor = parseFloat(item.valor);
+                          const ir = (valor - 50000) * 0.1;
+                          return socio ? (
+                            <div key={item.socio_id} className="mt-1 text-xs">
+                              • {socio.nome}: {formatCurrency(valor)} — IR estimado: {formatCurrency(ir)}
+                            </div>
+                          ) : null;
+                        })}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {/* Total */}
                 <div className="flex items-center justify-between p-4 rounded-lg bg-accent/10 border border-accent/20">
                   <div className="flex items-center gap-2">
