@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ImportDialog } from '@/components/ImportDialog';
+import { useUserClientes, useLinkUserByEmail, useUnlinkUserFromCliente } from '@/hooks/useUserClientes';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,8 @@ import {
   Users,
   ChevronDown,
   ChevronRight,
+  Link2,
+  X,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -275,8 +278,9 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
         </div>
 
         <CollapsibleContent>
-          <div className="border-t px-4 pb-4 pt-3">
+          <div className="border-t px-4 pb-4 pt-3 space-y-6">
             <SociosSection clienteId={cliente.id} />
+            <UsuariosVinculadosSection clienteId={cliente.id} />
           </div>
         </CollapsibleContent>
       </div>
@@ -400,6 +404,83 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+// ─── Usuários Vinculados Section ─────────────────────────────────────────
+
+function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
+  const { data: links, isLoading } = useUserClientes(clienteId);
+  const linkUser = useLinkUserByEmail();
+  const unlinkUser = useUnlinkUserFromCliente();
+  const [email, setEmail] = useState('');
+
+  const handleLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    await linkUser.mutateAsync({ email: email.trim(), clienteId });
+    setEmail('');
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-semibold flex items-center gap-2">
+          <Link2 className="h-4 w-4 text-accent" />
+          Usuários Vinculados
+        </h4>
+      </div>
+
+      <form onSubmit={handleLink} className="flex gap-2">
+        <Input
+          type="email"
+          placeholder="E-mail do usuário para vincular..."
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="flex-1 h-8 text-sm"
+          disabled={linkUser.isPending}
+        />
+        <Button
+          type="submit"
+          size="sm"
+          variant="outline"
+          className="gap-1 h-8 text-xs"
+          disabled={linkUser.isPending || !email.trim()}
+        >
+          {linkUser.isPending ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Plus className="h-3 w-3" />
+          )}
+          Vincular
+        </Button>
+      </form>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : links && links.length > 0 ? (
+        <div className="space-y-2">
+          {links.map((link) => (
+            <div key={link.id} className="flex items-center justify-between p-2 rounded-md border text-sm">
+              <span className="font-mono text-xs text-muted-foreground truncate">{link.user_id}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-destructive hover:text-destructive"
+                onClick={() => unlinkUser.mutate({ id: link.id, clienteId })}
+                disabled={unlinkUser.isPending}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground py-2">Nenhum usuário vinculado.</p>
+      )}
     </div>
   );
 }
