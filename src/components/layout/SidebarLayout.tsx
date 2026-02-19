@@ -42,7 +42,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
   { href: '/clientes', label: 'Clientes', icon: <Building2 className="h-5 w-5" />, adminOnly: true },
   { href: '/distribuicoes', label: 'Distribuições', icon: <FileText className="h-5 w-5" /> },
-  { href: '/alertas', label: 'Alertas', icon: <AlertTriangle className="h-5 w-5" />, adminOnly: true },
+  { href: '/alertas', label: 'Alertas', icon: <AlertTriangle className="h-5 w-5" /> },
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {

@@ -16,7 +16,7 @@ import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
 import { formatCurrency, formatCompetencia, getCompetenciaAnterior, formatDate } from '@/lib/format';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   PlusCircle,
   FileText,
@@ -77,8 +77,8 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const markAllLidas = useMarkAllNotificacoesLidas();
   const createConfirmacao = useCreateConfirmacao();
 
-  const [alertasDialogOpen, setAlertasDialogOpen] = useState(false);
   const [totalMesDialogOpen, setTotalMesDialogOpen] = useState(false);
+  const navigate = useNavigate();
   const [totalAnoDialogOpen, setTotalAnoDialogOpen] = useState(false);
   const competenciaAnterior = getCompetenciaAnterior();
   const hasConfirmacao = confirmacoes?.some(c => c.competencia === competenciaAnterior);
@@ -180,7 +180,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardContent>
         </Card>
 
-        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => setAlertasDialogOpen(true)}>
+        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/alertas')}>
           <div className="stat-card-accent bg-warning" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -196,48 +196,6 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
         </Card>
       </div>
 
-      {/* Dialog de Alertas Detalhados */}
-      <Dialog open={alertasDialogOpen} onOpenChange={setAlertasDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-warning" />
-              Alertas Ativos
-            </DialogTitle>
-          </DialogHeader>
-          {alertas && alertas.length > 0 ? (
-            <div className="space-y-3">
-              {alertas.map((alerta) => (
-                <div
-                  key={alerta.id}
-                  className={cn(
-                    'p-4 rounded-lg border',
-                    alerta.tipo === 'ALERTA_50K' ? 'alert-50k' : 'alert-pendente'
-                  )}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium">{alerta.socio?.nome || cliente?.razao_social}</p>
-                      <p className="text-sm text-muted-foreground">{alerta.descricao}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatCompetencia(alerta.competencia)}
-                      </p>
-                    </div>
-                    <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                      {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <CheckCircle2 className="h-12 w-12 text-accent mx-auto mb-4" />
-              <p className="text-muted-foreground">Nenhum alerta ativo</p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Dialog de Total no Mês por Sócio */}
       <Dialog open={totalMesDialogOpen} onOpenChange={setTotalMesDialogOpen}>

@@ -14,6 +14,7 @@ import SelecionarEmpresaPage from "@/pages/SelecionarEmpresa";
 import DistribuicoesPage from "@/pages/Distribuicoes";
 import NovaDistribuicaoPage from "@/pages/NovaDistribuicao";
 import AlertasPage from "@/pages/Alertas";
+import AlertasClientePage from "@/pages/AlertasCliente";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -29,6 +30,11 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function AlertasRoute() {
+  const { isAdmin } = useAuth();
+  return isAdmin ? <AlertasPage /> : <AlertasClientePage />;
+}
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -56,7 +62,7 @@ function AppRoutes() {
       <Route path="/socios" element={<Navigate to="/clientes" replace />} />
       <Route path="/distribuicoes" element={<ProtectedRoute><DistribuicoesPage /></ProtectedRoute>} />
       <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
-      <Route path="/alertas" element={<ProtectedRoute requireAdmin><AlertasPage /></ProtectedRoute>} />
+      <Route path="/alertas" element={<ProtectedRoute><AlertasRoute /></ProtectedRoute>} />
 
       {/* Redirect root */}
       <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
