@@ -292,16 +292,19 @@ export function useBatchUpdateStatus() {
   });
 }
 
-export function useNotificacoes(clienteId?: string | null) {
+export function useNotificacoes(clienteId?: string | null, onlyUnread = true) {
   return useQuery({
-    queryKey: ['notificacoes', clienteId],
+    queryKey: ['notificacoes', clienteId, onlyUnread],
     queryFn: async () => {
       let query = supabase
         .from('notificacoes')
         .select('*')
-        .eq('lida', false)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
+
+      if (onlyUnread) {
+        query = query.eq('lida', false);
+      }
 
       if (clienteId) {
         query = query.eq('cliente_id', clienteId);
