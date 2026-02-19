@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
@@ -20,20 +20,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Download, Upload, Loader2, FileSpreadsheet, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Download, Upload, Loader2, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { unmask } from '@/lib/format';
-
-interface ImportRow {
-  razao_social: string;
-  cnpj: string;
-  email_responsavel: string;
-  email_copia?: string;
-  telefone?: string;
-  socio_nome?: string;
-  socio_cpf?: string;
-  socio_percentual?: string;
-}
 
 interface ParsedClient {
   razao_social: string;
@@ -75,57 +64,82 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
   }, [onOpenChange, resetState]);
 
   const downloadTemplate = useCallback(() => {
-    const header = 'razao_social;cnpj;email_responsavel;email_copia;telefone;socio_nome;socio_cpf;socio_percentual';
-    const example1 = 'Empresa ABC Ltda;12345678000190;contato@empresa.com;;;João da Silva;12345678901;60';
-    const example2 = 'Empresa ABC Ltda;12345678000190;contato@empresa.com;;;Maria Santos;98765432100;40';
-    const example3 = 'Outra Empresa SA;98765432000110;admin@outra.com;copia@outra.com;11999990000;Carlos Pereira;11122233344;100';
+    const data = [
+      {
+        razao_social: 'Empresa ABC Ltda',
+        cnpj: '12345678000190',
+        email_responsavel: 'contato@empresa.com',
+        email_copia: '',
+        telefone: '',
+        socio_nome: 'João da Silva',
+        socio_cpf: '12345678901',
+        socio_percentual: 60,
+      },
+      {
+        razao_social: 'Empresa ABC Ltda',
+        cnpj: '12345678000190',
+        email_responsavel: 'contato@empresa.com',
+        email_copia: '',
+        telefone: '',
+        socio_nome: 'Maria Santos',
+        socio_cpf: '98765432100',
+        socio_percentual: 40,
+      },
+      {
+        razao_social: 'Outra Empresa SA',
+        cnpj: '98765432000110',
+        email_responsavel: 'admin@outra.com',
+        email_copia: 'copia@outra.com',
+        telefone: '11999990000',
+        socio_nome: 'Carlos Pereira',
+        socio_cpf: '11122233344',
+        socio_percentual: 100,
+      },
+    ];
 
-    const csv = [header, example1, example2, example3].join('\n');
-    const bom = '\uFEFF';
-    const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'modelo_importacao_clientes.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
+    XLSX.writeFile(wb, 'modelo_importacao_clientes.xlsx');
   }, []);
 
   const parseFile = useCallback((file: File) => {
-    Papa.parse<Record<string, string>>(file, {
-      header: true,
-      delimiter: ';',
-      skipEmptyLines: true,
-      encoding: 'UTF-8',
-      complete: (results) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' });
+
         const clientMap = new Map<string, ParsedClient>();
 
-        for (const row of results.data) {
-          const cnpj = unmask(row.cnpj || '');
-          const razaoSocial = (row.razao_social || '').trim();
+        for (const row of rows) {
+          const cnpj = unmask(String(row.cnpj || ''));
+          const razaoSocial = String(row.razao_social || '').trim();
 
           if (!razaoSocial || !cnpj) continue;
 
-          const key = cnpj;
-          if (!clientMap.has(key)) {
+          if (!clientMap.has(cnpj)) {
             const errors: string[] = [];
             if (cnpj.length !== 14) errors.push('CNPJ inválido');
-            if (!row.email_responsavel?.trim()) errors.push('E-mail obrigatório');
+            if (!String(row.email_responsavel || '').trim()) errors.push('E-mail obrigatório');
 
-            clientMap.set(key, {
+            clientMap.set(cnpj, {
               razao_social: razaoSocial,
               cnpj,
-              email_responsavel: (row.email_responsavel || '').trim(),
-              email_copia: (row.email_copia || '').trim() || undefined,
-              telefone: row.telefone ? unmask(row.telefone) : undefined,
+              email_responsavel: String(row.email_responsavel || '').trim(),
+              email_copia: String(row.email_copia || '').trim() || undefined,
+              telefone: row.telefone ? unmask(String(row.telefone)) : undefined,
               socios: [],
               errors,
             });
           }
 
-          const client = clientMap.get(key)!;
-          const socioNome = (row.socio_nome || '').trim();
-          const socioCpf = unmask(row.socio_cpf || '');
+          const client = clientMap.get(cnpj)!;
+          const socioNome = String(row.socio_nome || '').trim();
+          const socioCpf = unmask(String(row.socio_cpf || ''));
 
           if (socioNome && socioCpf) {
             if (socioCpf.length !== 11) {
@@ -134,18 +148,18 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
             client.socios.push({
               nome: socioNome,
               cpf: socioCpf,
-              percentual: row.socio_percentual ? parseFloat(row.socio_percentual) : undefined,
+              percentual: row.socio_percentual ? parseFloat(String(row.socio_percentual)) : undefined,
             });
           }
         }
 
         setParsedClients(Array.from(clientMap.values()));
         setStep('preview');
-      },
-      error: () => {
+      } catch {
         toast.error('Erro ao ler o arquivo. Verifique o formato.');
-      },
-    });
+      }
+    };
+    reader.readAsArrayBuffer(file);
   }, []);
 
   const handleFileChange = useCallback(
@@ -168,7 +182,6 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       }
 
       try {
-        // Insert client
         const { data: inserted, error } = await supabase
           .from('clientes')
           .insert({
@@ -183,7 +196,6 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
 
         if (error) throw error;
 
-        // Insert sócios
         if (client.socios.length > 0) {
           const sociosData = client.socios.map((s) => ({
             cliente_id: inserted.id,
@@ -225,7 +237,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
             Importar Clientes e Sócios
           </DialogTitle>
           <DialogDescription>
-            {step === 'upload' && 'Envie um arquivo CSV com os dados dos clientes e sócios.'}
+            {step === 'upload' && 'Envie um arquivo Excel (.xlsx ou .xls) com os dados dos clientes e sócios.'}
             {step === 'preview' && 'Confira os dados antes de importar.'}
             {step === 'done' && 'Importação concluída.'}
           </DialogDescription>
@@ -236,15 +248,15 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
             <div className="border-2 border-dashed rounded-lg p-8 text-center space-y-4">
               <Upload className="h-10 w-10 mx-auto text-muted-foreground" />
               <div>
-                <p className="font-medium">Arraste um arquivo CSV ou clique para selecionar</p>
+                <p className="font-medium">Arraste um arquivo Excel ou clique para selecionar</p>
                 <p className="text-sm text-muted-foreground">
-                  Use ponto-e-vírgula (;) como separador
+                  Formatos aceitos: .xlsx ou .xls
                 </p>
               </div>
               <input
                 ref={fileRef}
                 type="file"
-                accept=".csv"
+                accept=".xlsx,.xls"
                 onChange={handleFileChange}
                 className="hidden"
               />
