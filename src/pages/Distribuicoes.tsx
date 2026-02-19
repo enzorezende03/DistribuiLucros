@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { ExportDistribuicoesDialog } from '@/components/ExportDistribuicoesDialog';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,6 +82,7 @@ export default function DistribuicoesPage() {
   const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
   const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   
   const filterClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: distribuicoes, isLoading } = useDistribuicoes(
@@ -127,14 +129,22 @@ export default function DistribuicoesPage() {
               {isAdmin ? 'Gerencie todas as distribuições de lucros' : 'Suas distribuições de lucros'}
             </p>
           </div>
-          {!isAdmin && (
-            <Link to="/distribuicoes/nova">
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Nova Distribuição
+          <div className="flex gap-2">
+            {isAdmin && (
+              <Button variant="outline" className="gap-2" onClick={() => setIsExportOpen(true)}>
+                <Download className="h-4 w-4" />
+                Exportar
               </Button>
-            </Link>
-          )}
+            )}
+            {!isAdmin && (
+              <Link to="/distribuicoes/nova">
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Nova Distribuição
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         <Card>
@@ -306,6 +316,8 @@ export default function DistribuicoesPage() {
         onClose={() => setViewingDistribuicao(null)}
         isAdmin={isAdmin}
       />
+
+      <ExportDistribuicoesDialog open={isExportOpen} onOpenChange={setIsExportOpen} />
     </SidebarLayout>
   );
 }
