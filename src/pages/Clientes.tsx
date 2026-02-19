@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ImportDialog } from '@/components/ImportDialog';
-import { useUserClientes, useLinkUserByEmail, useUnlinkUserFromCliente } from '@/hooks/useUserClientes';
+import { useUserClientes, useUserAllClientes, useLinkUserByEmail, useUnlinkUserFromCliente } from '@/hooks/useUserClientes';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -464,22 +464,58 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
       ) : links && links.length > 0 ? (
         <div className="space-y-2">
           {links.map((link) => (
-            <div key={link.id} className="flex items-center justify-between p-2 rounded-md border text-sm">
-              <span className="text-sm truncate">{link.email || link.user_id}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-destructive hover:text-destructive"
-                onClick={() => unlinkUser.mutate({ id: link.id, clienteId })}
-                disabled={unlinkUser.isPending}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+            <UserLinkedRow key={link.id} link={link} clienteId={clienteId} />
           ))}
         </div>
       ) : (
         <p className="text-sm text-muted-foreground py-2">Nenhum usuário vinculado.</p>
+      )}
+    </div>
+  );
+}
+
+// ─── User Linked Row with companies ─────────────────────────────────────
+
+function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: string; email?: string }; clienteId: string }) {
+  const unlinkUser = useUnlinkUserFromCliente();
+  const { data: allClientes } = useUserAllClientes(link.user_id);
+  const [expanded, setExpanded] = useState(false);
+  
+  const otherClientes = allClientes?.filter((c) => c.cliente_id !== clienteId) || [];
+
+  return (
+    <div className="rounded-md border text-sm">
+      <div className="flex items-center justify-between p-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="truncate">{link.email || link.user_id}</span>
+          {otherClientes.length > 0 && (
+            <Badge variant="outline" className="text-xs shrink-0 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+              <Building2 className="h-3 w-3 mr-1" />
+              +{otherClientes.length} empresa{otherClientes.length > 1 ? 's' : ''}
+            </Badge>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-destructive hover:text-destructive shrink-0"
+          onClick={() => unlinkUser.mutate({ id: link.id, clienteId })}
+          disabled={unlinkUser.isPending}
+        >
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      {expanded && otherClientes.length > 0 && (
+        <div className="border-t px-3 py-2 space-y-1 bg-muted/30">
+          <p className="text-xs font-medium text-muted-foreground mb-1">Também vinculado a:</p>
+          {otherClientes.map((c) => (
+            <div key={c.id} className="flex items-center gap-2 text-xs">
+              <Building2 className="h-3 w-3 text-muted-foreground" />
+              <span>{c.clientes?.razao_social}</span>
+              <span className="text-muted-foreground font-mono">{c.clientes?.cnpj ? formatCNPJ(c.clientes.cnpj) : ''}</span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
