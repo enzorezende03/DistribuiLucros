@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { ExportDistribuicoesDialog } from '@/components/ExportDistribuicoesDialog';
+import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -21,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, type StatusDistribuicao } from '@/hooks/useDistribuicoes';
+import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, useBatchUpdateStatus, type StatusDistribuicao } from '@/hooks/useDistribuicoes';
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,6 +39,7 @@ import {
   Eye,
   MoreHorizontal,
   Trash2,
+  CheckSquare,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -66,6 +69,7 @@ import {
 import { cn } from '@/lib/utils';
 
 const statusConfig: Record<StatusDistribuicao, { label: string; className: string }> = {
+  ENVIADA_AO_CONTADOR: { label: 'Enviada ao Contador', className: 'status-recebida' },
   RECEBIDA: { label: 'Recebida', className: 'status-recebida' },
   EM_VALIDACAO: { label: 'Em validação', className: 'status-em-validacao' },
   APROVADA: { label: 'Aprovada', className: 'status-aprovada' },
@@ -75,6 +79,7 @@ const statusConfig: Record<StatusDistribuicao, { label: string; className: strin
 
 export default function DistribuicoesPage() {
   const { isAdmin, clienteId } = useAuth();
+  const { user } = useAuth();
   const { data: clientes } = useClientes();
   const queryClienteId = isAdmin ? null : clienteId;
   const { data: socios } = useSocios(queryClienteId);
@@ -83,6 +88,8 @@ export default function DistribuicoesPage() {
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
   const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const batchUpdate = useBatchUpdateStatus();
   
   const filterClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: distribuicoes, isLoading } = useDistribuicoes(
@@ -131,10 +138,36 @@ export default function DistribuicoesPage() {
           </div>
           <div className="flex gap-2">
             {isAdmin && (
-              <Button variant="outline" className="gap-2" onClick={() => setIsExportOpen(true)}>
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
+              <>
+                <Button variant="outline" className="gap-2" onClick={() => setIsExportOpen(true)}>
+                  <Download className="h-4 w-4" />
+                  Exportar
+                </Button>
+                {selectedIds.size > 0 && (
+                  <Button
+                    className="gap-2"
+                    disabled={batchUpdate.isPending}
+                    onClick={() => {
+                      if (!user?.id) return;
+                      const enviadasIds = Array.from(selectedIds).filter(id => {
+                        const d = filteredDistribuicoes?.find(dist => dist.id === id);
+                        return d?.status === 'ENVIADA_AO_CONTADOR';
+                      });
+                      if (enviadasIds.length === 0) {
+                        toast.error('Selecione distribuições com status "Enviada ao Contador"');
+                        return;
+                      }
+                      batchUpdate.mutate(
+                        { ids: enviadasIds, status: 'RECEBIDA', userId: user.id },
+                        { onSuccess: () => setSelectedIds(new Set()) }
+                      );
+                    }}
+                  >
+                    {batchUpdate.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckSquare className="h-4 w-4" />}
+                    Confirmar Recebimento ({selectedIds.size})
+                  </Button>
+                )}
+              </>
             )}
             {!isAdmin && (
               <Link to="/distribuicoes/nova">
@@ -242,6 +275,7 @@ export default function DistribuicoesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      {isAdmin && <TableHead className="w-[40px]"></TableHead>}
                       <TableHead>Recibo</TableHead>
                       {isAdmin && <TableHead>Cliente</TableHead>}
                       <TableHead>Competência</TableHead>
@@ -255,6 +289,21 @@ export default function DistribuicoesPage() {
                   <TableBody>
                     {filteredDistribuicoes.map((dist) => (
                       <TableRow key={dist.id} className="table-row-interactive">
+                        {isAdmin && (
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(dist.id)}
+                              onChange={(e) => {
+                                const next = new Set(selectedIds);
+                                if (e.target.checked) next.add(dist.id);
+                                else next.delete(dist.id);
+                                setSelectedIds(next);
+                              }}
+                              className="h-4 w-4 rounded border-input"
+                            />
+                          </TableCell>
+                        )}
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -344,9 +393,13 @@ interface DistribuicaoActionsProps {
 }
 
 function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActionsProps) {
+  const { user } = useAuth();
   const updateStatus = useUpdateDistribuicaoStatus();
   const deleteDistribuicao = useDeleteDistribuicao();
   const [downloading, setDownloading] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<StatusDistribuicao | null>(null);
+  const [observacao, setObservacao] = useState('');
 
   const handleDownloadPdf = useCallback(async () => {
     setDownloading(true);
@@ -374,74 +427,124 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
     }
   }, [distribuicao.id]);
 
-  const handleStatusChange = async (status: StatusDistribuicao) => {
-    await updateStatus.mutateAsync({ id: distribuicao.id, status });
+  const openStatusDialog = (status: StatusDistribuicao) => {
+    setPendingStatus(status);
+    setObservacao('');
+    setStatusDialogOpen(true);
   };
 
-  const canDelete = !isAdmin && distribuicao.status === 'RECEBIDA';
+  const confirmStatusChange = async () => {
+    if (!pendingStatus || !user?.id) return;
+    await updateStatus.mutateAsync({
+      id: distribuicao.id,
+      status: pendingStatus,
+      observacao: observacao || undefined,
+      userId: user.id,
+    });
+    setStatusDialogOpen(false);
+    setPendingStatus(null);
+    setObservacao('');
+  };
+
+  const canDelete = !isAdmin && distribuicao.status === 'ENVIADA_AO_CONTADOR';
 
   return (
-    <AlertDialog>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onView}>
-            <Eye className="mr-2 h-4 w-4" />
-            Ver detalhes
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDownloadPdf} disabled={downloading}>
-            <Download className="mr-2 h-4 w-4" />
-            {downloading ? 'Gerando...' : 'Baixar Recibo PDF'}
-          </DropdownMenuItem>
-          {isAdmin && (
-            <>
-              <DropdownMenuSeparator />
-              {Object.entries(statusConfig).map(([key, { label }]) => (
-                <DropdownMenuItem
-                  key={key}
-                  onClick={() => handleStatusChange(key as StatusDistribuicao)}
-                  disabled={distribuicao.status === key || updateStatus.isPending}
-                >
-                  Marcar como: {label}
-                </DropdownMenuItem>
-              ))}
-            </>
-          )}
-          {canDelete && (
-            <>
-              <DropdownMenuSeparator />
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Excluir distribuição
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Excluir distribuição?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Tem certeza que deseja excluir a distribuição {distribuicao.recibo_numero}? Esta ação não pode ser desfeita.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => deleteDistribuicao.mutate(distribuicao.id)}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            {deleteDistribuicao.isPending ? 'Excluindo...' : 'Excluir'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      <AlertDialog>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onView}>
+              <Eye className="mr-2 h-4 w-4" />
+              Ver detalhes
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDownloadPdf} disabled={downloading}>
+              <Download className="mr-2 h-4 w-4" />
+              {downloading ? 'Gerando...' : 'Baixar Recibo PDF'}
+            </DropdownMenuItem>
+            {isAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                {Object.entries(statusConfig).map(([key, { label }]) => (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => openStatusDialog(key as StatusDistribuicao)}
+                    disabled={distribuicao.status === key || updateStatus.isPending}
+                  >
+                    Marcar como: {label}
+                  </DropdownMenuItem>
+                ))}
+              </>
+            )}
+            {canDelete && (
+              <>
+                <DropdownMenuSeparator />
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir distribuição
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir distribuição?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a distribuição {distribuicao.recibo_numero}? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteDistribuicao.mutate(distribuicao.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteDistribuicao.isPending ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Status change dialog with observation */}
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar Status</DialogTitle>
+            <DialogDescription>
+              Alterar para: <strong>{pendingStatus ? statusConfig[pendingStatus]?.label : ''}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="observacao">Observação (opcional)</Label>
+              <Textarea
+                id="observacao"
+                placeholder="Adicione uma observação se necessário..."
+                value={observacao}
+                onChange={(e) => setObservacao(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={confirmStatusChange} disabled={updateStatus.isPending}>
+                {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Confirmar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

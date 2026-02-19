@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDistribuicoes } from '@/hooks/useDistribuicoes';
+import { useNotificacoes, useMarkNotificacaoLida, useMarkAllNotificacoesLidas } from '@/hooks/useDistribuicoes';
 import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
@@ -18,6 +19,8 @@ import {
   Calendar,
   XCircle,
   Loader2,
+  Bell,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -62,6 +65,9 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const { data: distribuicoes, isLoading: loadingDist } = useDistribuicoes(clienteId);
   const { data: alertas, isLoading: loadingAlertas } = useAlertas(clienteId, undefined, false);
   const { data: confirmacoes } = useConfirmacoes(clienteId);
+  const { data: notificacoes } = useNotificacoes(clienteId);
+  const markLida = useMarkNotificacaoLida();
+  const markAllLidas = useMarkAllNotificacoesLidas();
   const createConfirmacao = useCreateConfirmacao();
 
   const competenciaAnterior = getCompetenciaAnterior();
@@ -174,6 +180,46 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Notificações */}
+      {notificacoes && notificacoes.length > 0 && (
+        <Card className="border-info/50 bg-info/5">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Bell className="h-5 w-5 text-info" />
+              Notificações ({notificacoes.length})
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => clienteId && markAllLidas.mutate(clienteId)}
+              disabled={markAllLidas.isPending}
+            >
+              Marcar todas como lidas
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {notificacoes.map((n) => (
+                <div key={n.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
+                  <div>
+                    <p className="font-medium text-sm">{n.titulo}</p>
+                    <p className="text-xs text-muted-foreground">{n.mensagem}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={() => markLida.mutate(n.id)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Alertas Ativos */}
@@ -451,6 +497,7 @@ function AdminDashboard() {
 
 function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string }> = {
+    ENVIADA_AO_CONTADOR: { label: 'Enviada ao Contador', className: 'status-recebida' },
     RECEBIDA: { label: 'Recebida', className: 'status-recebida' },
     EM_VALIDACAO: { label: 'Em validação', className: 'status-em-validacao' },
     APROVADA: { label: 'Aprovada', className: 'status-aprovada' },
