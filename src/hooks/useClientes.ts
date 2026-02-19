@@ -23,6 +23,7 @@ export interface CreateClienteData {
   email_copia?: string;
   telefone?: string;
   status?: StatusCliente;
+  socios?: { nome: string; cpf: string; percentual?: number }[];
 }
 
 export function useClientes(options?: { enabled?: boolean }) {
@@ -63,7 +64,7 @@ export function useCreateCliente() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (cliente: CreateClienteData) => {
+    mutationFn: async ({ socios, ...cliente }: CreateClienteData) => {
       const { data, error } = await supabase
         .from('clientes')
         .insert(cliente)
@@ -71,10 +72,28 @@ export function useCreateCliente() {
         .single();
 
       if (error) throw error;
+
+      // Create sócios if provided
+      if (socios && socios.length > 0) {
+        const sociosData = socios.map((s) => ({
+          cliente_id: data.id,
+          nome: s.nome,
+          cpf: s.cpf,
+          percentual: s.percentual ?? null,
+        }));
+
+        const { error: sociosError } = await supabase
+          .from('socios')
+          .insert(sociosData);
+
+        if (sociosError) throw sociosError;
+      }
+
       return data as Cliente;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientes'] });
+      queryClient.invalidateQueries({ queryKey: ['socios'] });
       toast.success('Cliente criado com sucesso!');
     },
     onError: (error) => {
