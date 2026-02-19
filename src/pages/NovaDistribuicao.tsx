@@ -55,8 +55,6 @@ export default function NovaDistribuicaoPage() {
     competencia: competenciaAnterior,
     data_distribuicao: new Date().toISOString().split('T')[0],
     forma_pagamento: '',
-    solicitante_nome: '',
-    solicitante_email: user?.email || '',
   });
 
   const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
@@ -100,14 +98,6 @@ export default function NovaDistribuicaoPage() {
       newErrors.push('Informe a forma de pagamento');
     }
 
-    if (!formData.solicitante_nome) {
-      newErrors.push('Informe o nome do solicitante');
-    }
-
-    if (!formData.solicitante_email) {
-      newErrors.push('Informe o e-mail do solicitante');
-    }
-
     const validRateio = rateio.filter((item) => item.socio_id && parseFloat(item.valor) > 0);
     if (validRateio.length === 0) {
       newErrors.push('Adicione pelo menos um sócio com valor válido');
@@ -148,8 +138,8 @@ export default function NovaDistribuicaoPage() {
       data_distribuicao: formData.data_distribuicao,
       valor_total: valorTotal,
       forma_pagamento: formData.forma_pagamento,
-      solicitante_nome: formData.solicitante_nome,
-      solicitante_email: formData.solicitante_email,
+      solicitante_nome: user?.email || 'Sistema',
+      solicitante_email: user?.email || '',
       itens,
     });
 
@@ -257,35 +247,6 @@ export default function NovaDistribuicaoPage() {
                         <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="solicitante_nome">Nome do Solicitante *</Label>
-                    <Input
-                      id="solicitante_nome"
-                      value={formData.solicitante_nome}
-                      onChange={(e) =>
-                        setFormData({ ...formData, solicitante_nome: e.target.value })
-                      }
-                      placeholder="Nome de quem está registrando"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="solicitante_email">E-mail do Solicitante *</Label>
-                    <Input
-                      id="solicitante_email"
-                      type="email"
-                      value={formData.solicitante_email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, solicitante_email: e.target.value })
-                      }
-                      placeholder="email@exemplo.com"
-                      required
-                    />
                   </div>
                 </div>
               </CardContent>
