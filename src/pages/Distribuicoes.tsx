@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDistribuicoes, useUpdateDistribuicaoStatus, type StatusDistribuicao } from '@/hooks/useDistribuicoes';
+import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatCompetencia, formatDate, getCompetenciaAnterior } from '@/lib/format';
@@ -62,13 +63,16 @@ const statusConfig: Record<StatusDistribuicao, { label: string; className: strin
 export default function DistribuicoesPage() {
   const { isAdmin, clienteId } = useAuth();
   const { data: clientes } = useClientes();
+  const queryClienteId = isAdmin ? null : clienteId;
+  const { data: socios } = useSocios(queryClienteId);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
   const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
+  const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
   
-  const queryClienteId = isAdmin ? selectedClienteId : clienteId;
+  const filterClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: distribuicoes, isLoading } = useDistribuicoes(
-    queryClienteId,
+    filterClienteId,
     selectedCompetencia || undefined
   );
   const [search, setSearch] = useState('');
@@ -87,11 +91,17 @@ export default function DistribuicoesPage() {
   if (selectedStatus) {
     filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.status === selectedStatus);
   }
+  if (selectedSocioId) {
+    filteredDistribuicoes = filteredDistribuicoes?.filter((d) =>
+      d.itens?.some((item) => item.socio_id === selectedSocioId)
+    );
+  }
   if (search) {
     filteredDistribuicoes = filteredDistribuicoes?.filter(
       (d) =>
         d.recibo_numero?.toLowerCase().includes(search.toLowerCase()) ||
-        d.cliente?.razao_social?.toLowerCase().includes(search.toLowerCase())
+        d.cliente?.razao_social?.toLowerCase().includes(search.toLowerCase()) ||
+        d.itens?.some((item) => item.socio?.nome?.toLowerCase().includes(search.toLowerCase()))
     );
   }
 
@@ -170,6 +180,24 @@ export default function DistribuicoesPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                {!isAdmin && socios && socios.length > 0 && (
+                  <Select
+                    value={selectedSocioId || 'all'}
+                    onValueChange={(v) => setSelectedSocioId(v === 'all' ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por sócio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os sócios</SelectItem>
+                      {socios.filter(s => s.ativo).map((socio) => (
+                        <SelectItem key={socio.id} value={socio.id}>
+                          {socio.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -197,6 +225,7 @@ export default function DistribuicoesPage() {
                       <TableHead>Competência</TableHead>
                       <TableHead>Data</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
+                      {!isAdmin && <TableHead>Sócio(s)</TableHead>}
                       <TableHead>Status</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
@@ -222,6 +251,11 @@ export default function DistribuicoesPage() {
                         <TableCell className="text-right font-semibold money-value">
                           {formatCurrency(Number(dist.valor_total))}
                         </TableCell>
+                        {!isAdmin && (
+                          <TableCell className="text-sm">
+                            {dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}
+                          </TableCell>
+                        )}
                         <TableCell>
                           <StatusBadge status={dist.status} />
                         </TableCell>
