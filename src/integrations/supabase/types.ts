@@ -378,6 +378,7 @@ export type Database = {
       resposta_confirmacao: "NAO_HOUVE" | "HOUVE"
       status_cliente: "ativo" | "suspenso"
       status_distribuicao:
+        | "ENVIADA_AO_CONTADOR"
         | "RECEBIDA"
         | "EM_VALIDACAO"
         | "APROVADA"
@@ -515,6 +516,7 @@ export const Constants = {
       resposta_confirmacao: ["NAO_HOUVE", "HOUVE"],
       status_cliente: ["ativo", "suspenso"],
       status_distribuicao: [
+        "ENVIADA_AO_CONTADOR",
         "RECEBIDA",
         "EM_VALIDACAO",
         "APROVADA",

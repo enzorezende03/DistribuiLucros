@@ -1,0 +1,3 @@
+
+-- Add new enum value ENVIADA_AO_CONTADOR
+ALTER TYPE public.status_distribuicao ADD VALUE IF NOT EXISTS 'ENVIADA_AO_CONTADOR' BEFORE 'RECEBIDA';
