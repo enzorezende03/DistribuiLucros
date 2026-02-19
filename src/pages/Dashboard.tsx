@@ -134,7 +134,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-semibold truncate">{cliente?.razao_social || '-'}</p>
+            <p className="text-lg font-semibold break-words">{cliente?.razao_social || '-'}</p>
           </CardContent>
         </Card>
 
