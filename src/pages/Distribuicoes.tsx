@@ -276,19 +276,22 @@ export default function DistribuicoesPage() {
                   <TableHeader>
                     <TableRow>
                       {isAdmin && (
-                        <TableHead className="w-[40px]">
-                          <input
-                            type="checkbox"
-                            checked={filteredDistribuicoes!.length > 0 && filteredDistribuicoes!.every((d) => selectedIds.has(d.id))}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedIds(new Set(filteredDistribuicoes!.map((d) => d.id)));
-                              } else {
-                                setSelectedIds(new Set());
-                              }
-                            }}
-                            className="h-4 w-4 rounded border-input"
-                          />
+                        <TableHead className="w-[160px]">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={filteredDistribuicoes!.length > 0 && filteredDistribuicoes!.every((d) => selectedIds.has(d.id))}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedIds(new Set(filteredDistribuicoes!.map((d) => d.id)));
+                                } else {
+                                  setSelectedIds(new Set());
+                                }
+                              }}
+                              className="h-4 w-4 rounded border-input"
+                            />
+                            <span className="text-xs font-medium">Selecionar Todos</span>
+                          </label>
                         </TableHead>
                       )}
                       <TableHead>Recibo</TableHead>
