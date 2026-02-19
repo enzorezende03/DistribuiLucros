@@ -25,7 +25,7 @@ export interface CreateClienteData {
   status?: StatusCliente;
 }
 
-export function useClientes() {
+export function useClientes(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['clientes'],
     queryFn: async () => {
@@ -37,6 +37,7 @@ export function useClientes() {
       if (error) throw error;
       return data as Cliente[];
     },
+    enabled: options?.enabled !== false,
   });
 }
 

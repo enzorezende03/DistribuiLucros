@@ -25,7 +25,7 @@ import {
   Eye,
   ArrowLeft,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -53,7 +53,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { data: clientes } = useClientes();
+  const { data: clientes } = useClientes({ enabled: isRealAdmin });
 
   const handleSignOut = async () => {
     await signOut();
@@ -213,7 +213,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
 function ImpersonationBanner() {
   const { isImpersonating, impersonatedClienteId, stopImpersonating } = useAuth();
-  const { data: clientes } = useClientes();
+  const { data: clientes } = useClientes({ enabled: isImpersonating });
 
   if (!isImpersonating) return null;
 

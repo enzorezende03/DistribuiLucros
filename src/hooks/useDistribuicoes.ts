@@ -56,13 +56,10 @@ export function useDistribuicoes(clienteId?: string | null, competencia?: string
         .from('distribuicoes')
         .select(`
           *,
-          cliente:clientes(razao_social, cnpj),
-          itens:distribuicao_itens(
-            id, socio_id, valor,
-            socio:socios(nome, cpf)
-          )
+          cliente:clientes(razao_social, cnpj)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (clienteId) {
         query = query.eq('cliente_id', clienteId);
