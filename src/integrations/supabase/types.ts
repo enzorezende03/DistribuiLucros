@@ -353,6 +353,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_user_by_email: {
+        Args: { _email: string }
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       gerar_numero_recibo: { Args: never; Returns: string }
       get_user_cliente_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
