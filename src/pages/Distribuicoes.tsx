@@ -57,6 +57,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -349,7 +354,7 @@ export default function DistribuicoesPage() {
                           </TableCell>
                         )}
                         <TableCell>
-                          <StatusBadge status={dist.status} />
+                          <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} />
                         </TableCell>
                         <TableCell>
                           <DistribuicaoActions
@@ -399,6 +404,76 @@ function StatusBadge({ status }: { status: StatusDistribuicao }) {
     <Badge variant="outline" className={cn('text-xs', config.className)}>
       {config.label}
     </Badge>
+  );
+}
+
+function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribuicaoId: string; status: StatusDistribuicao; isAdmin: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [historico, setHistorico] = useState<{ status_novo: string; observacao: string | null; created_at: string }[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleOpen = async (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen && !historico) {
+      setLoading(true);
+      const { data } = await supabase
+        .from('distribuicao_historico')
+        .select('status_novo, observacao, created_at')
+        .eq('distribuicao_id', distribuicaoId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      setHistorico(data || []);
+      setLoading(false);
+    }
+  };
+
+  if (isAdmin) {
+    return <StatusBadge status={status} />;
+  }
+
+  return (
+    <Popover open={open} onOpenChange={handleOpen}>
+      <PopoverTrigger asChild>
+        <button className="cursor-pointer">
+          <StatusBadge status={status} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="start">
+        <div className="p-3 border-b">
+          <p className="font-semibold text-sm">Histórico de Status</p>
+        </div>
+        <div className="max-h-60 overflow-auto">
+          {loading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </div>
+          ) : !historico || historico.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-3">Nenhum histórico disponível.</p>
+          ) : (
+            <div className="divide-y">
+              {historico.map((h, i) => {
+                const cfg = statusConfig[h.status_novo as StatusDistribuicao];
+                return (
+                  <div key={i} className="p-3 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline" className={cn('text-xs', cfg?.className)}>
+                        {cfg?.label || h.status_novo}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">{formatDate(h.created_at)}</span>
+                    </div>
+                    {h.observacao && (
+                      <p className="text-sm text-muted-foreground bg-muted/50 rounded px-2 py-1 italic">
+                        {h.observacao}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
