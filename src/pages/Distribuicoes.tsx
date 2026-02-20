@@ -136,7 +136,7 @@ export default function DistribuicoesPage() {
 
   return (
     <SidebarLayout>
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-hidden">
         <div className="page-header">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Distribuições</h1>
@@ -273,13 +273,13 @@ export default function DistribuicoesPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredDistribuicoes && filteredDistribuicoes.length > 0 ? (
-              <div className="rounded-md border overflow-x-auto">
+              <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
