@@ -283,8 +283,8 @@ export default function DistribuicoesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {isAdmin && (
-                        <TableHead className="w-[160px]">
+                     {isAdmin && (
+                        <TableHead className="w-[160px] hidden sm:table-cell">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="checkbox"
@@ -303,11 +303,11 @@ export default function DistribuicoesPage() {
                         </TableHead>
                       )}
                       <TableHead>Recibo</TableHead>
-                      {isAdmin && <TableHead>Cliente</TableHead>}
-                      <TableHead>Competência</TableHead>
-                      <TableHead>Data</TableHead>
+                      {isAdmin && <TableHead className="hidden md:table-cell">Cliente</TableHead>}
+                      <TableHead className="hidden sm:table-cell">Competência</TableHead>
+                      <TableHead className="hidden lg:table-cell">Data</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
-                      {!isAdmin && <TableHead>Sócio(s)</TableHead>}
+                      {!isAdmin && <TableHead className="hidden sm:table-cell">Sócio(s)</TableHead>}
                       <TableHead>Status</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
@@ -316,7 +316,7 @@ export default function DistribuicoesPage() {
                     {filteredDistribuicoes.map((dist) => (
                       <TableRow key={dist.id} className="table-row-interactive">
                         {isAdmin && (
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <input
                               type="checkbox"
                               checked={selectedIds.has(dist.id)}
@@ -332,24 +332,28 @@ export default function DistribuicoesPage() {
                         )}
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center">
+                            <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                               <FileText className="h-4 w-4 text-accent" />
                             </div>
-                            <span className="font-mono text-sm">{dist.recibo_numero}</span>
+                            <div>
+                              <span className="font-mono text-sm">{dist.recibo_numero}</span>
+                              <p className="text-xs text-muted-foreground md:hidden">{isAdmin ? dist.cliente?.razao_social : dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ')}</p>
+                              <p className="text-xs text-muted-foreground sm:hidden">{formatCompetencia(dist.competencia)}</p>
+                            </div>
                           </div>
                         </TableCell>
                         {isAdmin && (
-                          <TableCell className="font-medium">
+                          <TableCell className="font-medium hidden md:table-cell">
                             {dist.cliente?.razao_social}
                           </TableCell>
                         )}
-                        <TableCell>{formatCompetencia(dist.competencia)}</TableCell>
-                        <TableCell>{formatDate(dist.data_distribuicao)}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{formatCompetencia(dist.competencia)}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{formatDate(dist.data_distribuicao)}</TableCell>
                         <TableCell className="text-right font-semibold money-value">
                           {formatCurrency(Number(dist.valor_total))}
                         </TableCell>
                         {!isAdmin && (
-                          <TableCell className="text-sm">
+                          <TableCell className="text-sm hidden sm:table-cell">
                             {dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}
                           </TableCell>
                         )}

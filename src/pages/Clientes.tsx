@@ -311,23 +311,23 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : socios && socios.length > 0 ? (
-        <div className="rounded-md border">
-          <Table>
+        <div className="rounded-md border overflow-x-auto">
+           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>CPF</TableHead>
-                <TableHead>Percentual</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                 <TableHead className="hidden sm:table-cell">CPF</TableHead>
+                 <TableHead className="hidden sm:table-cell">Percentual</TableHead>
+                 <TableHead>Status</TableHead>
+                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {socios.map((socio) => (
                 <TableRow key={socio.id}>
                   <TableCell className="font-medium">{socio.nome}</TableCell>
-                  <TableCell className="font-mono text-sm">{formatCPF(socio.cpf)}</TableCell>
-                  <TableCell>{socio.percentual ? `${socio.percentual}%` : '—'}</TableCell>
+                  <TableCell className="font-mono text-sm hidden sm:table-cell">{formatCPF(socio.cpf)}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{socio.percentual ? `${socio.percentual}%` : '—'}</TableCell>
                   <TableCell>
                     <Badge
                       variant={socio.ativo ? 'default' : 'secondary'}
