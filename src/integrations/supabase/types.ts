@@ -278,6 +278,7 @@ export type Database = {
           created_at: string
           distribuicao_id: string | null
           id: string
+          is_admin_notificacao: boolean
           lida: boolean
           mensagem: string
           titulo: string
@@ -287,6 +288,7 @@ export type Database = {
           created_at?: string
           distribuicao_id?: string | null
           id?: string
+          is_admin_notificacao?: boolean
           lida?: boolean
           mensagem: string
           titulo: string
@@ -296,6 +298,7 @@ export type Database = {
           created_at?: string
           distribuicao_id?: string | null
           id?: string
+          is_admin_notificacao?: boolean
           lida?: boolean
           mensagem?: string
           titulo?: string

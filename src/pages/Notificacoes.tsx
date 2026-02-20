@@ -10,14 +10,19 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 export default function NotificacoesPage() {
-  const { clienteId } = useAuth();
-  const { data: notificacoes, isLoading } = useNotificacoes(clienteId, false);
+  const { clienteId, isAdmin } = useAuth();
+  const { data: notificacoes, isLoading } = useNotificacoes(clienteId, false, isAdmin);
   const markLida = useMarkNotificacaoLida();
   const markAllLidas = useMarkAllNotificacoesLidas();
   const navigate = useNavigate();
 
   const handleMarkAll = () => {
-    if (clienteId) markAllLidas.mutate(clienteId);
+    if (isAdmin) {
+      // Mark all admin notifications as read
+      notificacoes?.filter(n => !n.lida).forEach(n => markLida.mutate(n.id));
+    } else if (clienteId) {
+      markAllLidas.mutate(clienteId);
+    }
   };
 
   return (

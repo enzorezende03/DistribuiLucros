@@ -1,0 +1,1 @@
+ALTER TABLE public.notificacoes ADD COLUMN is_admin_notificacao boolean NOT NULL DEFAULT false;
