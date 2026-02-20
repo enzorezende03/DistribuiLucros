@@ -279,7 +279,7 @@ export default function DistribuicoesPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredDistribuicoes && filteredDistribuicoes.length > 0 ? (
-              <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
