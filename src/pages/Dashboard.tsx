@@ -28,8 +28,11 @@ import {
   Loader2,
   Bell,
   X,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function DashboardPage() {
   const { isAdmin, clienteId } = useAuth();
@@ -334,44 +337,13 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
         </DialogContent>
       </Dialog>
 
-      {notificacoes && notificacoes.length > 0 && (
-        <Card className="border-info/50 bg-info/5">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Bell className="h-5 w-5 text-info" />
-              Notificações ({notificacoes.length})
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => clienteId && markAllLidas.mutate(clienteId)}
-              disabled={markAllLidas.isPending}
-            >
-              Marcar todas como lidas
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {notificacoes.map((n) => (
-                <div key={n.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
-                  <div>
-                    <p className="font-medium text-sm">{n.titulo}</p>
-                    <p className="text-xs text-muted-foreground">{n.mensagem}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0"
-                    onClick={() => markLida.mutate(n.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Notificações e Pendências lado a lado */}
+      <NotificacoesPendenciasSection
+        clienteId={clienteId}
+        notificacoes={notificacoes}
+        markLida={markLida}
+        markAllLidas={markAllLidas}
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Alertas Ativos */}
@@ -474,6 +446,146 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
         </Card>
       </div>
     </>
+  );
+}
+
+function usePendenciasDashboard(clienteId?: string | null) {
+  return useQuery({
+    queryKey: ['pendencias-dashboard', clienteId],
+    queryFn: async () => {
+      let distQuery = supabase
+        .from('distribuicoes')
+        .select('id, competencia, valor_total, recibo_numero')
+        .eq('status', 'AJUSTE_SOLICITADO');
+
+      if (clienteId) {
+        distQuery = distQuery.eq('cliente_id', clienteId);
+      }
+
+      const { data: dists } = await distQuery;
+      if (!dists || dists.length === 0) return [];
+
+      const distIds = dists.map((d: any) => d.id);
+      const distMap = new Map(dists.map((d: any) => [d.id, d]));
+
+      const { data } = await supabase
+        .from('distribuicao_historico')
+        .select('id, observacao, created_at, distribuicao_id')
+        .eq('status_novo', 'AJUSTE_SOLICITADO')
+        .in('distribuicao_id', distIds)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      return (data || []).map((h: any) => ({
+        ...h,
+        distribuicao: distMap.get(h.distribuicao_id) || null,
+      })).filter((d: any) => d.distribuicao);
+    },
+    enabled: !!clienteId,
+  });
+}
+
+function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, markAllLidas }: {
+  clienteId: string | null;
+  notificacoes: any[] | undefined;
+  markLida: any;
+  markAllLidas: any;
+}) {
+  const { data: pendencias } = usePendenciasDashboard(clienteId);
+  const navigate = useNavigate();
+  const hasNotificacoes = notificacoes && notificacoes.length > 0;
+  const hasPendencias = pendencias && pendencias.length > 0;
+
+  if (!hasNotificacoes && !hasPendencias) return null;
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      {/* Notificações */}
+      <Card className="border-info/50 bg-info/5">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Bell className="h-5 w-5 text-info" />
+            Notificações ({notificacoes?.length || 0})
+          </CardTitle>
+          {hasNotificacoes && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => clienteId && markAllLidas.mutate(clienteId)}
+              disabled={markAllLidas.isPending}
+            >
+              Marcar todas como lidas
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {hasNotificacoes ? (
+            <div className="space-y-2">
+              {notificacoes!.slice(0, 5).map((n) => (
+                <div key={n.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
+                  <div>
+                    <p className="font-medium text-sm">{n.titulo}</p>
+                    <p className="text-xs text-muted-foreground">{n.mensagem}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="shrink-0" onClick={() => markLida.mutate(n.id)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {notificacoes!.length > 5 && (
+                <Button variant="link" size="sm" className="w-full" onClick={() => navigate('/notificacoes')}>
+                  Ver todas ({notificacoes!.length})
+                </Button>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">Nenhuma notificação pendente</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pendências */}
+      <Card className="border-yellow-500/30 bg-yellow-500/5">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-yellow-600" />
+            Pendências ({pendencias?.length || 0})
+          </CardTitle>
+          {hasPendencias && (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/pendencias')}>
+              Ver todas
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {hasPendencias ? (
+            <div className="space-y-2">
+              {pendencias!.slice(0, 5).map((p: any) => (
+                <div key={p.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm">Ajuste Solicitado</p>
+                      {p.distribuicao?.competencia && (
+                        <Badge variant="secondary" className="text-xs">{p.distribuicao.competencia}</Badge>
+                      )}
+                    </div>
+                    {p.observacao && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">{p.observacao}</p>
+                    )}
+                  </div>
+                  <Button variant="ghost" size="sm" className="shrink-0 gap-1 text-xs" onClick={() => navigate('/distribuicoes')}>
+                    <FileText className="h-3 w-3" />
+                    Ver
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">Nenhuma pendência</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
