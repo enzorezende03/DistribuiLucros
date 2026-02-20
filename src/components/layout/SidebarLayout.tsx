@@ -17,6 +17,7 @@ import {
   Users,
   FileText,
   AlertTriangle,
+  AlertCircle,
   LogOut,
   Menu,
   X,
@@ -45,6 +46,7 @@ const navItems: NavItem[] = [
   { href: '/distribuicoes', label: 'Distribuições', icon: <FileText className="h-5 w-5" /> },
   { href: '/alertas', label: 'Alertas', icon: <AlertTriangle className="h-5 w-5" /> },
   { href: '/notificacoes', label: 'Notificações', icon: <Bell className="h-5 w-5" /> },
+  { href: '/pendencias', label: 'Pendências', icon: <AlertCircle className="h-5 w-5" /> },
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {

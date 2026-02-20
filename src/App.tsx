@@ -16,6 +16,7 @@ import NovaDistribuicaoPage from "@/pages/NovaDistribuicao";
 import AlertasPage from "@/pages/Alertas";
 import AlertasClientePage from "@/pages/AlertasCliente";
 import NotificacoesPage from "@/pages/Notificacoes";
+import PendenciasPage from "@/pages/Pendencias";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -65,6 +66,7 @@ function AppRoutes() {
       <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
       <Route path="/alertas" element={<ProtectedRoute><AlertasRoute /></ProtectedRoute>} />
       <Route path="/notificacoes" element={<ProtectedRoute><NotificacoesPage /></ProtectedRoute>} />
+      <Route path="/pendencias" element={<ProtectedRoute><PendenciasPage /></ProtectedRoute>} />
 
       {/* Redirect root */}
       <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
