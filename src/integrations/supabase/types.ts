@@ -138,6 +138,7 @@ export type Database = {
           created_at: string
           distribuicao_id: string
           id: string
+          lida: boolean
           observacao: string | null
           status_anterior:
             | Database["public"]["Enums"]["status_distribuicao"]
@@ -149,6 +150,7 @@ export type Database = {
           created_at?: string
           distribuicao_id: string
           id?: string
+          lida?: boolean
           observacao?: string | null
           status_anterior?:
             | Database["public"]["Enums"]["status_distribuicao"]
@@ -160,6 +162,7 @@ export type Database = {
           created_at?: string
           distribuicao_id?: string
           id?: string
+          lida?: boolean
           observacao?: string | null
           status_anterior?:
             | Database["public"]["Enums"]["status_distribuicao"]
