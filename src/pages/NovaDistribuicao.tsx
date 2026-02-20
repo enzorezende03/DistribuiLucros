@@ -17,6 +17,7 @@ import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
 import { useCreateDistribuicao } from '@/hooks/useDistribuicoes';
 import { formatCurrency, formatCompetencia, getCompetenciaAnterior, formatCPF } from '@/lib/format';
+import { toast } from 'sonner';
 import {
   Plus,
   Trash2,
@@ -117,6 +118,10 @@ export default function NovaDistribuicaoPage() {
     });
 
     setErrors(newErrors);
+    if (newErrors.length > 0) {
+      toast.error(newErrors[0]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     return newErrors.length === 0;
   };
 
