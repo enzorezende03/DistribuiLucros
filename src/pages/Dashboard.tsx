@@ -40,10 +40,10 @@ export default function DashboardPage() {
   
   return (
     <SidebarLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
               {isAdmin ? 'Visão geral do sistema' : 'Suas distribuições de lucros'}
             </p>
@@ -346,7 +346,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
         markAllLidas={markAllLidas}
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
         {/* Alertas Ativos */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -530,22 +530,26 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
   });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
       {/* Notificações */}
       <Card className="border-info/50 bg-info/5">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+        <CardHeader className="flex flex-row items-center justify-between pb-3 gap-2">
+          <CardTitle className="text-base md:text-lg flex items-center gap-2 shrink-0">
             <Bell className="h-5 w-5 text-info" />
-            Notificações ({notificacoes?.length || 0})
+            <span className="hidden sm:inline">Notificações</span>
+            <span className="sm:hidden">Notif.</span>
+            ({notificacoes?.length || 0})
           </CardTitle>
           {hasNotificacoes && (
             <Button
               variant="ghost"
               size="sm"
+              className="text-xs shrink-0"
               onClick={() => clienteId && markAllLidas.mutate(clienteId)}
               disabled={markAllLidas.isPending}
             >
-              Marcar todas como lidas
+              <span className="hidden sm:inline">Marcar todas como lidas</span>
+              <span className="sm:hidden">Marcar lidas</span>
             </Button>
           )}
         </CardHeader>
@@ -577,19 +581,23 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
 
       {/* Pendências */}
       <Card className="border-warning/30 bg-warning/5">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+        <CardHeader className="flex flex-row items-center justify-between pb-3 gap-2">
+          <CardTitle className="text-base md:text-lg flex items-center gap-2 shrink-0">
             <AlertCircle className="h-5 w-5 text-warning" />
-            Pendências ({pendencias?.length || 0})
+            <span className="hidden sm:inline">Pendências</span>
+            <span className="sm:hidden">Pend.</span>
+            ({pendencias?.length || 0})
           </CardTitle>
           {hasPendencias && (
             <Button
               variant="ghost"
               size="sm"
+              className="text-xs shrink-0"
               onClick={() => markAllPendenciasLidas.mutate()}
               disabled={markAllPendenciasLidas.isPending}
             >
-              Marcar todas como lidas
+              <span className="hidden sm:inline">Marcar todas como lidas</span>
+              <span className="sm:hidden">Marcar lidas</span>
             </Button>
           )}
         </CardHeader>
@@ -691,7 +699,7 @@ function AdminDashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
         {/* Alertas */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">

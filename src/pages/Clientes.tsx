@@ -104,10 +104,10 @@ export default function ClientesPage() {
 
   return (
     <SidebarLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Clientes</h1>
             <p className="text-muted-foreground">
               Gerencie os clientes e seus sócios
             </p>

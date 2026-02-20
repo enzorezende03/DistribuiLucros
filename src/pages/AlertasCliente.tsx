@@ -59,10 +59,10 @@ export default function AlertasClientePage() {
 
   return (
     <SidebarLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Alertas</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Alertas</h1>
             <p className="text-muted-foreground">
               Monitore alertas de valores elevados e pendências
             </p>

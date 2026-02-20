@@ -181,7 +181,7 @@
 
   /* Stat card */
   .stat-card {
-    @apply relative overflow-hidden rounded-lg border bg-card p-6 shadow-sm min-w-0;
+    @apply relative overflow-hidden rounded-lg border bg-card p-4 md:p-6 shadow-sm min-w-0;
   }
 
   .stat-card-accent {
@@ -195,7 +195,7 @@
 
   /* Dashboard grid */
   .dashboard-grid {
-    @apply grid gap-4 md:grid-cols-2 lg:grid-cols-4;
+    @apply grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4;
   }
 
   /* Money value display */
@@ -204,7 +204,7 @@
   }
 
   .money-value-lg {
-    @apply text-base sm:text-lg lg:text-2xl font-bold font-mono tabular-nums text-foreground whitespace-nowrap;
+    @apply text-sm sm:text-lg lg:text-2xl font-bold font-mono tabular-nums text-foreground;
   }
 
   /* Navigation active state */
@@ -214,7 +214,7 @@
 
   /* Page header */
   .page-header {
-    @apply flex flex-col gap-4 md:flex-row md:items-center md:justify-between;
+    @apply flex flex-col gap-3 md:gap-4 md:flex-row md:items-center md:justify-between;
   }
 
   /* Empty state */

@@ -153,7 +153,7 @@ export default function NovaDistribuicaoPage() {
 
   return (
     <SidebarLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
