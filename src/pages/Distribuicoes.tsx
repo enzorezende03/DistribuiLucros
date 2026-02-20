@@ -442,7 +442,7 @@ function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribui
           <StatusBadge status={status} />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
+      <PopoverContent className="w-80 p-0" align="end" sideOffset={8}>
         <div className="p-3 border-b">
           <p className="font-semibold text-sm">Histórico de Status</p>
         </div>
