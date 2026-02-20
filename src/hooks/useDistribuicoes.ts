@@ -138,10 +138,29 @@ export function useCreateDistribuicao() {
 
       if (itensError) throw itensError;
 
+      // Get client name for admin notification
+      const { data: clienteData } = await supabase
+        .from('clientes')
+        .select('razao_social')
+        .eq('id', distribuicao.cliente_id)
+        .single();
+
+      const nomeEmpresa = clienteData?.razao_social || 'Empresa';
+
+      // Create admin notification
+      await supabase.from('notificacoes').insert({
+        cliente_id: distribuicao.cliente_id,
+        distribuicao_id: data.id,
+        titulo: `Nova distribuição recebida: ${nomeEmpresa}`,
+        mensagem: `A empresa ${nomeEmpresa} enviou uma nova distribuição no valor de R$ ${distribuicao.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} para a competência ${distribuicao.competencia}.`,
+        is_admin_notificacao: true,
+      });
+
       return data as Distribuicao;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['distribuicoes'] });
+      queryClient.invalidateQueries({ queryKey: ['notificacoes'] });
       toast.success('Distribuição registrada com sucesso!');
     },
     onError: (error) => {
@@ -292,9 +311,9 @@ export function useBatchUpdateStatus() {
   });
 }
 
-export function useNotificacoes(clienteId?: string | null, onlyUnread = true) {
+export function useNotificacoes(clienteId?: string | null, onlyUnread = true, isAdmin = false) {
   return useQuery({
-    queryKey: ['notificacoes', clienteId, onlyUnread],
+    queryKey: ['notificacoes', clienteId, onlyUnread, isAdmin],
     queryFn: async () => {
       let query = supabase
         .from('notificacoes')
@@ -306,15 +325,20 @@ export function useNotificacoes(clienteId?: string | null, onlyUnread = true) {
         query = query.eq('lida', false);
       }
 
-      if (clienteId) {
-        query = query.eq('cliente_id', clienteId);
+      if (isAdmin) {
+        query = query.eq('is_admin_notificacao', true);
+      } else {
+        query = query.eq('is_admin_notificacao', false);
+        if (clienteId) {
+          query = query.eq('cliente_id', clienteId);
+        }
       }
 
       const { data, error } = await query;
       if (error) throw error;
       return data;
     },
-    enabled: !!clienteId,
+    enabled: isAdmin || !!clienteId,
   });
 }
 

@@ -38,6 +38,7 @@ interface NavItem {
   label: string;
   icon: ReactNode;
   adminOnly?: boolean;
+  clienteOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -46,7 +47,7 @@ const navItems: NavItem[] = [
   { href: '/distribuicoes', label: 'Distribuições', icon: <FileText className="h-5 w-5" /> },
   { href: '/alertas', label: 'Alertas', icon: <AlertTriangle className="h-5 w-5" /> },
   { href: '/notificacoes', label: 'Notificações', icon: <Bell className="h-5 w-5" /> },
-  { href: '/pendencias', label: 'Pendências', icon: <AlertCircle className="h-5 w-5" /> },
+  { href: '/pendencias', label: 'Pendências', icon: <AlertCircle className="h-5 w-5" />, clienteOnly: true },
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
@@ -66,6 +67,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
   const filteredNavItems = navItems.filter((item) => {
     if (item.adminOnly && !isAdmin) return false;
+    if (item.clienteOnly && isAdmin) return false;
     return true;
   });
 
