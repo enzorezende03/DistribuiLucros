@@ -46,8 +46,9 @@ function usePendencias(clienteId?: string | null) {
 
       const { data, error } = await supabase
         .from('distribuicao_historico')
-        .select('id, observacao, created_at, distribuicao_id')
+        .select('id, observacao, created_at, distribuicao_id, lida')
         .eq('status_novo', 'AJUSTE_SOLICITADO')
+        .eq('lida', false)
         .in('distribuicao_id', distIds)
         .order('created_at', { ascending: false })
         .limit(50);

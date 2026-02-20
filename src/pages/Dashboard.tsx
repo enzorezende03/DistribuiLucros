@@ -12,6 +12,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useDistribuicoes } from '@/hooks/useDistribuicoes';
 import { useNotificacoes, useMarkNotificacaoLida, useMarkAllNotificacoesLidas } from '@/hooks/useDistribuicoes';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
@@ -470,8 +471,9 @@ function usePendenciasDashboard(clienteId?: string | null) {
 
       const { data } = await supabase
         .from('distribuicao_historico')
-        .select('id, observacao, created_at, distribuicao_id')
+        .select('id, observacao, created_at, distribuicao_id, lida')
         .eq('status_novo', 'AJUSTE_SOLICITADO')
+        .eq('lida', false)
         .in('distribuicao_id', distIds)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -493,10 +495,39 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
 }) {
   const { data: pendencias } = usePendenciasDashboard(clienteId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const hasNotificacoes = notificacoes && notificacoes.length > 0;
   const hasPendencias = pendencias && pendencias.length > 0;
 
-  if (!hasNotificacoes && !hasPendencias) return null;
+  const markPendenciaLida = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('distribuicao_historico')
+        .update({ lida: true })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pendencias-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias'] });
+    },
+  });
+
+  const markAllPendenciasLidas = useMutation({
+    mutationFn: async () => {
+      if (!pendencias) return;
+      const ids = pendencias.map((p: any) => p.id);
+      const { error } = await supabase
+        .from('distribuicao_historico')
+        .update({ lida: true })
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pendencias-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias'] });
+    },
+  });
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -545,15 +576,20 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
       </Card>
 
       {/* Pendências */}
-      <Card className="border-yellow-500/30 bg-yellow-500/5">
+      <Card className="border-warning/30 bg-warning/5">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-600" />
+            <AlertCircle className="h-5 w-5 text-warning" />
             Pendências ({pendencias?.length || 0})
           </CardTitle>
           {hasPendencias && (
-            <Button variant="ghost" size="sm" onClick={() => navigate('/pendencias')}>
-              Ver todas
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => markAllPendenciasLidas.mutate()}
+              disabled={markAllPendenciasLidas.isPending}
+            >
+              Marcar todas como lidas
             </Button>
           )}
         </CardHeader>
@@ -573,9 +609,8 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
                       <p className="text-xs text-muted-foreground mt-1 italic">{p.observacao}</p>
                     )}
                   </div>
-                  <Button variant="ghost" size="sm" className="shrink-0 gap-1 text-xs" onClick={() => navigate('/distribuicoes')}>
-                    <FileText className="h-3 w-3" />
-                    Ver
+                  <Button variant="ghost" size="icon" className="shrink-0" onClick={() => markPendenciaLida.mutate(p.id)}>
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
