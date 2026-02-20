@@ -141,15 +141,15 @@ export default function AlertasClientePage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : alertas && alertas.length > 0 ? (
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Sócio</TableHead>
-                      <TableHead>Competência</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Data</TableHead>
+                      <TableHead className="hidden sm:table-cell">Competência</TableHead>
+                      <TableHead className="hidden md:table-cell">Descrição</TableHead>
+                      <TableHead className="hidden sm:table-cell">Data</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -167,13 +167,13 @@ export default function AlertasClientePage() {
                           <TableCell className="font-medium">
                             {alerta.socio?.nome || '-'}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             {formatCompetencia(alerta.competencia)}
                           </TableCell>
-                          <TableCell className="max-w-[200px] truncate">
+                          <TableCell className="max-w-[200px] truncate hidden md:table-cell">
                             {alerta.descricao}
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
+                          <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
                             {formatDate(alerta.created_at)}
                           </TableCell>
                           <TableCell>

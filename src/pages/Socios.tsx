@@ -141,13 +141,13 @@ export default function SociosPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredSocios && filteredSocios.length > 0 ? (
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nome</TableHead>
-                      <TableHead>CPF</TableHead>
-                      <TableHead>Percentual</TableHead>
+                      <TableHead className="hidden sm:table-cell">CPF</TableHead>
+                      <TableHead className="hidden sm:table-cell">Percentual</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
@@ -163,10 +163,10 @@ export default function SociosPage() {
                             <span className="font-medium">{socio.nome}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
+                        <TableCell className="font-mono text-sm hidden sm:table-cell">
                           {formatCPF(socio.cpf)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           {socio.percentual ? `${socio.percentual}%` : '-'}
                         </TableCell>
                         <TableCell>

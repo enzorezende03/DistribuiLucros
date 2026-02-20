@@ -140,16 +140,16 @@ export default function AlertasPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : alertas && alertas.length > 0 ? (
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Cliente</TableHead>
-                      <TableHead>Sócio</TableHead>
-                      <TableHead>Competência</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Data</TableHead>
+                      <TableHead className="hidden md:table-cell">Sócio</TableHead>
+                      <TableHead className="hidden sm:table-cell">Competência</TableHead>
+                      <TableHead className="hidden lg:table-cell">Descrição</TableHead>
+                      <TableHead className="hidden sm:table-cell">Data</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
@@ -168,16 +168,16 @@ export default function AlertasPage() {
                           <TableCell className="font-medium">
                             {alerta.cliente?.razao_social}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             {alerta.socio?.nome || '-'}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             {formatCompetencia(alerta.competencia)}
                           </TableCell>
-                          <TableCell className="max-w-[200px] truncate">
+                          <TableCell className="max-w-[200px] truncate hidden lg:table-cell">
                             {alerta.descricao}
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
+                          <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
                             {formatDate(alerta.created_at)}
                           </TableCell>
                           <TableCell>
