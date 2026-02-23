@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatCurrency } from '@/lib/format';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -157,6 +158,10 @@ export default function AlertasPage() {
                   <TableBody>
                     {alertas.map((alerta) => {
                       const config = tipoConfig[alerta.tipo];
+                      const totalMatch = alerta.descricao.match(/Total:\s*R\$\s*([\d.,]+)/);
+                      const totalValor = totalMatch ? parseFloat(totalMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
+                      const imposto = alerta.tipo === 'ALERTA_50K' && totalValor > 0 ? totalValor * 0.10 : 0;
+
                       return (
                         <TableRow key={alerta.id} className="table-row-interactive">
                           <TableCell>
@@ -176,6 +181,11 @@ export default function AlertasPage() {
                           </TableCell>
                           <TableCell className="max-w-[300px] hidden lg:table-cell">
                             <span className="text-sm">{alerta.descricao}</span>
+                            {imposto > 0 && (
+                              <p className="text-sm font-semibold text-destructive mt-1">
+                                Tributação (10%): {formatCurrency(imposto)}
+                              </p>
+                            )}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
                             {formatDate(alerta.created_at)}
