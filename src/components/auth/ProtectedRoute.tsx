@@ -9,11 +9,11 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { user, loading, isAdmin, userRole, needsCompanySelection } = useAuth();
+  const { user, loading, isAdmin, userRole, needsCompanySelection, roleLoaded } = useAuth();
   const location = useLocation();
 
-  // Loading initial auth or loading role after auth state change
-  if (loading || (user && !userRole)) {
+  // Only show spinner during initial auth load
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -26,6 +26,18 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Wait for role to load before checking permissions
+  if (!roleLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
   }
 
   // Cliente needs to select a company first
