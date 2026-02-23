@@ -18,6 +18,7 @@ import {
   FileText,
   AlertTriangle,
   AlertCircle,
+  Calculator,
   LogOut,
   Menu,
   X,
@@ -48,6 +49,7 @@ const navItems: NavItem[] = [
   { href: '/alertas', label: 'Alertas', icon: <AlertTriangle className="h-5 w-5" /> },
   { href: '/notificacoes', label: 'Notificações', icon: <Bell className="h-5 w-5" /> },
   { href: '/pendencias', label: 'Pendências', icon: <AlertCircle className="h-5 w-5" />, clienteOnly: true },
+  { href: '/simulacao', label: 'Simulação', icon: <Calculator className="h-5 w-5" />, clienteOnly: true },
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
