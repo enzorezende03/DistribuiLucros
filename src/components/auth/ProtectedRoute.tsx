@@ -27,21 +27,9 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Usuário logado mas sem role ainda
+  // Usuário logado mas sem role ainda - redireciona para login
   if (!userRole) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="h-12 w-12 rounded-full bg-warning/10 flex items-center justify-center">
-            <span className="text-2xl">⚠️</span>
-          </div>
-          <h2 className="text-xl font-semibold">Acesso Pendente</h2>
-          <p className="text-muted-foreground max-w-sm">
-            Sua conta está aguardando aprovação do administrador para acessar o sistema.
-          </p>
-        </div>
-      </div>
-    );
+    return <Navigate to="/login" replace />;
   }
 
   // Cliente needs to select a company first
