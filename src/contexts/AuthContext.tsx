@@ -19,6 +19,7 @@ interface AuthContextType {
   session: Session | null;
   userRole: UserRole | null;
   loading: boolean;
+  roleLoaded: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [impersonatedClienteId, setImpersonatedClienteId] = useState<string | null>(null);
   const [userClientes, setUserClientes] = useState<UserCliente[]>([]);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
+  const [roleLoaded, setRoleLoaded] = useState(false);
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -108,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (!isMounted) return;
                 setUserRole(role);
                 setUserClientes(clientes);
-                // Auto-select if only one company
+                setRoleLoaded(true);
                 if (role?.role === 'cliente' && clientes.length === 1) {
                   setSelectedClienteId(clientes[0].cliente_id);
                 }
@@ -119,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUserRole(null);
           setUserClientes([]);
           setSelectedClienteId(null);
+          setRoleLoaded(false);
         }
       }
     );
@@ -139,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!isMounted) return;
           setUserRole(role);
           setUserClientes(clientes);
+          setRoleLoaded(true);
           if (role?.role === 'cliente' && clientes.length === 1) {
             setSelectedClienteId(clientes[0].cliente_id);
           }
@@ -202,6 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     userRole,
     loading,
+    roleLoaded,
     signIn,
     signUp,
     signOut,
