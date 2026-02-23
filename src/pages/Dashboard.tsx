@@ -362,25 +362,36 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               </div>
             ) : alertas && alertas.length > 0 ? (
               <div className="space-y-3">
-                {alertas.slice(0, 5).map((alerta) => (
-                  <div
-                    key={alerta.id}
-                    className={cn(
-                      'p-4 rounded-lg border',
-                      alerta.tipo === 'ALERTA_50K' ? 'alert-50k' : 'alert-pendente'
-                    )}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium">{alerta.socio?.nome || cliente?.razao_social}</p>
-                        <p className="text-sm">{alerta.descricao}</p>
+                {alertas.slice(0, 5).map((alerta) => {
+                  const totalMatch = alerta.descricao.match(/Total:\s*R\$\s*([\d.,]+)/);
+                  const totalValor = totalMatch ? parseFloat(totalMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
+                  const imposto = alerta.tipo === 'ALERTA_50K' && totalValor > 0 ? totalValor * 0.10 : 0;
+
+                  return (
+                    <div
+                      key={alerta.id}
+                      className={cn(
+                        'p-4 rounded-lg border',
+                        alerta.tipo === 'ALERTA_50K' ? 'alert-50k' : 'alert-pendente'
+                      )}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium">{alerta.socio?.nome || cliente?.razao_social}</p>
+                          <p className="text-sm">{alerta.descricao}</p>
+                          {imposto > 0 && (
+                            <p className="text-sm font-semibold text-destructive mt-1">
+                              Tributação (10%): {formatCurrency(imposto)}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
+                          {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
+                        </Badge>
                       </div>
-                      <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                        {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
-                      </Badge>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="empty-state py-8">
@@ -720,29 +731,40 @@ function AdminDashboard() {
               </div>
             ) : alertas && alertas.length > 0 ? (
               <div className="space-y-3">
-                {alertas.slice(0, 5).map((alerta) => (
-                  <div
-                    key={alerta.id}
-                    className={cn(
-                      'p-4 rounded-lg border',
-                      alerta.tipo === 'ALERTA_50K' ? 'alert-50k' : 'alert-pendente'
-                    )}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium">{alerta.cliente?.razao_social}</p>
-                        <p className="text-sm">
-                          {alerta.socio?.nome
-                            ? alerta.descricao.replace(/^Sócio/, alerta.socio.nome)
-                            : alerta.descricao}
-                        </p>
+                {alertas.slice(0, 5).map((alerta) => {
+                  const totalMatch = alerta.descricao.match(/Total:\s*R\$\s*([\d.,]+)/);
+                  const totalValor = totalMatch ? parseFloat(totalMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
+                  const imposto = alerta.tipo === 'ALERTA_50K' && totalValor > 0 ? totalValor * 0.10 : 0;
+
+                  return (
+                    <div
+                      key={alerta.id}
+                      className={cn(
+                        'p-4 rounded-lg border',
+                        alerta.tipo === 'ALERTA_50K' ? 'alert-50k' : 'alert-pendente'
+                      )}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium">{alerta.cliente?.razao_social}</p>
+                          <p className="text-sm">
+                            {alerta.socio?.nome
+                              ? alerta.descricao.replace(/^Sócio/, alerta.socio.nome)
+                              : alerta.descricao}
+                          </p>
+                          {imposto > 0 && (
+                            <p className="text-sm font-semibold text-destructive mt-1">
+                              Tributação (10%): {formatCurrency(imposto)}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
+                          {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
+                        </Badge>
                       </div>
-                      <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                        {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
-                      </Badge>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="empty-state py-8">
