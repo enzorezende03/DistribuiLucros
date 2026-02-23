@@ -12,7 +12,8 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   const { user, loading, isAdmin, userRole, needsCompanySelection } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // Loading initial auth or loading role after auth state change
+  if (loading || (user && !userRole)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -25,11 +26,6 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  // Usuário logado mas sem role ainda - redireciona para login
-  if (!userRole) {
-    return <Navigate to="/login" replace />;
   }
 
   // Cliente needs to select a company first
