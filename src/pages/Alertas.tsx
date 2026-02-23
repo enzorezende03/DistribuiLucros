@@ -174,8 +174,8 @@ export default function AlertasPage() {
                           <TableCell className="hidden sm:table-cell">
                             {formatCompetencia(alerta.competencia)}
                           </TableCell>
-                          <TableCell className="max-w-[200px] truncate hidden lg:table-cell">
-                            {alerta.descricao}
+                          <TableCell className="max-w-[300px] hidden lg:table-cell">
+                            <span className="text-sm">{alerta.descricao}</span>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
                             {formatDate(alerta.created_at)}
