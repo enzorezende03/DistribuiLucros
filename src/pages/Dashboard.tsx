@@ -18,6 +18,7 @@ import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
 import { formatCurrency, breakableCurrency, formatCompetencia, getCompetenciaAnterior, formatDate } from '@/lib/format';
 import { Link, useNavigate } from 'react-router-dom';
+import { AlertaDescricao } from '@/components/AlertaDescricao';
 import {
   PlusCircle,
   FileText,
@@ -378,12 +379,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="font-medium">{alerta.socio?.nome || cliente?.razao_social}</p>
-                          <p className="text-sm">{alerta.descricao}</p>
-                          {imposto > 0 && (
-                            <p className="text-sm font-semibold text-destructive mt-1">
-                              Tributação (10%): {formatCurrency(imposto)}
-                            </p>
-                          )}
+                          <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                         </div>
                         <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
                           {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
@@ -747,16 +743,10 @@ function AdminDashboard() {
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="font-medium">{alerta.cliente?.razao_social}</p>
-                          <p className="text-sm">
-                            {alerta.socio?.nome
-                              ? alerta.descricao.replace(/^Sócio/, alerta.socio.nome)
-                              : alerta.descricao}
-                          </p>
-                          {imposto > 0 && (
-                            <p className="text-sm font-semibold text-destructive mt-1">
-                              Tributação (10%): {formatCurrency(imposto)}
-                            </p>
+                          {alerta.socio?.nome && (
+                            <p className="text-sm text-muted-foreground">{alerta.socio.nome}</p>
                           )}
+                          <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                         </div>
                         <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
                           {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
