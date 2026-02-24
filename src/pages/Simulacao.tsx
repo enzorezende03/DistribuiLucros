@@ -16,8 +16,18 @@ function breakableCurrency(value: number): string {
 }
 
 function parseCurrencyInput(value: string): number {
-  const cleaned = value.replace(/[^\d,]/g, '').replace(',', '.');
-  return parseFloat(cleaned) || 0;
+  const cleaned = value.replace(/\D/g, '');
+  return parseInt(cleaned, 10) / 100 || 0;
+}
+
+function maskCurrency(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '0,00';
+  const num = parseInt(digits, 10);
+  return (num / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 const LIMITE_ISENCAO = 50000;
@@ -25,7 +35,7 @@ const ALIQUOTA = 0.10;
 
 export default function SimulacaoPage() {
   const [valorDistribuicao, setValorDistribuicao] = useState(0);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState('0,00');
 
   const isento = valorDistribuicao <= LIMITE_ISENCAO;
   const imposto = isento ? 0 : valorDistribuicao * ALIQUOTA;
@@ -33,14 +43,15 @@ export default function SimulacaoPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    setInputValue(raw);
+    const masked = maskCurrency(raw);
+    setInputValue(masked);
     setValorDistribuicao(parseCurrencyInput(raw));
   };
 
   const handleSliderChange = (values: number[]) => {
     const val = values[0];
     setValorDistribuicao(val);
-    setInputValue(val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    setInputValue(val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   };
 
   return (
