@@ -99,7 +99,7 @@ export default function SimulacaoPage() {
                 )}
                 <span className="text-sm font-medium text-muted-foreground">Status</span>
               </div>
-              <p className={`text-lg font-bold truncate ${isento ? 'text-green-600' : 'text-amber-600'}`}>
+              <p className={`text-base font-bold break-all ${isento ? 'text-green-600' : 'text-amber-600'}`}>
                 {isento ? 'Isento' : 'Tributável'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -116,10 +116,10 @@ export default function SimulacaoPage() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Imposto (10%)</span>
               </div>
-              <p className="text-lg font-bold text-foreground truncate">
+              <p className="text-base font-bold text-foreground break-all">
                 {formatCurrency(imposto)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 truncate">
+              <p className="text-xs text-muted-foreground mt-1 break-all">
                 {isento ? 'Nenhum imposto' : `10% sobre ${formatCurrency(valorDistribuicao)}`}
               </p>
             </CardContent>
@@ -131,7 +131,7 @@ export default function SimulacaoPage() {
                 <Calculator className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Valor Bruto</span>
               </div>
-              <p className="text-lg font-bold text-foreground truncate">
+              <p className="text-base font-bold text-foreground break-all">
                 {formatCurrency(valorDistribuicao)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -146,7 +146,7 @@ export default function SimulacaoPage() {
                 <TrendingUp className="h-4 w-4 text-primary shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Valor Líquido</span>
               </div>
-              <p className="text-lg font-bold text-primary truncate">
+              <p className="text-base font-bold text-primary break-all">
                 {formatCurrency(valorLiquido)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
