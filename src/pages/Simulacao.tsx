@@ -88,7 +88,7 @@ export default function SimulacaoPage() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card className={isento ? 'border-green-500/30 bg-green-50/50 dark:bg-green-950/20' : ''}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-1">
@@ -121,6 +121,21 @@ export default function SimulacaoPage() {
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {isento ? 'Nenhum imposto' : `10% sobre ${formatCurrency(valorDistribuicao)}`}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-1">
+                <Calculator className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">Valor Bruto</span>
+              </div>
+              <p className="text-lg font-bold text-foreground">
+                {formatCurrency(valorDistribuicao)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Valor total da distribuição
               </p>
             </CardContent>
           </Card>
