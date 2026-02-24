@@ -204,7 +204,7 @@
   }
 
   .money-value-lg {
-    @apply text-sm sm:text-lg lg:text-2xl font-bold font-mono tabular-nums text-foreground break-all;
+    @apply text-sm sm:text-lg lg:text-2xl font-bold font-mono tabular-nums text-foreground;
   }
 
   /* Navigation active state */
