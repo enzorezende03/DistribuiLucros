@@ -88,18 +88,18 @@ export default function SimulacaoPage() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
           <Card className={isento ? 'border-green-500/30 bg-green-50/50 dark:bg-green-950/20' : ''}>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
                 {isento ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
                 ) : (
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
                 )}
                 <span className="text-sm font-medium text-muted-foreground">Status</span>
               </div>
-              <p className={`text-lg font-bold ${isento ? 'text-green-600' : 'text-amber-600'}`}>
+              <p className={`text-lg font-bold truncate ${isento ? 'text-green-600' : 'text-amber-600'}`}>
                 {isento ? 'Isento' : 'Tributável'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -111,27 +111,27 @@ export default function SimulacaoPage() {
           </Card>
 
           <Card className={!isento ? 'border-destructive/30 bg-destructive/5' : ''}>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Imposto (10%)</span>
               </div>
-              <p className="text-lg font-bold text-foreground">
+              <p className="text-lg font-bold text-foreground truncate">
                 {formatCurrency(imposto)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 truncate">
                 {isento ? 'Nenhum imposto' : `10% sobre ${formatCurrency(valorDistribuicao)}`}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
-                <Calculator className="h-4 w-4 text-muted-foreground" />
+                <Calculator className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Valor Bruto</span>
               </div>
-              <p className="text-lg font-bold text-foreground">
+              <p className="text-lg font-bold text-foreground truncate">
                 {formatCurrency(valorDistribuicao)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -141,12 +141,12 @@ export default function SimulacaoPage() {
           </Card>
 
           <Card className="border-primary/30 bg-primary/5">
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="h-4 w-4 text-primary" />
+                <TrendingUp className="h-4 w-4 text-primary shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Valor Líquido</span>
               </div>
-              <p className="text-lg font-bold text-primary">
+              <p className="text-lg font-bold text-primary truncate">
                 {formatCurrency(valorLiquido)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
