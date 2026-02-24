@@ -11,6 +11,10 @@ function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function breakableCurrency(value: number): string {
+  return formatCurrency(value).replace(/([.,])/g, '$1\u200B');
+}
+
 function parseCurrencyInput(value: string): number {
   const cleaned = value.replace(/[^\d,]/g, '').replace(',', '.');
   return parseFloat(cleaned) || 0;
@@ -116,11 +120,11 @@ export default function SimulacaoPage() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Imposto (10%)</span>
               </div>
-              <p className="text-base font-bold text-foreground break-all">
-                {formatCurrency(imposto)}
+              <p className="text-base font-bold text-foreground">
+                {breakableCurrency(imposto)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 break-all">
-                {isento ? 'Nenhum imposto' : `10% sobre ${formatCurrency(valorDistribuicao)}`}
+              <p className="text-xs text-muted-foreground mt-1">
+                {isento ? 'Nenhum imposto' : `10% sobre ${breakableCurrency(valorDistribuicao)}`}
               </p>
             </CardContent>
           </Card>
@@ -131,8 +135,8 @@ export default function SimulacaoPage() {
                 <Calculator className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Valor Bruto</span>
               </div>
-              <p className="text-base font-bold text-foreground break-all">
-                {formatCurrency(valorDistribuicao)}
+              <p className="text-base font-bold text-foreground">
+                {breakableCurrency(valorDistribuicao)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Valor total da distribuição
@@ -146,8 +150,8 @@ export default function SimulacaoPage() {
                 <TrendingUp className="h-4 w-4 text-primary shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">Valor Líquido</span>
               </div>
-              <p className="text-base font-bold text-primary break-all">
-                {formatCurrency(valorLiquido)}
+              <p className="text-base font-bold text-primary">
+                {breakableCurrency(valorLiquido)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Valor após dedução do imposto

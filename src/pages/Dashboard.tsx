@@ -16,7 +16,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
-import { formatCurrency, formatCompetencia, getCompetenciaAnterior, formatDate } from '@/lib/format';
+import { formatCurrency, breakableCurrency, formatCompetencia, getCompetenciaAnterior, formatDate } from '@/lib/format';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   PlusCircle,
@@ -166,7 +166,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="money-value-lg">{formatCurrency(totalAno)}</p>
+            <p className="money-value-lg">{breakableCurrency(totalAno)}</p>
             <p className="text-xs text-muted-foreground mt-1">Clique para ver detalhes</p>
           </CardContent>
         </Card>
@@ -179,7 +179,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="money-value-lg">{formatCurrency(totalMes)}</p>
+            <p className="money-value-lg">{breakableCurrency(totalMes)}</p>
             <p className="text-xs text-muted-foreground mt-1">Clique para ver detalhes</p>
           </CardContent>
         </Card>

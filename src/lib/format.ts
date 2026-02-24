@@ -5,6 +5,16 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
+/**
+ * Inserts zero-width spaces after dots and commas in a formatted currency string,
+ * allowing the browser to break the line at those logical separators.
+ */
+export function breakableCurrency(value: number): string {
+  const formatted = formatCurrency(value);
+  // Insert zero-width space (\u200B) after each '.' and ','
+  return formatted.replace(/([.,])/g, '$1\u200B');
+}
+
 export function formatCPF(cpf: string): string {
   const cleaned = cpf.replace(/\D/g, '');
   if (cleaned.length !== 11) return cpf;
