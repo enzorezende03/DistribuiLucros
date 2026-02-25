@@ -17,19 +17,6 @@ import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign } from 'lucide-
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; className: string }> = {
-  ALERTA_50K: {
-    label: 'Valor > R$50k',
-    icon: <DollarSign className="h-4 w-4" />,
-    className: 'alert-50k',
-  },
-  PENDENTE_MES: {
-    label: 'Pendência Mensal',
-    icon: <Clock className="h-4 w-4" />,
-    className: 'alert-pendente',
-  },
-};
-
 export default function AlertasPage() {
   const { t } = useLanguage();
   const [selectedTipo, setSelectedTipo] = useState<TipoAlerta | null>(null);
@@ -38,7 +25,22 @@ export default function AlertasPage() {
   const { data: alertas, isLoading } = useAlertas(undefined, selectedTipo || undefined, showResolvidos ? undefined : false);
   const resolverAlerta = useResolverAlerta();
 
+  const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; className: string }> = {
+    ALERTA_50K: {
+      label: t('alerts.value50k'),
+      icon: <DollarSign className="h-4 w-4" />,
+      className: 'alert-50k',
+    },
+    PENDENTE_MES: {
+      label: t('alerts.monthlyPending'),
+      icon: <Clock className="h-4 w-4" />,
+      className: 'alert-pendente',
+    },
+  };
+
   const handleResolver = async (id: string) => {
+    await resolverAlerta.mutateAsync(id);
+  };
     await resolverAlerta.mutateAsync(id);
   };
 

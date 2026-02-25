@@ -118,6 +118,11 @@ const translations: Record<Language, Record<string, string>> = {
     'alerts.value50kAlerts': 'Alertas de Valor > R$50k',
     'alerts.monthlyPendings': 'Pendências Mensais',
     'alerts.activePendings': 'pendências ativas',
+    'alerts.total': 'Total',
+    'alerts.excess': 'Excedente',
+    'alerts.taxation': 'Tributação (10%)',
+    'alerts.aboveLimit': 'acima do limite',
+    'alerts.activeAlertsLabel': 'Alertas Ativos',
 
     // Distribuições
     'distributions.title': 'Distribuições',
@@ -486,6 +491,11 @@ const translations: Record<Language, Record<string, string>> = {
     'alerts.value50kAlerts': 'Value > R$50k Alerts',
     'alerts.monthlyPendings': 'Monthly Pendings',
     'alerts.activePendings': 'active pendings',
+    'alerts.total': 'Total',
+    'alerts.excess': 'Excess',
+    'alerts.taxation': 'Taxation (10%)',
+    'alerts.aboveLimit': 'above limit',
+    'alerts.activeAlertsLabel': 'Active Alerts',
 
     // Distribuições
     'distributions.title': 'Distributions',
@@ -854,6 +864,11 @@ const translations: Record<Language, Record<string, string>> = {
     'alerts.value50kAlerts': 'Alertas de Valor > R$50k',
     'alerts.monthlyPendings': 'Pendencias Mensuales',
     'alerts.activePendings': 'pendencias activas',
+    'alerts.total': 'Total',
+    'alerts.excess': 'Excedente',
+    'alerts.taxation': 'Tributación (10%)',
+    'alerts.aboveLimit': 'por encima del límite',
+    'alerts.activeAlertsLabel': 'Alertas Activas',
 
     // Distribuições
     'distributions.title': 'Distribuciones',
