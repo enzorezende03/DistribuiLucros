@@ -119,7 +119,7 @@ export default function ClientesPage() {
               onClick={() => setIsImportOpen(true)}
             >
               <FileSpreadsheet className="h-4 w-4" />
-              Importar
+              {t('clients.import')}
             </Button>
             <Button
               className="gap-2"
@@ -129,7 +129,7 @@ export default function ClientesPage() {
               }}
             >
               <Plus className="h-4 w-4" />
-              Novo Cliente
+              {t('clients.new')}
             </Button>
           </div>
         </div>
@@ -137,11 +137,11 @@ export default function ClientesPage() {
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-              <CardTitle className="text-lg">Lista de Clientes</CardTitle>
+              <CardTitle className="text-lg">{t('clients.list')}</CardTitle>
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nome ou CNPJ..."
+                  placeholder={t('clients.search')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-9"
@@ -175,7 +175,7 @@ export default function ClientesPage() {
             ) : (
               <div className="empty-state py-12">
                 <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">Nenhum cliente encontrado</p>
+                <p className="text-muted-foreground">{t('clients.noResults')}</p>
                 <Button
                   variant="outline"
                   className="mt-4 gap-2"
@@ -185,7 +185,7 @@ export default function ClientesPage() {
                   }}
                 >
                   <Plus className="h-4 w-4" />
-                  Cadastrar primeiro cliente
+                  {t('clients.registerFirst')}
                 </Button>
               </div>
             )}
@@ -202,14 +202,14 @@ export default function ClientesPage() {
       <AlertDialog open={!!deleteCliente} onOpenChange={() => setDeleteCliente(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>{t('clients.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o cliente "{deleteCliente?.razao_social}"?
-              Esta ação não pode ser desfeita e todos os dados relacionados serão removidos.
+              {t('clients.confirmDeleteMsg')} "{deleteCliente?.razao_social}"?
+              {' '}{t('clients.deleteWarning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <DeleteClienteButton cliente={deleteCliente} onDone={() => setDeleteCliente(null)} />
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -231,6 +231,7 @@ interface ClienteRowProps {
 }
 
 function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: ClienteRowProps) {
+  const { t } = useLanguage();
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
       <div className="rounded-lg border">
@@ -256,7 +257,7 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
               variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
               className={cliente.status === 'ativo' ? 'bg-success text-success-foreground' : ''}
             >
-              {cliente.status === 'ativo' ? 'Ativo' : 'Suspenso'}
+              {cliente.status === 'ativo' ? t('clients.active') : t('clients.suspended')}
             </Badge>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -267,11 +268,11 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onEdit}>
                   <Pencil className="mr-2 h-4 w-4" />
-                  Editar
+                  {t('common.edit')}
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive" onClick={onDelete}>
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Excluir
+                  {t('common.delete')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -292,6 +293,7 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
 // ─── Sócios Section (inside each client) ───────────────────────────────
 
 function SociosSection({ clienteId }: { clienteId: string }) {
+  const { t } = useLanguage();
   const { data: socios, isLoading } = useSocios(clienteId);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSocio, setEditingSocio] = useState<Socio | null>(null);
@@ -302,7 +304,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold flex items-center gap-2">
           <Users className="h-4 w-4 text-accent" />
-          Sócios
+          {t('clients.partners')}
         </h4>
       </div>
 
@@ -315,10 +317,10 @@ function SociosSection({ clienteId }: { clienteId: string }) {
            <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                 <TableHead className="hidden sm:table-cell">CPF</TableHead>
-                 <TableHead className="hidden sm:table-cell">Percentual</TableHead>
-                 <TableHead>Status</TableHead>
+                <TableHead>{t('partners.name')}</TableHead>
+                 <TableHead className="hidden sm:table-cell">{t('partners.cpf')}</TableHead>
+                 <TableHead className="hidden sm:table-cell">{t('partners.percentage')}</TableHead>
+                 <TableHead>{t('partners.status')}</TableHead>
                  <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -333,7 +335,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                       variant={socio.ativo ? 'default' : 'secondary'}
                       className={socio.ativo ? 'bg-success text-success-foreground' : ''}
                     >
-                      {socio.ativo ? 'Ativo' : 'Inativo'}
+                      {socio.ativo ? t('partners.active') : t('partners.inactive')}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -351,14 +353,14 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                           }}
                         >
                           <Pencil className="mr-2 h-4 w-4" />
-                          Editar
+                          {t('common.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => setDeleteSocio(socio)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
+                          {t('common.delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -369,7 +371,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           </Table>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground py-2">Nenhum sócio cadastrado.</p>
+        <p className="text-sm text-muted-foreground py-2">{t('clients.noPartners')}</p>
       )}
 
       <SocioFormDialog
@@ -382,13 +384,13 @@ function SociosSection({ clienteId }: { clienteId: string }) {
       <AlertDialog open={!!deleteSocio} onOpenChange={() => setDeleteSocio(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>{t('partners.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o sócio "{deleteSocio?.nome}"? Esta ação não pode ser desfeita.
+              {t('partners.confirmDeleteMsg')} "{deleteSocio?.nome}"? {t('partners.deleteWarning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <DeleteSocioButton socio={deleteSocio} onDone={() => setDeleteSocio(null)} />
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -400,6 +402,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
 // ─── Usuários Vinculados Section ─────────────────────────────────────────
 
 function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
+  const { t } = useLanguage();
   const { data: links, isLoading } = useUserClientes(clienteId);
   const linkUser = useLinkUserByEmail();
   const unlinkUser = useUnlinkUserFromCliente();
@@ -417,14 +420,14 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold flex items-center gap-2">
           <Link2 className="h-4 w-4 text-accent" />
-          Usuários Vinculados
+          {t('clients.linkedUsers')}
         </h4>
       </div>
 
       <form onSubmit={handleLink} className="flex gap-2">
         <Input
           type="email"
-          placeholder="E-mail do usuário para vincular..."
+          placeholder={t('clients.linkUserEmail')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="flex-1 h-8 text-sm"
@@ -442,7 +445,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
           ) : (
             <Plus className="h-3 w-3" />
           )}
-          Vincular
+          {t('clients.link')}
         </Button>
       </form>
 
@@ -457,7 +460,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground py-2">Nenhum usuário vinculado.</p>
+        <p className="text-sm text-muted-foreground py-2">{t('clients.noLinkedUsers')}</p>
       )}
     </div>
   );
@@ -466,6 +469,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
 // ─── User Linked Row with companies ─────────────────────────────────────
 
 function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: string; email?: string }; clienteId: string }) {
+  const { t } = useLanguage();
   const unlinkUser = useUnlinkUserFromCliente();
   const { data: allClientes } = useUserAllClientes(link.user_id);
   const [expanded, setExpanded] = useState(false);
@@ -480,7 +484,7 @@ function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: strin
           {otherClientes.length > 0 && (
             <Badge variant="outline" className="text-xs shrink-0 cursor-pointer" onClick={() => setExpanded(!expanded)}>
               <Building2 className="h-3 w-3 mr-1" />
-              +{otherClientes.length} empresa{otherClientes.length > 1 ? 's' : ''}
+              +{otherClientes.length} {t('distributions.companies')}
             </Badge>
           )}
         </div>
@@ -496,7 +500,7 @@ function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: strin
       </div>
       {expanded && otherClientes.length > 0 && (
         <div className="border-t px-3 py-2 space-y-1 bg-muted/30">
-          <p className="text-xs font-medium text-muted-foreground mb-1">Também vinculado a:</p>
+          <p className="text-xs font-medium text-muted-foreground mb-1">{t('clients.alsoLinkedTo')}</p>
           {otherClientes.map((c) => (
             <div key={c.id} className="flex items-center gap-2 text-xs">
               <Building2 className="h-3 w-3 text-muted-foreground" />
@@ -513,6 +517,7 @@ function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: strin
 // ─── Delete Buttons ─────────────────────────────────────────────────────
 
 function DeleteClienteButton({ cliente, onDone }: { cliente: Cliente | null; onDone: () => void }) {
+  const { t } = useLanguage();
   const deleteCliente = useDeleteCliente();
 
   const handleDelete = async () => {
@@ -528,12 +533,13 @@ function DeleteClienteButton({ cliente, onDone }: { cliente: Cliente | null; onD
       disabled={deleteCliente.isPending}
     >
       {deleteCliente.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Excluir
+      {t('common.delete')}
     </AlertDialogAction>
   );
 }
 
 function DeleteSocioButton({ socio, onDone }: { socio: Socio | null; onDone: () => void }) {
+  const { t } = useLanguage();
   const deleteSocio = useDeleteSocio();
 
   const handleDelete = async () => {
@@ -549,7 +555,7 @@ function DeleteSocioButton({ socio, onDone }: { socio: Socio | null; onDone: () 
       disabled={deleteSocio.isPending}
     >
       {deleteSocio.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Excluir
+      {t('common.delete')}
     </AlertDialogAction>
   );
 }
@@ -563,6 +569,7 @@ interface ClienteFormDialogProps {
 }
 
 function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogProps) {
+  const { t } = useLanguage();
   const createCliente = useCreateCliente();
   const updateCliente = useUpdateCliente();
   const isEditing = !!cliente;
@@ -632,16 +639,15 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate sócios when creating
     if (!isEditing) {
       const validSocios = socios.filter((s) => s.nome.trim() && s.cpf.trim());
       if (validSocios.length === 0) {
-        toast.error('É obrigatório cadastrar pelo menos um sócio.');
+        toast.error(t('clients.partnerRequired'));
         return;
       }
       for (const s of validSocios) {
         if (unmask(s.cpf).length !== 11) {
-          toast.error(`CPF inválido para o sócio "${s.nome}".`);
+          toast.error(`${t('clients.invalidCpf')} "${s.nome}".`);
           return;
         }
       }
@@ -686,17 +692,17 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
+          <DialogTitle>{isEditing ? t('clients.editClient') : t('clients.newClient')}</DialogTitle>
           <DialogDescription>
             {isEditing
-              ? 'Atualize as informações do cliente'
-              : 'Preencha os dados do novo cliente e seus sócios'}
+              ? t('clients.updateInfo')
+              : t('clients.fillData')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="razao_social">Razão Social *</Label>
+            <Label htmlFor="razao_social">{t('clients.corporateNameLabel')}</Label>
             <Input
               id="razao_social"
               value={formData.razao_social}
@@ -707,7 +713,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cnpj">CNPJ *</Label>
+            <Label htmlFor="cnpj">{t('clients.cnpjLabel')}</Label>
             <Input
               id="cnpj"
               value={formData.cnpj}
@@ -720,7 +726,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email_responsavel">E-mail do Responsável *</Label>
+            <Label htmlFor="email_responsavel">{t('clients.emailResponsible')}</Label>
             <Input
               id="email_responsavel"
               type="email"
@@ -732,7 +738,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email_copia">E-mail Cópia</Label>
+            <Label htmlFor="email_copia">{t('clients.emailCopy')}</Label>
             <Input
               id="email_copia"
               type="email"
@@ -743,7 +749,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="telefone">Telefone</Label>
+            <Label htmlFor="telefone">{t('clients.phoneLabel')}</Label>
             <Input
               id="telefone"
               value={formData.telefone}
@@ -755,7 +761,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">{t('clients.statusLabel')}</Label>
             <Select
               value={formData.status}
               onValueChange={(value: StatusCliente) => setFormData({ ...formData, status: value })}
@@ -765,23 +771,22 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ativo">Ativo</SelectItem>
-                <SelectItem value="suspenso">Suspenso</SelectItem>
+                <SelectItem value="ativo">{t('clients.active')}</SelectItem>
+                <SelectItem value="suspenso">{t('clients.suspended')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Sócios section - only for creation */}
           {!isEditing && (
             <div className="space-y-3 pt-2 border-t">
               <div className="flex items-center justify-between">
                 <Label className="text-base font-semibold flex items-center gap-2">
                   <Users className="h-4 w-4 text-accent" />
-                  Sócios *
+                  {t('clients.partnersRequired')}
                 </Label>
                 <Button type="button" size="sm" variant="outline" className="gap-1 h-7 text-xs" onClick={addSocio} disabled={isPending}>
                   <Plus className="h-3 w-3" />
-                  Adicionar Sócio
+                  {t('clients.addPartner')}
                 </Button>
               </div>
 
@@ -799,11 +804,11 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                       <X className="h-3.5 w-3.5" />
                     </Button>
                   )}
-                  <p className="text-xs font-medium text-muted-foreground">Sócio {index + 1}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('clients.partnerNumber')} {index + 1}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div className="sm:col-span-1">
                       <Input
-                        placeholder="Nome completo *"
+                        placeholder={t('clients.fullNamePlaceholder')}
                         value={socio.nome}
                         onChange={(e) => updateSocio(index, 'nome', e.target.value)}
                         disabled={isPending}
@@ -811,7 +816,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     </div>
                     <div>
                       <Input
-                        placeholder="CPF *"
+                        placeholder={t('clients.cpfPlaceholder')}
                         value={socio.cpf}
                         onChange={(e) => updateSocio(index, 'cpf', maskCPF(e.target.value))}
                         maxLength={14}
@@ -820,7 +825,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     </div>
                     <div>
                       <Input
-                        placeholder="Percentual (%)"
+                        placeholder={t('clients.percentagePlaceholder')}
                         type="number"
                         step="0.01"
                         min="0"
@@ -838,11 +843,11 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? 'Salvar' : 'Cadastrar'}
+              {isEditing ? t('common.save') : t('partners.register')}
             </Button>
           </DialogFooter>
         </form>
@@ -861,6 +866,7 @@ interface SocioFormDialogProps {
 }
 
 function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDialogProps) {
+  const { t } = useLanguage();
   const createSocio = useCreateSocio();
   const updateSocio = useUpdateSocio();
   const isEditing = !!socio;
@@ -917,15 +923,15 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Sócio' : 'Novo Sócio'}</DialogTitle>
+          <DialogTitle>{isEditing ? t('partners.editPartner') : t('partners.newPartner')}</DialogTitle>
           <DialogDescription>
-            {isEditing ? 'Atualize as informações do sócio' : 'Preencha os dados do novo sócio'}
+            {isEditing ? t('partners.updateInfo') : t('partners.fillData')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="nome">Nome Completo *</Label>
+            <Label htmlFor="nome">{t('partners.fullName')} *</Label>
             <Input
               id="nome"
               value={formData.nome}
@@ -936,7 +942,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cpf">CPF *</Label>
+            <Label htmlFor="cpf">{t('partners.cpf')} *</Label>
             <Input
               id="cpf"
               value={formData.cpf}
@@ -949,7 +955,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="percentual">Percentual de Participação (%)</Label>
+            <Label htmlFor="percentual">{t('partners.participationPercentage')}</Label>
             <Input
               id="percentual"
               type="number"
@@ -964,7 +970,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
           </div>
 
           <div className="flex items-center justify-between">
-            <Label htmlFor="ativo">Ativo</Label>
+            <Label htmlFor="ativo">{t('partners.active')}</Label>
             <Switch
               id="ativo"
               checked={formData.ativo}
@@ -975,11 +981,11 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? 'Salvar' : 'Cadastrar'}
+              {isEditing ? t('common.save') : t('partners.register')}
             </Button>
           </DialogFooter>
         </form>

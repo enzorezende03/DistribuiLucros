@@ -348,7 +348,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning" />
-              {t('dashboard.noAlerts') === 'Nenhum alerta ativo' ? 'Alertas Ativos' : 'Active Alerts'}
+              {t('dashboard.activeAlerts')}
             </CardTitle>
           </CardHeader>
           <CardContent>

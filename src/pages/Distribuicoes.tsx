@@ -313,13 +313,13 @@ export default function DistribuicoesPage() {
                           </label>
                         </TableHead>
                       )}
-                      <TableHead>Recibo</TableHead>
-                      {isAdmin && <TableHead className="hidden md:table-cell">Cliente</TableHead>}
-                      <TableHead className="hidden sm:table-cell">Competência</TableHead>
-                      <TableHead className="hidden lg:table-cell">Data</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                      {!isAdmin && <TableHead className="hidden sm:table-cell">Sócio(s)</TableHead>}
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t('distributions.receipt')}</TableHead>
+                      {isAdmin && <TableHead className="hidden md:table-cell">{t('distributions.client')}</TableHead>}
+                      <TableHead className="hidden sm:table-cell">{t('distributions.competence')}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{t('distributions.date')}</TableHead>
+                      <TableHead className="text-right">{t('distributions.value')}</TableHead>
+                      {!isAdmin && <TableHead className="hidden sm:table-cell">{t('distributions.partners')}</TableHead>}
+                      <TableHead>{t('distributions.status')}</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -458,7 +458,7 @@ function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribui
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end" sideOffset={8}>
         <div className="p-3 border-b">
-          <p className="font-semibold text-sm">Histórico de Status</p>
+          <p className="font-semibold text-sm">{t('distributions.statusHistory')}</p>
         </div>
         <div className="max-h-60 overflow-auto">
           {loading ? (
@@ -466,7 +466,7 @@ function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribui
               <Loader2 className="h-4 w-4 animate-spin" />
             </div>
           ) : !historico || historico.length === 0 ? (
-            <p className="text-sm text-muted-foreground p-3">Nenhum histórico disponível.</p>
+            <p className="text-sm text-muted-foreground p-3">{t('distributions.noHistory')}</p>
           ) : (
             <div className="divide-y">
               {historico.map((h, i) => {
@@ -536,7 +536,7 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
         };
       }
     } catch (err: any) {
-      toast.error('Erro ao gerar recibo: ' + (err.message || 'erro desconhecido'));
+      toast.error(t('distributions.errorGenerating') + ': ' + (err.message || 'erro desconhecido'));
     } finally {
       setDownloading(false);
     }
@@ -575,11 +575,11 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onView}>
               <Eye className="mr-2 h-4 w-4" />
-              Ver detalhes
+              {t('distributions.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleDownloadPdf} disabled={downloading}>
               <Download className="mr-2 h-4 w-4" />
-              {downloading ? 'Gerando...' : 'Baixar Recibo PDF'}
+              {downloading ? t('distributions.generating') : t('distributions.downloadPdf')}
             </DropdownMenuItem>
             {isAdmin && (
               <>
@@ -590,7 +590,7 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
                     onClick={() => openStatusDialog(key as StatusDistribuicao)}
                     disabled={distribuicao.status === key || updateStatus.isPending}
                   >
-                    Marcar como: {t(statusKeys[key as StatusDistribuicao])}
+                    {t('distributions.markAs')} {t(statusKeys[key as StatusDistribuicao])}
                   </DropdownMenuItem>
                 ))}
               </>
@@ -601,7 +601,7 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem className="text-destructive focus:text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Excluir distribuição
+                    {t('distributions.deleteDistribution')}
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
               </>
@@ -610,18 +610,18 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
         </DropdownMenu>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir distribuição?</AlertDialogTitle>
+            <AlertDialogTitle>{t('distributions.deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a distribuição {distribuicao.recibo_numero}? Esta ação não pode ser desfeita.
+              {t('distributions.deleteConfirmMsg')} {distribuicao.recibo_numero}{t('distributions.deleteConfirmSuffix')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteDistribuicao.mutate(distribuicao.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteDistribuicao.isPending ? 'Excluindo...' : 'Excluir'}
+              {deleteDistribuicao.isPending ? t('distributions.deleting') : t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -631,17 +631,17 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Alterar Status</DialogTitle>
+            <DialogTitle>{t('distributions.changeStatus')}</DialogTitle>
             <DialogDescription>
-              Alterar para: <strong>{pendingStatus ? t(statusKeys[pendingStatus]) : ''}</strong>
+              {t('distributions.changeTo')} <strong>{pendingStatus ? t(statusKeys[pendingStatus]) : ''}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="observacao">Observação (opcional)</Label>
+              <Label htmlFor="observacao">{t('distributions.observationOptional')}</Label>
               <Textarea
                 id="observacao"
-                placeholder="Adicione uma observação se necessário..."
+                placeholder={t('distributions.addObservation')}
                 value={observacao}
                 onChange={(e) => setObservacao(e.target.value)}
                 rows={3}
@@ -649,11 +649,11 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button onClick={confirmStatusChange} disabled={updateStatus.isPending}>
                 {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Confirmar
+                {t('common.confirm')}
               </Button>
             </div>
           </div>
@@ -670,6 +670,7 @@ interface DistribuicaoDetailDialogProps {
 }
 
 function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: DistribuicaoDetailDialogProps) {
+  const { t } = useLanguage();
   const { data: distribuicoes } = useDistribuicoes();
   const distribuicao = distribuicoes?.find((d) => d.id === distribuicaoId);
   const [downloading, setDownloading] = useState(false);
@@ -693,7 +694,7 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
         };
       }
     } catch (err: any) {
-      toast.error('Erro ao gerar recibo: ' + (err.message || 'erro desconhecido'));
+      toast.error(t('distributions.errorGenerating') + ': ' + (err.message || 'erro desconhecido'));
     } finally {
       setDownloading(false);
     }
@@ -707,37 +708,37 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
     <Dialog open={!!distribuicaoId} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-accent" />
-            Distribuição {distribuicao.recibo_numero}
-          </DialogTitle>
-          <DialogDescription>
-            Detalhes da distribuição de lucros
-          </DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-accent" />
+              {t('distributions.distributionTitle')} {distribuicao.recibo_numero}
+            </DialogTitle>
+            <DialogDescription>
+              {t('distributions.distributionDetails')}
+            </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Competência</p>
+              <p className="text-sm text-muted-foreground">{t('distributions.competence')}</p>
               <p className="font-medium">{formatCompetencia(distribuicao.competencia)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Data da Distribuição</p>
+              <p className="text-sm text-muted-foreground">{t('distributions.distributionDate')}</p>
               <p className="font-medium">{formatDate(distribuicao.data_distribuicao)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Status</p>
+              <p className="text-sm text-muted-foreground">{t('distributions.status')}</p>
               <StatusBadge status={distribuicao.status} />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Forma de Pagamento</p>
+              <p className="text-sm text-muted-foreground">{t('distributions.paymentMethod')}</p>
               <p className="font-medium">{distribuicao.forma_pagamento}</p>
             </div>
           </div>
 
           <div className="border-t pt-4">
-            <p className="text-sm text-muted-foreground mb-2">Rateio por Sócio</p>
+            <p className="text-sm text-muted-foreground mb-2">{t('distributions.partnerAllocation')}</p>
             <div className="space-y-2">
               {distribuicao.itens?.map((item) => (
                 <div
@@ -766,14 +767,14 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
           </div>
 
           <div className="border-t pt-4">
-            <p className="text-sm text-muted-foreground">Solicitante</p>
+            <p className="text-sm text-muted-foreground">{t('distributions.requester')}</p>
             <p className="font-medium">{distribuicao.solicitante_nome}</p>
             <p className="text-sm text-muted-foreground">{distribuicao.solicitante_email}</p>
           </div>
 
           <Button onClick={handleDownloadPdf} disabled={downloading} className="w-full gap-2">
             <Download className="h-4 w-4" />
-            {downloading ? 'Gerando...' : 'Baixar Recibo PDF'}
+            {downloading ? t('distributions.generating') : t('distributions.downloadPdf')}
           </Button>
         </div>
       </DialogContent>
