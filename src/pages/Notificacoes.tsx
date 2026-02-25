@@ -1,7 +1,6 @@
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNotificacoes, useMarkNotificacaoLida, useMarkAllNotificacoesLidas } from '@/hooks/useDistribuicoes';
@@ -10,6 +9,74 @@ import { formatDate } from '@/lib/format';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
+const statusMap: Record<string, string> = {
+  'Enviada ao Contador': 'ENVIADA_AO_CONTADOR',
+  'Recebida': 'RECEBIDA',
+  'Em validação': 'EM_VALIDACAO',
+  'Aprovada': 'APROVADA',
+  'Ajuste Solicitado': 'AJUSTE_SOLICITADO',
+  'Cancelada': 'CANCELADA',
+};
+
+function useTranslateNotification() {
+  const { t, language } = useLanguage();
+
+  return (titulo: string, mensagem: string) => {
+    if (language === 'pt') return { titulo, mensagem };
+
+    let tTitulo = titulo;
+    let tMensagem = mensagem;
+
+    // "Status atualizado: <StatusName>"
+    const statusMatch = titulo.match(/^Status atualizado:\s*(.+)$/);
+    if (statusMatch) {
+      const statusPt = statusMatch[1].trim();
+      const statusKey = statusMap[statusPt];
+      const translatedStatus = statusKey ? t(`status.${statusKey}`) : statusPt;
+      tTitulo = `${t('notifications.statusUpdated')}: ${translatedStatus}`;
+    }
+
+    // "Nova distribuição recebida: <CompanyName>"
+    const newDistMatch = titulo.match(/^Nova distribuição recebida:\s*(.+)$/);
+    if (newDistMatch) {
+      const companyName = newDistMatch[1].trim();
+      tTitulo = `${t('notifications.newDistReceived')}: ${companyName}`;
+    }
+
+    // "Sua distribuição foi recebida pelo contador."
+    if (mensagem === 'Sua distribuição foi recebida pelo contador.') {
+      tMensagem = t('notifications.receivedByAccountant');
+    }
+
+    // "Sua distribuição teve o status alterado para "<Status>"..."
+    const msgStatusMatch = mensagem.match(/^Sua distribuição teve o status alterado para "([^"]+)"\.?\s*(Observação:\s*(.+))?$/);
+    if (msgStatusMatch) {
+      const statusPt = msgStatusMatch[1].trim();
+      const obs = msgStatusMatch[3]?.trim();
+      const statusKey = statusMap[statusPt];
+      const translatedStatus = statusKey ? t(`status.${statusKey}`) : statusPt;
+      tMensagem = `${t('notifications.statusChangedTo')} "${translatedStatus}".`;
+      if (obs) {
+        tMensagem += ` ${t('notifications.observation')}: ${obs}`;
+      }
+    }
+
+    // "A empresa X enviou uma nova distribuição no valor de R$ Y para a competência Z."
+    const companyMsgMatch = mensagem.match(/^A empresa (.+?) enviou uma nova distribuição no valor de (R\$ [\d.,]+) para a competência (.+)\.$/);
+    if (companyMsgMatch) {
+      const company = companyMsgMatch[1];
+      const value = companyMsgMatch[2];
+      const period = companyMsgMatch[3];
+      tMensagem = t('notifications.companySentDist')
+        .replace('{company}', company)
+        .replace('{value}', value)
+        .replace('{period}', period);
+    }
+
+    return { titulo: tTitulo, mensagem: tMensagem };
+  };
+}
+
 export default function NotificacoesPage() {
   const { clienteId, isAdmin } = useAuth();
   const { t } = useLanguage();
@@ -17,6 +84,7 @@ export default function NotificacoesPage() {
   const markLida = useMarkNotificacaoLida();
   const markAllLidas = useMarkAllNotificacoesLidas();
   const navigate = useNavigate();
+  const translateNotification = useTranslateNotification();
 
   const handleMarkAll = () => {
     if (isAdmin) {
@@ -56,40 +124,43 @@ export default function NotificacoesPage() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {notificacoes.map((n) => (
-              <Card
-                key={n.id}
-                className={cn(
-                  'transition-all hover:shadow-md',
-                  !n.lida && 'border-primary/30 bg-primary/5'
-                )}
-              >
-                <CardContent className="flex items-start gap-4 p-4">
-                  <div className="mt-1 rounded-full bg-primary/10 p-2">
-                    <Bell className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm">{n.titulo}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{n.mensagem}</p>
-                    <p className="text-xs text-muted-foreground mt-2">{formatDate(n.created_at)}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {n.distribuicao_id && (
-                      <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/distribuicoes`)}>
-                        <FileText className="h-3 w-3" />
-                        {t('notifications.view')}
-                      </Button>
-                    )}
-                    {!n.lida && (
-                      <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => markLida.mutate(n.id)}>
-                        <Check className="h-3 w-3" />
-                        {t('notifications.read')}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {notificacoes.map((n) => {
+              const { titulo, mensagem } = translateNotification(n.titulo, n.mensagem);
+              return (
+                <Card
+                  key={n.id}
+                  className={cn(
+                    'transition-all hover:shadow-md',
+                    !n.lida && 'border-primary/30 bg-primary/5'
+                  )}
+                >
+                  <CardContent className="flex items-start gap-4 p-4">
+                    <div className="mt-1 rounded-full bg-primary/10 p-2">
+                      <Bell className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">{titulo}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{mensagem}</p>
+                      <p className="text-xs text-muted-foreground mt-2">{formatDate(n.created_at)}</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {n.distribuicao_id && (
+                        <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/distribuicoes`)}>
+                          <FileText className="h-3 w-3" />
+                          {t('notifications.view')}
+                        </Button>
+                      )}
+                      {!n.lida && (
+                        <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => markLida.mutate(n.id)}>
+                          <Check className="h-3 w-3" />
+                          {t('notifications.read')}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

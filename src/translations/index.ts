@@ -270,8 +270,12 @@ const translations: Record<Language, Record<string, string>> = {
     'notifications.willBeNotified': 'Você será notificado quando houver atualizações nas suas distribuições.',
     'notifications.view': 'Ver',
     'notifications.read': 'Lida',
-
-    // Pendências
+    'notifications.statusUpdated': 'Status atualizado',
+    'notifications.newDistReceived': 'Nova distribuição recebida',
+    'notifications.statusChangedTo': 'Sua distribuição teve o status alterado para',
+    'notifications.observation': 'Observação',
+    'notifications.receivedByAccountant': 'Sua distribuição foi recebida pelo contador.',
+    'notifications.companySentDist': 'A empresa {company} enviou uma nova distribuição no valor de {value} para a competência {period}.',
     'pending.title': 'Pendências',
     'pending.subtitle': 'Distribuições que precisam de ajuste conforme solicitado pelo administrador',
     'pending.adjustRequested': 'Ajuste Solicitado',
@@ -643,8 +647,13 @@ const translations: Record<Language, Record<string, string>> = {
     'notifications.willBeNotified': 'You will be notified when there are updates to your distributions.',
     'notifications.view': 'View',
     'notifications.read': 'Read',
+    'notifications.statusUpdated': 'Status updated',
+    'notifications.newDistReceived': 'New distribution received',
+    'notifications.statusChangedTo': 'Your distribution status has been changed to',
+    'notifications.observation': 'Note',
+    'notifications.receivedByAccountant': 'Your distribution has been received by the accountant.',
+    'notifications.companySentDist': 'The company {company} sent a new distribution of {value} for the period {period}.',
 
-    // Pendências
     'pending.title': 'Pending',
     'pending.subtitle': 'Distributions that need adjustment as requested by the administrator',
     'pending.adjustRequested': 'Adjustment Requested',
@@ -1016,8 +1025,13 @@ const translations: Record<Language, Record<string, string>> = {
     'notifications.willBeNotified': 'Será notificado cuando haya actualizaciones en sus distribuciones.',
     'notifications.view': 'Ver',
     'notifications.read': 'Leída',
+    'notifications.statusUpdated': 'Estado actualizado',
+    'notifications.newDistReceived': 'Nueva distribución recibida',
+    'notifications.statusChangedTo': 'Su distribución tuvo el estado cambiado a',
+    'notifications.observation': 'Observación',
+    'notifications.receivedByAccountant': 'Su distribución fue recibida por el contador.',
+    'notifications.companySentDist': 'La empresa {company} envió una nueva distribución por un valor de {value} para la competencia {period}.',
 
-    // Pendências
     'pending.title': 'Pendientes',
     'pending.subtitle': 'Distribuciones que necesitan ajuste según lo solicitado por el administrador',
     'pending.adjustRequested': 'Ajuste Solicitado',
