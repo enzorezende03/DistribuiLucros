@@ -41,8 +41,6 @@ export default function AlertasPage() {
   const handleResolver = async (id: string) => {
     await resolverAlerta.mutateAsync(id);
   };
-    await resolverAlerta.mutateAsync(id);
-  };
 
   const alertas50k = alertas?.filter((a) => a.tipo === 'ALERTA_50K' && !a.resolvido) || [];
   const alertasPendentes = alertas?.filter((a) => a.tipo === 'PENDENTE_MES' && !a.resolvido) || [];
