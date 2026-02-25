@@ -1,16 +1,14 @@
 import { formatCurrency } from '@/lib/format';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AlertaDescricaoProps {
   descricao: string;
   tipo: string;
 }
 
-/**
- * Parses alert descriptions like:
- * "Total: R$ 146.333,00 | Excedente: R$ 96.333,00 (192.67% acima do limite)"
- * and renders them in a structured layout.
- */
 export function AlertaDescricao({ descricao, tipo }: AlertaDescricaoProps) {
+  const { t } = useLanguage();
+
   if (tipo !== 'ALERTA_50K') {
     return <span className="text-sm">{descricao}</span>;
   }
@@ -28,7 +26,6 @@ export function AlertaDescricao({ descricao, tipo }: AlertaDescricaoProps) {
   const percentual = percentualMatch ? percentualMatch[1] : null;
   const imposto = totalValor > 0 ? totalValor * 0.10 : 0;
 
-  // If we couldn't parse, fall back to raw text
   if (!totalMatch) {
     return <span className="text-sm">{descricao}</span>;
   }
@@ -36,12 +33,12 @@ export function AlertaDescricao({ descricao, tipo }: AlertaDescricaoProps) {
   return (
     <div className="space-y-1.5 text-sm">
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">Total:</span>
+        <span className="text-muted-foreground">{t('alerts.total')}:</span>
         <span className="font-semibold">{formatCurrency(totalValor)}</span>
       </div>
       {excedenteValor > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Excedente:</span>
+          <span className="text-muted-foreground">{t('alerts.excess')}:</span>
           <span className="font-medium text-warning">
             {formatCurrency(excedenteValor)}
             {percentual && (
@@ -52,7 +49,7 @@ export function AlertaDescricao({ descricao, tipo }: AlertaDescricaoProps) {
       )}
       {imposto > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Tributação (10%):</span>
+          <span className="text-muted-foreground">{t('alerts.taxation')}:</span>
           <span className="font-semibold text-destructive">{formatCurrency(imposto)}</span>
         </div>
       )}

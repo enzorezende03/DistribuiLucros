@@ -1,50 +1,21 @@
 import { useState } from 'react';
-import { formatCurrency } from '@/lib/format';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAlertas, type TipoAlerta } from '@/hooks/useAlertas';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCompetencia, formatDate } from '@/lib/format';
-import {
-  AlertTriangle,
-  Loader2,
-  CheckCircle2,
-  Clock,
-  DollarSign,
-} from 'lucide-react';
+import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; className: string }> = {
-  ALERTA_50K: {
-    label: 'Valor > R$50k',
-    icon: <DollarSign className="h-4 w-4" />,
-    className: 'alert-50k',
-  },
-  PENDENTE_MES: {
-    label: 'Pendência Mensal',
-    icon: <Clock className="h-4 w-4" />,
-    className: 'alert-pendente',
-  },
-};
 
 export default function AlertasClientePage() {
   const { clienteId } = useAuth();
@@ -57,6 +28,19 @@ export default function AlertasClientePage() {
     selectedTipo || undefined,
     showResolvidos ? undefined : false
   );
+
+  const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; className: string }> = {
+    ALERTA_50K: {
+      label: t('alerts.value50k'),
+      icon: <DollarSign className="h-4 w-4" />,
+      className: 'alert-50k',
+    },
+    PENDENTE_MES: {
+      label: t('alerts.monthlyPending'),
+      icon: <Clock className="h-4 w-4" />,
+      className: 'alert-pendente',
+    },
+  };
 
   const alertas50k = alertas?.filter((a) => a.tipo === 'ALERTA_50K' && !a.resolvido) || [];
   const alertasPendentes = alertas?.filter((a) => a.tipo === 'PENDENTE_MES' && !a.resolvido) || [];
@@ -71,19 +55,18 @@ export default function AlertasClientePage() {
           </div>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-2">
           <Card className={cn('stat-card', alertas50k.length > 0 && 'border-destructive/30')}>
             <div className="stat-card-accent bg-destructive" />
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
-                Alertas de Valor &gt; R$50k
+                {t('alerts.value50kAlerts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{alertas50k.length}</p>
-              <p className="text-sm text-muted-foreground">alertas ativos</p>
+              <p className="text-sm text-muted-foreground">{t('alerts.activeAlerts')}</p>
             </CardContent>
           </Card>
 
@@ -92,23 +75,22 @@ export default function AlertasClientePage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Pendências Mensais
+                {t('alerts.monthlyPendings')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{alertasPendentes.length}</p>
-              <p className="text-sm text-muted-foreground">pendências ativas</p>
+              <p className="text-sm text-muted-foreground">{t('alerts.activePendings')}</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Alerts List */}
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-warning" />
-                Lista de Alertas
+                {t('alerts.alertsList')}
               </CardTitle>
               <div className="flex gap-4">
                 <Select
@@ -116,10 +98,10 @@ export default function AlertasClientePage() {
                   onValueChange={(v) => setSelectedTipo(v === 'all' ? null : (v as TipoAlerta))}
                 >
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filtrar por tipo" />
+                    <SelectValue placeholder={t('alerts.filterByType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os tipos</SelectItem>
+                    <SelectItem value="all">{t('alerts.allTypes')}</SelectItem>
                     {Object.entries(tipoConfig).map(([key, { label }]) => (
                       <SelectItem key={key} value={key}>
                         {label}
@@ -132,7 +114,7 @@ export default function AlertasClientePage() {
                   size="sm"
                   onClick={() => setShowResolvidos(!showResolvidos)}
                 >
-                  {showResolvidos ? 'Ocultar Resolvidos' : 'Mostrar Resolvidos'}
+                  {showResolvidos ? t('alerts.hideResolved') : t('alerts.showResolved')}
                 </Button>
               </div>
             </div>
@@ -147,18 +129,17 @@ export default function AlertasClientePage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Sócio</TableHead>
-                      <TableHead className="hidden sm:table-cell">Competência</TableHead>
-                      <TableHead className="hidden md:table-cell">Descrição</TableHead>
-                      <TableHead className="hidden sm:table-cell">Data</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t('alerts.type')}</TableHead>
+                      <TableHead>{t('alerts.partner')}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t('alerts.competence')}</TableHead>
+                      <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t('alerts.date')}</TableHead>
+                      <TableHead>{t('alerts.status')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {alertas.map((alerta) => {
                       const config = tipoConfig[alerta.tipo];
-
                       return (
                         <TableRow key={alerta.id} className="table-row-interactive">
                           <TableCell>
@@ -182,11 +163,11 @@ export default function AlertasClientePage() {
                           <TableCell>
                             {alerta.resolvido ? (
                               <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                                Resolvido
+                                {t('alerts.resolved')}
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                                Ativo
+                                {t('alerts.active')}
                               </Badge>
                             )}
                           </TableCell>
@@ -201,8 +182,8 @@ export default function AlertasClientePage() {
                 <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
                 <p className="text-muted-foreground">
                   {showResolvidos
-                    ? 'Nenhum alerta encontrado'
-                    : 'Nenhum alerta ativo no momento'}
+                    ? t('alerts.noAlertsFound')
+                    : t('alerts.noActiveAlerts')}
                 </p>
               </div>
             )}
