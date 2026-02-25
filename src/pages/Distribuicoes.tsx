@@ -508,7 +508,7 @@ interface DistribuicaoActionsProps {
 
 function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActionsProps) {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const updateStatus = useUpdateDistribuicaoStatus();
   const deleteDistribuicao = useDeleteDistribuicao();
   const [downloading, setDownloading] = useState(false);
@@ -520,7 +520,7 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
     setDownloading(true);
     try {
       const { data, error } = await supabase.functions.invoke('gerar-recibo-pdf', {
-        body: { distribuicao_id: distribuicao.id },
+        body: { distribuicao_id: distribuicao.id, lang: language },
       });
 
       if (error) throw error;
@@ -670,7 +670,7 @@ interface DistribuicaoDetailDialogProps {
 }
 
 function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: DistribuicaoDetailDialogProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: distribuicoes } = useDistribuicoes();
   const distribuicao = distribuicoes?.find((d) => d.id === distribuicaoId);
   const [downloading, setDownloading] = useState(false);
@@ -680,7 +680,7 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
     setDownloading(true);
     try {
       const { data, error } = await supabase.functions.invoke('gerar-recibo-pdf', {
-        body: { distribuicao_id: distribuicaoId },
+        body: { distribuicao_id: distribuicaoId, lang: language },
       });
       if (error) throw error;
       const html = typeof data === 'string' ? data : await new Response(data).text();
