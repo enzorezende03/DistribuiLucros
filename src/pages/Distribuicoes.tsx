@@ -540,7 +540,7 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
     } finally {
       setDownloading(false);
     }
-  }, [distribuicao.id]);
+  }, [distribuicao.id, language]);
 
   const openStatusDialog = (status: StatusDistribuicao) => {
     setPendingStatus(status);
@@ -698,7 +698,7 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
     } finally {
       setDownloading(false);
     }
-  }, [distribuicaoId]);
+  }, [distribuicaoId, language]);
 
   if (!distribuicao) {
     return null;
