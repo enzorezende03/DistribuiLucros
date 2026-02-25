@@ -143,7 +143,7 @@ export default function AlertasClientePage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : alertas && alertas.length > 0 ? (
-              <div className="rounded-md border overflow-x-auto">
+              <div className="rounded-md border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
