@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
@@ -63,7 +63,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
     onOpenChange(open);
   }, [onOpenChange, resetState]);
 
-  const downloadTemplate = useCallback(() => {
+  const downloadTemplate = useCallback(async () => {
     const data = [
       {
         razao_social: 'Empresa ABC Ltda',
@@ -97,82 +97,105 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       },
     ];
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
-    XLSX.writeFile(wb, 'modelo_importacao_clientes.xlsx');
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Clientes');
+    const columns = Object.keys(data[0]);
+    ws.columns = columns.map((key) => ({ header: key, key }));
+    data.forEach((row) => ws.addRow(row));
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'modelo_importacao_clientes.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
   }, []);
 
-  const parseFile = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' });
-
-        const clientMap = new Map<string, ParsedClient>();
-
-        for (const row of rows) {
-          const cnpj = unmask(String(row.cnpj || ''));
-          const razaoSocial = String(row.razao_social || '').trim();
-
-          if (!razaoSocial || !cnpj) continue;
-
-          if (!clientMap.has(cnpj)) {
-            const errors: string[] = [];
-            if (cnpj.length !== 14) errors.push('CNPJ inválido');
-            if (!String(row.email_responsavel || '').trim()) errors.push('E-mail obrigatório');
-
-            clientMap.set(cnpj, {
-              razao_social: razaoSocial,
-              cnpj,
-              email_responsavel: String(row.email_responsavel || '').trim(),
-              email_copia: String(row.email_copia || '').trim() || undefined,
-              telefone: row.telefone ? unmask(String(row.telefone)) : undefined,
-              socios: [],
-              errors,
-            });
-          }
-
-          const client = clientMap.get(cnpj)!;
-          const socioNome = String(row.socio_nome || '').trim();
-          const socioCpf = unmask(String(row.socio_cpf || ''));
-
-          if (socioNome && socioCpf) {
-            if (socioCpf.length !== 11) {
-              client.errors.push(`CPF inválido para ${socioNome}`);
-            }
-            client.socios.push({
-              nome: socioNome,
-              cpf: socioCpf,
-              percentual: row.socio_percentual ? parseFloat(String(row.socio_percentual)) : undefined,
-            });
-          }
-        }
-
-        // Validate that each client has at least one sócio
-        for (const [, client] of clientMap) {
-          if (client.socios.length === 0) {
-            client.errors.push('Sócio obrigatório');
-          }
-        }
-
-        setParsedClients(Array.from(clientMap.values()));
-        setStep('preview');
-      } catch {
-        toast.error('Erro ao ler o arquivo. Verifique o formato.');
+  const parseFile = useCallback(async (file: File) => {
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(buffer);
+      const sheet = wb.worksheets[0];
+      if (!sheet) {
+        toast.error('Planilha vazia.');
+        return;
       }
-    };
-    reader.readAsArrayBuffer(file);
+
+      // Convert sheet to array of objects using first row as headers
+      const headers: string[] = [];
+      sheet.getRow(1).eachCell((cell, colNumber) => {
+        headers[colNumber] = String(cell.value || '').trim();
+      });
+
+      const rows: Record<string, any>[] = [];
+      sheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const obj: Record<string, any> = {};
+        headers.forEach((header, colNumber) => {
+          if (header) obj[header] = row.getCell(colNumber).value ?? '';
+        });
+        rows.push(obj);
+      });
+
+      const clientMap = new Map<string, ParsedClient>();
+
+      for (const row of rows) {
+        const cnpj = unmask(String(row.cnpj || ''));
+        const razaoSocial = String(row.razao_social || '').trim();
+
+        if (!razaoSocial || !cnpj) continue;
+
+        if (!clientMap.has(cnpj)) {
+          const errors: string[] = [];
+          if (cnpj.length !== 14) errors.push('CNPJ inválido');
+          if (!String(row.email_responsavel || '').trim()) errors.push('E-mail obrigatório');
+
+          clientMap.set(cnpj, {
+            razao_social: razaoSocial,
+            cnpj,
+            email_responsavel: String(row.email_responsavel || '').trim(),
+            email_copia: String(row.email_copia || '').trim() || undefined,
+            telefone: row.telefone ? unmask(String(row.telefone)) : undefined,
+            socios: [],
+            errors,
+          });
+        }
+
+        const client = clientMap.get(cnpj)!;
+        const socioNome = String(row.socio_nome || '').trim();
+        const socioCpf = unmask(String(row.socio_cpf || ''));
+
+        if (socioNome && socioCpf) {
+          if (socioCpf.length !== 11) {
+            client.errors.push(`CPF inválido para ${socioNome}`);
+          }
+          client.socios.push({
+            nome: socioNome,
+            cpf: socioCpf,
+            percentual: row.socio_percentual ? parseFloat(String(row.socio_percentual)) : undefined,
+          });
+        }
+      }
+
+      for (const [, client] of clientMap) {
+        if (client.socios.length === 0) {
+          client.errors.push('Sócio obrigatório');
+        }
+      }
+
+      setParsedClients(Array.from(clientMap.values()));
+      setStep('preview');
+    } catch {
+      toast.error('Erro ao ler o arquivo. Verifique o formato.');
+    }
   }, []);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) parseFile(file);
+      if (file) void parseFile(file);
     },
     [parseFile]
   );
