@@ -73,14 +73,24 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const statusConfig: Record<StatusDistribuicao, { label: string; className: string }> = {
-  ENVIADA_AO_CONTADOR: { label: 'Enviada ao Contador', className: 'status-recebida' },
-  RECEBIDA: { label: 'Recebida', className: 'status-recebida' },
-  EM_VALIDACAO: { label: 'Em validação', className: 'status-em-validacao' },
-  APROVADA: { label: 'Aprovada', className: 'status-aprovada' },
-  AJUSTE_SOLICITADO: { label: 'Ajuste solicitado', className: 'status-ajuste-solicitado' },
-  CANCELADA: { label: 'Cancelada', className: 'status-cancelada' },
+const statusKeys: Record<StatusDistribuicao, string> = {
+  ENVIADA_AO_CONTADOR: 'status.ENVIADA_AO_CONTADOR',
+  RECEBIDA: 'status.RECEBIDA',
+  EM_VALIDACAO: 'status.EM_VALIDACAO',
+  APROVADA: 'status.APROVADA',
+  AJUSTE_SOLICITADO: 'status.AJUSTE_SOLICITADO',
+  CANCELADA: 'status.CANCELADA',
+};
+
+const statusClassNames: Record<StatusDistribuicao, string> = {
+  ENVIADA_AO_CONTADOR: 'status-recebida',
+  RECEBIDA: 'status-recebida',
+  EM_VALIDACAO: 'status-em-validacao',
+  APROVADA: 'status-aprovada',
+  AJUSTE_SOLICITADO: 'status-ajuste-solicitado',
+  CANCELADA: 'status-cancelada',
 };
 
 export default function DistribuicoesPage() {
@@ -88,6 +98,7 @@ export default function DistribuicoesPage() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const competenciaParam = searchParams.get('competencia');
+  const { t } = useLanguage();
   const { data: clientes } = useClientes();
   const queryClienteId = isAdmin ? null : clienteId;
   const { data: socios } = useSocios(queryClienteId);
@@ -139,9 +150,9 @@ export default function DistribuicoesPage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-hidden">
         <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Distribuições</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('distributions.title')}</h1>
             <p className="text-muted-foreground">
-              {isAdmin ? 'Gerencie todas as distribuições de lucros' : 'Suas distribuições de lucros'}
+              {isAdmin ? t('distributions.subtitle') : t('distributions.clientSubtitle')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -149,7 +160,7 @@ export default function DistribuicoesPage() {
               <>
                 <Button variant="outline" className="gap-2" onClick={() => setIsExportOpen(true)}>
                   <Download className="h-4 w-4" />
-                  Exportar
+                  {t('distributions.export')}
                 </Button>
                 {selectedIds.size > 0 && (
                   <Button
@@ -162,7 +173,7 @@ export default function DistribuicoesPage() {
                         return d?.status === 'ENVIADA_AO_CONTADOR';
                       });
                       if (enviadasIds.length === 0) {
-                        toast.error('Selecione distribuições com status "Enviada ao Contador"');
+                        toast.error(t('distributions.selectSentStatus'));
                         return;
                       }
                       batchUpdate.mutate(
@@ -172,7 +183,7 @@ export default function DistribuicoesPage() {
                     }}
                   >
                     {batchUpdate.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckSquare className="h-4 w-4" />}
-                    Confirmar Recebimento ({selectedIds.size})
+                    {t('distributions.confirmReceipt')} ({selectedIds.size})
                   </Button>
                 )}
               </>
@@ -181,7 +192,7 @@ export default function DistribuicoesPage() {
               <Link to="/distribuicoes/nova">
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Nova Distribuição
+                  {t('distributions.new')}
                 </Button>
               </Link>
             )}
@@ -191,7 +202,7 @@ export default function DistribuicoesPage() {
         <Card>
           <CardHeader>
             <div className="flex flex-col gap-4">
-              <CardTitle className="text-lg">Lista de Distribuições</CardTitle>
+              <CardTitle className="text-lg">{t('distributions.list')}</CardTitle>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {isAdmin && (
                   <Select
@@ -199,10 +210,10 @@ export default function DistribuicoesPage() {
                     onValueChange={(v) => setSelectedClienteId(v === 'all' ? null : v)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Filtrar por cliente" />
+                      <SelectValue placeholder={t('distributions.filterByClient')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os clientes</SelectItem>
+                      <SelectItem value="all">{t('distributions.allClients')}</SelectItem>
                       {clientes?.map((cliente) => (
                         <SelectItem key={cliente.id} value={cliente.id}>
                           {cliente.razao_social}
@@ -216,10 +227,10 @@ export default function DistribuicoesPage() {
                   onValueChange={(v) => setSelectedCompetencia(v === 'all' ? null : v)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Filtrar por competência" />
+                    <SelectValue placeholder={t('distributions.filterByCompetence')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as competências</SelectItem>
+                    <SelectItem value="all">{t('distributions.allCompetences')}</SelectItem>
                     {competenciaOptions.map((comp) => (
                       <SelectItem key={comp} value={comp}>
                         {formatCompetencia(comp)}
@@ -232,13 +243,13 @@ export default function DistribuicoesPage() {
                   onValueChange={(v) => setSelectedStatus(v === 'all' ? null : (v as StatusDistribuicao))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Filtrar por status" />
+                    <SelectValue placeholder={t('distributions.filterByStatus')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os status</SelectItem>
-                    {Object.entries(statusConfig).map(([key, { label }]) => (
+                    <SelectItem value="all">{t('distributions.allStatuses')}</SelectItem>
+                    {Object.keys(statusKeys).map((key) => (
                       <SelectItem key={key} value={key}>
-                        {label}
+                        {t(statusKeys[key as StatusDistribuicao])}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -249,10 +260,10 @@ export default function DistribuicoesPage() {
                     onValueChange={(v) => setSelectedSocioId(v === 'all' ? null : v)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Filtrar por sócio" />
+                      <SelectValue placeholder={t('distributions.filterByPartner')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os sócios</SelectItem>
+                      <SelectItem value="all">{t('distributions.allPartners')}</SelectItem>
                       {socios.filter(s => s.ativo).map((socio) => (
                         <SelectItem key={socio.id} value={socio.id}>
                           {socio.nome}
@@ -264,7 +275,7 @@ export default function DistribuicoesPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar..."
+                    placeholder={t('distributions.search')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-9"
@@ -298,7 +309,7 @@ export default function DistribuicoesPage() {
                               }}
                               className="h-4 w-4 rounded border-input"
                             />
-                            <span className="text-xs font-medium">Selecionar Todos</span>
+                            <span className="text-xs font-medium">{t('distributions.selectAll')}</span>
                           </label>
                         </TableHead>
                       )}
@@ -375,12 +386,12 @@ export default function DistribuicoesPage() {
             ) : (
               <div className="empty-state py-12">
                 <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">Nenhuma distribuição encontrada</p>
+                <p className="text-muted-foreground">{t('distributions.noResults')}</p>
                 {!isAdmin && (
                   <Link to="/distribuicoes/nova">
                     <Button variant="outline" className="mt-4 gap-2">
                       <Plus className="h-4 w-4" />
-                      Registrar primeira distribuição
+                      {t('distributions.registerFirst')}
                     </Button>
                   </Link>
                 )}
@@ -402,16 +413,19 @@ export default function DistribuicoesPage() {
 }
 
 function StatusBadge({ status }: { status: StatusDistribuicao }) {
-  const config = statusConfig[status] || { label: status, className: '' };
+  const { t } = useLanguage();
+  const className = statusClassNames[status] || '';
+  const label = t(statusKeys[status]) || status;
 
   return (
-    <Badge variant="outline" className={cn('text-xs', config.className)}>
-      {config.label}
+    <Badge variant="outline" className={cn('text-xs', className)}>
+      {label}
     </Badge>
   );
 }
 
 function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribuicaoId: string; status: StatusDistribuicao; isAdmin: boolean }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [historico, setHistorico] = useState<{ status_novo: string; observacao: string | null; created_at: string }[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -456,12 +470,12 @@ function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribui
           ) : (
             <div className="divide-y">
               {historico.map((h, i) => {
-                const cfg = statusConfig[h.status_novo as StatusDistribuicao];
+                const cfg = statusClassNames[h.status_novo as StatusDistribuicao];
                 return (
                   <div key={i} className="p-3 space-y-1">
                     <div className="flex items-center justify-between">
-                      <Badge variant="outline" className={cn('text-xs', cfg?.className)}>
-                        {cfg?.label || h.status_novo}
+                      <Badge variant="outline" className={cn('text-xs', cfg)}>
+                        {t(statusKeys[h.status_novo as StatusDistribuicao]) || h.status_novo}
                       </Badge>
                       <span className="text-xs text-muted-foreground">{formatDate(h.created_at)}</span>
                     </div>
@@ -494,6 +508,7 @@ interface DistribuicaoActionsProps {
 
 function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActionsProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const updateStatus = useUpdateDistribuicaoStatus();
   const deleteDistribuicao = useDeleteDistribuicao();
   const [downloading, setDownloading] = useState(false);
@@ -569,13 +584,13 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
             {isAdmin && (
               <>
                 <DropdownMenuSeparator />
-                {Object.entries(statusConfig).map(([key, { label }]) => (
+                {Object.keys(statusKeys).map((key) => (
                   <DropdownMenuItem
                     key={key}
                     onClick={() => openStatusDialog(key as StatusDistribuicao)}
                     disabled={distribuicao.status === key || updateStatus.isPending}
                   >
-                    Marcar como: {label}
+                    Marcar como: {t(statusKeys[key as StatusDistribuicao])}
                   </DropdownMenuItem>
                 ))}
               </>
@@ -618,7 +633,7 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
           <DialogHeader>
             <DialogTitle>Alterar Status</DialogTitle>
             <DialogDescription>
-              Alterar para: <strong>{pendingStatus ? statusConfig[pendingStatus]?.label : ''}</strong>
+              Alterar para: <strong>{pendingStatus ? t(statusKeys[pendingStatus]) : ''}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

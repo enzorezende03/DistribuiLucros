@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useNotificacoes, useMarkNotificacaoLida, useMarkAllNotificacoesLidas } from '@/hooks/useDistribuicoes';
 import { Bell, CheckCheck, Check, FileText } from 'lucide-react';
 import { formatDate } from '@/lib/format';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 
 export default function NotificacoesPage() {
   const { clienteId, isAdmin } = useAuth();
+  const { t } = useLanguage();
   const { data: notificacoes, isLoading } = useNotificacoes(clienteId, false, isAdmin);
   const markLida = useMarkNotificacaoLida();
   const markAllLidas = useMarkAllNotificacoesLidas();
@@ -18,7 +20,6 @@ export default function NotificacoesPage() {
 
   const handleMarkAll = () => {
     if (isAdmin) {
-      // Mark all admin notifications as read
       notificacoes?.filter(n => !n.lida).forEach(n => markLida.mutate(n.id));
     } else if (clienteId) {
       markAllLidas.mutate(clienteId);
@@ -30,13 +31,13 @@ export default function NotificacoesPage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Notificações</h1>
-            <p className="text-muted-foreground">Acompanhe as atualizações das suas distribuições</p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('notifications.title')}</h1>
+            <p className="text-muted-foreground">{t('notifications.subtitle')}</p>
           </div>
           {notificacoes && notificacoes.length > 0 && (
             <Button variant="outline" size="sm" className="gap-2" onClick={handleMarkAll}>
               <CheckCheck className="h-4 w-4" />
-              Marcar todas como lidas
+              {t('notifications.markAllRead')}
             </Button>
           )}
         </div>
@@ -49,8 +50,8 @@ export default function NotificacoesPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Bell className="h-12 w-12 mb-4 opacity-30" />
-              <p className="text-lg font-medium">Nenhuma notificação pendente</p>
-              <p className="text-sm">Você será notificado quando houver atualizações nas suas distribuições.</p>
+              <p className="text-lg font-medium">{t('notifications.noNotifications')}</p>
+              <p className="text-sm">{t('notifications.willBeNotified')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -70,31 +71,19 @@ export default function NotificacoesPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">{n.titulo}</p>
                     <p className="text-sm text-muted-foreground mt-1">{n.mensagem}</p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {formatDate(n.created_at)}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">{formatDate(n.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {n.distribuicao_id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1 text-xs"
-                        onClick={() => navigate(`/distribuicoes`)}
-                      >
+                      <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/distribuicoes`)}>
                         <FileText className="h-3 w-3" />
-                        Ver
+                        {t('notifications.view')}
                       </Button>
                     )}
                     {!n.lida && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1 text-xs"
-                        onClick={() => markLida.mutate(n.id)}
-                      >
+                      <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => markLida.mutate(n.id)}>
                         <Check className="h-3 w-3" />
-                        Lida
+                        {t('notifications.read')}
                       </Button>
                     )}
                   </div>

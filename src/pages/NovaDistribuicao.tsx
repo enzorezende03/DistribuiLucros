@@ -27,6 +27,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface RateioItem {
@@ -36,6 +37,7 @@ interface RateioItem {
 
 export default function NovaDistribuicaoPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { clienteId, user } = useAuth();
   const { data: cliente } = useCliente(clienteId);
   const { data: socios } = useSocios(clienteId);
@@ -160,10 +162,8 @@ export default function NovaDistribuicaoPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Nova Distribuição</h1>
-              <p className="text-muted-foreground">
-                Registre uma nova distribuição de lucros
-              </p>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('newDist.title')}</h1>
+              <p className="text-muted-foreground">{t('newDist.subtitle')}</p>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,12 +24,12 @@ export default function LoginPage() {
     const { error } = await signIn(email, password);
 
     if (error) {
-      toast.error('Erro ao entrar: ' + error.message);
+      toast.error(t('login.error') + ': ' + error.message);
       setLoading(false);
       return;
     }
 
-    toast.success('Login realizado com sucesso!');
+    toast.success(t('login.success'));
     navigate('/dashboard');
   };
 
@@ -41,51 +43,30 @@ export default function LoginPage() {
               <span className="text-2xl font-bold text-primary">DistribuiLucros</span>
             </div>
           </div>
-          <CardTitle className="text-2xl">Entrar</CardTitle>
-          <CardDescription>
-            Acesse o sistema de controle de distribuição de lucros
-          </CardDescription>
+          <CardTitle className="text-2xl">{t('login.title')}</CardTitle>
+          <CardDescription>{t('login.subtitle')}</CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Label htmlFor="email">{t('login.email')}</Label>
+              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Label htmlFor="password">{t('login.password')}</Label>
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Entrar
+              {t('login.submit')}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              Não tem uma conta?{' '}
-              <Link to="/register" className="text-primary hover:underline">
-                Cadastre-se
-              </Link>
+              {t('login.noAccount')}{' '}
+              <Link to="/register" className="text-primary hover:underline">{t('login.register')}</Link>
             </p>
           </CardFooter>
         </form>

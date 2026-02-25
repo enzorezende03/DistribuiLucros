@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Calculator, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -34,6 +35,7 @@ const LIMITE_ISENCAO = 50000;
 const ALIQUOTA = 0.10;
 
 export default function SimulacaoPage() {
+  const { t } = useLanguage();
   const [valorDistribuicao, setValorDistribuicao] = useState(0);
   const [inputValue, setInputValue] = useState('0,00');
 
@@ -60,41 +62,24 @@ export default function SimulacaoPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <Calculator className="h-6 w-6 text-primary" />
-            Simulação de Distribuição
+            {t('simulation.title')}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Simule o imposto sobre a distribuição de lucros antes de solicitar.
-          </p>
+          <p className="text-muted-foreground mt-1">{t('simulation.subtitle')}</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Valor da Distribuição</CardTitle>
-            <CardDescription>
-              Informe o valor total que deseja distribuir
-            </CardDescription>
+            <CardTitle className="text-lg">{t('simulation.distributionValue')}</CardTitle>
+            <CardDescription>{t('simulation.informValue')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="valor">Valor (R$)</Label>
-              <Input
-                id="valor"
-                placeholder="0,00"
-                value={inputValue}
-                onChange={handleInputChange}
-                className="text-lg font-semibold"
-              />
+              <Label htmlFor="valor">{t('simulation.value')}</Label>
+              <Input id="valor" placeholder="0,00" value={inputValue} onChange={handleInputChange} className="text-lg font-semibold" />
             </div>
-
             <div className="space-y-2">
-              <Label>Ajuste rápido</Label>
-              <Slider
-                value={[valorDistribuicao]}
-                onValueChange={handleSliderChange}
-                max={500000}
-                step={1000}
-                className="py-2"
-              />
+              <Label>{t('simulation.quickAdjust')}</Label>
+              <Slider value={[valorDistribuicao]} onValueChange={handleSliderChange} max={500000} step={1000} className="py-2" />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>R$ 0</span>
                 <span>R$ 500.000</span>
@@ -107,20 +92,14 @@ export default function SimulacaoPage() {
           <Card className={isento ? 'border-green-500/30 bg-green-50/50 dark:bg-green-950/20' : ''}>
             <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
-                {isento ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-                )}
-                <span className="text-sm font-medium text-muted-foreground">Status</span>
+                {isento ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" /> : <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />}
+                <span className="text-sm font-medium text-muted-foreground">{t('simulation.statusLabel')}</span>
               </div>
               <p className={`text-base font-bold break-all ${isento ? 'text-green-600' : 'text-amber-600'}`}>
-                {isento ? 'Isento' : 'Tributável'}
+                {isento ? t('simulation.exempt') : t('simulation.taxable')}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {isento
-                  ? 'Até R$ 50.000 é isento'
-                  : 'Acima de R$ 50.000 incide 10%'}
+                {isento ? t('simulation.exemptMsg') : t('simulation.taxableMsg')}
               </p>
             </CardContent>
           </Card>
@@ -129,13 +108,11 @@ export default function SimulacaoPage() {
             <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="text-sm font-medium text-muted-foreground">Imposto (10%)</span>
+                <span className="text-sm font-medium text-muted-foreground">{t('simulation.tax')}</span>
               </div>
-              <p className="text-base font-bold text-foreground">
-                {breakableCurrency(imposto)}
-              </p>
+              <p className="text-base font-bold text-foreground">{breakableCurrency(imposto)}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {isento ? 'Nenhum imposto' : `10% sobre ${breakableCurrency(valorDistribuicao)}`}
+                {isento ? t('simulation.noTax') : `${t('simulation.taxOver')} ${breakableCurrency(valorDistribuicao)}`}
               </p>
             </CardContent>
           </Card>
@@ -144,14 +121,10 @@ export default function SimulacaoPage() {
             <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
                 <Calculator className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="text-sm font-medium text-muted-foreground">Valor Bruto</span>
+                <span className="text-sm font-medium text-muted-foreground">{t('simulation.grossValue')}</span>
               </div>
-              <p className="text-base font-bold text-foreground">
-                {breakableCurrency(valorDistribuicao)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Valor total da distribuição
-              </p>
+              <p className="text-base font-bold text-foreground">{breakableCurrency(valorDistribuicao)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('simulation.grossDesc')}</p>
             </CardContent>
           </Card>
 
@@ -159,35 +132,31 @@ export default function SimulacaoPage() {
             <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-sm font-medium text-muted-foreground">Valor Líquido</span>
+                <span className="text-sm font-medium text-muted-foreground">{t('simulation.netValue')}</span>
               </div>
-              <p className="text-base font-bold text-primary">
-                {breakableCurrency(valorLiquido)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Valor após dedução do imposto
-              </p>
+              <p className="text-base font-bold text-primary">{breakableCurrency(valorLiquido)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('simulation.netDesc')}</p>
             </CardContent>
           </Card>
         </div>
 
         <Card>
           <CardContent className="pt-6">
-            <h3 className="font-semibold mb-3">Regras de tributação</h3>
+            <h3 className="font-semibold mb-3">{t('simulation.taxRules')}</h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
                 <div>
-                  <p className="font-medium">Até R$ 50.000,00 — Isento</p>
-                  <p className="text-muted-foreground">Distribuições de até R$ 50 mil não possuem incidência de imposto.</p>
+                  <p className="font-medium">{t('simulation.rule1Title')}</p>
+                  <p className="text-muted-foreground">{t('simulation.rule1Desc')}</p>
                 </div>
               </div>
               <Separator />
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                 <div>
-                  <p className="font-medium">Acima de R$ 50.000,00 — 10% sobre o total</p>
-                  <p className="text-muted-foreground">Quando o valor ultrapassa R$ 50 mil, incide alíquota de 10% sobre o valor total da distribuição.</p>
+                  <p className="font-medium">{t('simulation.rule2Title')}</p>
+                  <p className="text-muted-foreground">{t('simulation.rule2Desc')}</p>
                 </div>
               </div>
             </div>

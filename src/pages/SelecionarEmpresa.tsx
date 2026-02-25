@@ -1,10 +1,12 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { Building2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function SelecionarEmpresaPage() {
   const { userClientes, selectCliente, user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSelect = (clienteId: string) => {
@@ -16,9 +18,9 @@ export default function SelecionarEmpresaPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Selecione a Empresa</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('selectCompany.title')}</h1>
           <p className="text-muted-foreground text-sm">
-            Olá, {user?.email}. Escolha qual empresa deseja acessar.
+            {t('selectCompany.greeting')}, {user?.email}. {t('selectCompany.chooseCompany')}
           </p>
         </div>
 

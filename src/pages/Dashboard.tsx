@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useDistribuicoes } from '@/hooks/useDistribuicoes';
 import { useNotificacoes, useMarkNotificacaoLida, useMarkAllNotificacoesLidas } from '@/hooks/useDistribuicoes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -38,15 +39,16 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function DashboardPage() {
   const { isAdmin, clienteId } = useAuth();
+  const { t } = useLanguage();
   
   return (
     <SidebarLayout>
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
             <p className="text-muted-foreground">
-              {isAdmin ? 'Visão geral do sistema' : 'Suas distribuições de lucros'}
+              {isAdmin ? t('dashboard.adminSubtitle') : t('dashboard.clientSubtitle')}
             </p>
           </div>
           
@@ -55,7 +57,7 @@ export default function DashboardPage() {
               <Link to="/distribuicoes/nova">
                 <Button className="gap-2">
                   <PlusCircle className="h-4 w-4" />
-                  Registrar Distribuição
+                  {t('dashboard.registerDistribution')}
                 </Button>
               </Link>
             </div>
@@ -73,6 +75,7 @@ export default function DashboardPage() {
 }
 
 function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
+  const { t } = useLanguage();
   const { data: cliente } = useCliente(clienteId);
   const { data: distribuicoes, isLoading: loadingDist } = useDistribuicoes(clienteId);
   const { data: alertas, isLoading: loadingAlertas } = useAlertas(clienteId, undefined, false);
@@ -105,7 +108,6 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
 
   return (
     <>
-      {/* Alerta de pendência */}
       {!mesResolvido && (
         <Card className="border-warning/50 bg-warning/5">
           <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6">
@@ -114,9 +116,9 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                 <AlertTriangle className="h-5 w-5 text-warning" />
               </div>
               <div>
-                <h3 className="font-semibold">Ação necessária</h3>
+                <h3 className="font-semibold">{t('dashboard.actionRequired')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Informe se houve distribuição de lucros em {formatCompetencia(competenciaAnterior)}
+                  {t('dashboard.informDistribution')} {formatCompetencia(competenciaAnterior)}
                 </p>
               </div>
             </div>
@@ -124,7 +126,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <Link to="/distribuicoes/nova" className="flex-1 sm:flex-none">
                 <Button className="w-full gap-2">
                   <PlusCircle className="h-4 w-4" />
-                  Houve
+                  {t('dashboard.happened')}
                 </Button>
               </Link>
               <Button
@@ -138,20 +140,19 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                 ) : (
                   <XCircle className="h-4 w-4" />
                 )}
-                Não houve
+                {t('dashboard.didNotHappen')}
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Stats Cards */}
       <div className="dashboard-grid">
         <Card className="stat-card">
           <div className="stat-card-accent bg-primary" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Empresa
+              {t('dashboard.company')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -163,12 +164,12 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <div className="stat-card-accent bg-accent" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total no Ano
+              {t('dashboard.totalYear')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="money-value-lg">{breakableCurrency(totalAno)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Clique para ver detalhes</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('dashboard.clickDetails')}</p>
           </CardContent>
         </Card>
 
@@ -176,12 +177,12 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <div className="stat-card-accent bg-info" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total no Mês
+              {t('dashboard.totalMonth')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="money-value-lg">{breakableCurrency(totalMes)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Clique para ver detalhes</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('dashboard.clickDetails')}</p>
           </CardContent>
         </Card>
 
@@ -189,26 +190,24 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <div className="stat-card-accent bg-warning" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Alertas
+              {t('alerts.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{alertas?.length || 0}</p>
             {(alertas?.length || 0) > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">Clique para ver detalhes</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('dashboard.clickDetails')}</p>
             )}
           </CardContent>
         </Card>
       </div>
 
-
-      {/* Dialog de Total no Mês por Sócio */}
       <Dialog open={totalMesDialogOpen} onOpenChange={setTotalMesDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-info" />
-              Detalhes do Mês — {formatCompetencia(competenciaAnterior)}
+              {t('dashboard.monthDetails')} — {formatCompetencia(competenciaAnterior)}
             </DialogTitle>
           </DialogHeader>
           {(() => {
@@ -216,7 +215,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             const socioMap = new Map<string, { nome: string; total: number }>();
             for (const dist of distMes) {
               for (const item of dist.itens || []) {
-                const nome = item.socio?.nome || 'Desconhecido';
+                const nome = item.socio?.nome || t('dashboard.unknown');
                 const existing = socioMap.get(item.socio_id) || { nome, total: 0 };
                 existing.total += Number(item.valor);
                 socioMap.set(item.socio_id, existing);
@@ -233,7 +232,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   </div>
                 ))}
                 <div className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/20">
-                  <span className="font-bold">Total</span>
+                  <span className="font-bold">{t('dashboard.total')}</span>
                   <span className="font-bold money-value">{formatCurrency(totalMes)}</span>
                 </div>
                 <Button
@@ -245,40 +244,38 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   }}
                 >
                   <FileText className="h-4 w-4" />
-                  Ver com Mais Detalhes
+                  {t('dashboard.viewMoreDetails')}
                 </Button>
               </div>
             ) : (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                <p className="text-muted-foreground">Nenhuma distribuição neste mês</p>
+                <p className="text-muted-foreground">{t('dashboard.noDistributionMonth')}</p>
               </div>
             );
           })()}
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de Total no Ano por Sócio/Mês */}
       <Dialog open={totalAnoDialogOpen} onOpenChange={setTotalAnoDialogOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-accent" />
-              Detalhes do Ano — {new Date().getFullYear()}
+              {t('dashboard.yearDetails')} — {new Date().getFullYear()}
             </DialogTitle>
           </DialogHeader>
           {(() => {
             const anoAtual = String(new Date().getFullYear());
             const distAno = distribuicoes?.filter(d => d.competencia.startsWith(anoAtual)) || [];
             
-            // Build: socio -> { month -> total }
             const socioMap = new Map<string, { nome: string; meses: Map<string, number>; total: number }>();
             const allMonths = new Set<string>();
 
             for (const dist of distAno) {
               allMonths.add(dist.competencia);
               for (const item of dist.itens || []) {
-                const nome = item.socio?.nome || 'Desconhecido';
+                const nome = item.socio?.nome || t('dashboard.unknown');
                 if (!socioMap.has(item.socio_id)) {
                   socioMap.set(item.socio_id, { nome, meses: new Map(), total: 0 });
                 }
@@ -314,7 +311,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   </div>
                 ))}
                 <div className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/20">
-                  <span className="font-bold">Total no Ano</span>
+                  <span className="font-bold">{t('dashboard.totalYearLabel')}</span>
                   <span className="font-bold money-value">{formatCurrency(totalAno)}</span>
                 </div>
                 <Button
@@ -326,20 +323,19 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   }}
                 >
                   <FileText className="h-4 w-4" />
-                  Ver com Mais Detalhes
+                  {t('dashboard.viewMoreDetails')}
                 </Button>
               </div>
             ) : (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                <p className="text-muted-foreground">Nenhuma distribuição neste ano</p>
+                <p className="text-muted-foreground">{t('dashboard.noDistributionYear')}</p>
               </div>
             );
           })()}
         </DialogContent>
       </Dialog>
 
-      {/* Notificações e Pendências lado a lado */}
       <NotificacoesPendenciasSection
         clienteId={clienteId}
         notificacoes={notificacoes}
@@ -348,12 +344,11 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
       />
 
       <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
-        {/* Alertas Ativos */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning" />
-              Alertas Ativos
+              {t('dashboard.noAlerts') === 'Nenhum alerta ativo' ? 'Alertas Ativos' : 'Active Alerts'}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -382,7 +377,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                           <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                         </div>
                         <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                          {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
+                          {alerta.tipo === 'ALERTA_50K' ? '>50k' : t('common.pending')}
                         </Badge>
                       </div>
                     </div>
@@ -392,22 +387,21 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             ) : (
               <div className="empty-state py-8">
                 <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
-                <p className="text-muted-foreground">Nenhum alerta ativo</p>
+                <p className="text-muted-foreground">{t('dashboard.noAlerts')}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Últimas Distribuições */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-accent" />
-              Últimas Distribuições
+              {t('dashboard.lastDistributions')}
             </CardTitle>
             <Link to="/distribuicoes">
               <Button variant="ghost" size="sm">
-                Ver todas
+                {t('dashboard.viewAll2')}
               </Button>
             </Link>
           </CardHeader>
@@ -441,11 +435,11 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             ) : (
               <div className="empty-state py-8">
                 <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">Nenhuma distribuição registrada</p>
+                <p className="text-muted-foreground">{t('dashboard.noDistributionRegistered')}</p>
                 <Link to="/distribuicoes/nova">
                   <Button variant="outline" className="mt-4 gap-2">
                     <PlusCircle className="h-4 w-4" />
-                    Registrar primeira distribuição
+                    {t('dashboard.registerFirst')}
                   </Button>
                 </Link>
               </div>
@@ -500,6 +494,7 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
   markLida: any;
   markAllLidas: any;
 }) {
+  const { t } = useLanguage();
   const { data: pendencias } = usePendenciasDashboard(clienteId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -538,13 +533,12 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
 
   return (
     <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
-      {/* Notificações */}
       <Card className="border-info/50 bg-info/5">
         <CardHeader className="flex flex-row items-center justify-between pb-3 gap-2">
           <CardTitle className="text-base md:text-lg flex items-center gap-2 shrink-0">
             <Bell className="h-5 w-5 text-info" />
-            <span className="hidden sm:inline">Notificações</span>
-            <span className="sm:hidden">Notif.</span>
+            <span className="hidden sm:inline">{t('dashboard.notifications')}</span>
+            <span className="sm:hidden">{t('dashboard.notif')}</span>
             ({notificacoes?.length || 0})
           </CardTitle>
           {hasNotificacoes && (
@@ -555,8 +549,8 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
               onClick={() => clienteId && markAllLidas.mutate(clienteId)}
               disabled={markAllLidas.isPending}
             >
-              <span className="hidden sm:inline">Marcar todas como lidas</span>
-              <span className="sm:hidden">Marcar lidas</span>
+              <span className="hidden sm:inline">{t('dashboard.markAllRead')}</span>
+              <span className="sm:hidden">{t('dashboard.markRead')}</span>
             </Button>
           )}
         </CardHeader>
@@ -576,23 +570,22 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
               ))}
               {notificacoes!.length > 5 && (
                 <Button variant="link" size="sm" className="w-full" onClick={() => navigate('/notificacoes')}>
-                  Ver todas ({notificacoes!.length})
+                  {t('dashboard.viewAll2')} ({notificacoes!.length})
                 </Button>
               )}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">Nenhuma notificação pendente</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('dashboard.noNotificationsPending')}</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Pendências */}
       <Card className="border-warning/30 bg-warning/5">
         <CardHeader className="flex flex-row items-center justify-between pb-3 gap-2">
           <CardTitle className="text-base md:text-lg flex items-center gap-2 shrink-0">
             <AlertCircle className="h-5 w-5 text-warning" />
-            <span className="hidden sm:inline">Pendências</span>
-            <span className="sm:hidden">Pend.</span>
+            <span className="hidden sm:inline">{t('dashboard.pendencias')}</span>
+            <span className="sm:hidden">{t('dashboard.pend')}</span>
             ({pendencias?.length || 0})
           </CardTitle>
           {hasPendencias && (
@@ -603,8 +596,8 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
               onClick={() => markAllPendenciasLidas.mutate()}
               disabled={markAllPendenciasLidas.isPending}
             >
-              <span className="hidden sm:inline">Marcar todas como lidas</span>
-              <span className="sm:hidden">Marcar lidas</span>
+              <span className="hidden sm:inline">{t('dashboard.markAllRead')}</span>
+              <span className="sm:hidden">{t('dashboard.markRead')}</span>
             </Button>
           )}
         </CardHeader>
@@ -615,7 +608,7 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
                 <div key={p.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm">Ajuste Solicitado</p>
+                      <p className="font-medium text-sm">{t('dashboard.adjustRequested')}</p>
                       {p.distribuicao?.competencia && (
                         <Badge variant="secondary" className="text-xs">{p.distribuicao.competencia}</Badge>
                       )}
@@ -631,7 +624,7 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">Nenhuma pendência</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('dashboard.noPendencias')}</p>
           )}
         </CardContent>
       </Card>
@@ -640,6 +633,7 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
 }
 
 function AdminDashboard() {
+  const { t } = useLanguage();
   const { data: distribuicoes, isLoading: loadingDist } = useDistribuicoes();
   const { data: alertas, isLoading: loadingAlertas } = useAlertas(undefined, undefined, false);
 
@@ -652,13 +646,12 @@ function AdminDashboard() {
 
   return (
     <>
-      {/* Stats Cards */}
       <div className="dashboard-grid">
         <Card className="stat-card">
           <div className="stat-card-accent bg-accent" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Distribuído no Mês
+              {t('dashboard.totalDistributedMonth')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -673,7 +666,7 @@ function AdminDashboard() {
           <div className="stat-card-accent bg-info" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Distribuições no Mês
+              {t('dashboard.distributionsMonth')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -685,7 +678,7 @@ function AdminDashboard() {
           <div className="stat-card-accent bg-destructive" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Alertas &gt;R$50k
+              {t('dashboard.alerts50k')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -697,7 +690,7 @@ function AdminDashboard() {
           <div className="stat-card-accent bg-warning" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Clientes Pendentes
+              {t('dashboard.pendingClients')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -707,16 +700,15 @@ function AdminDashboard() {
       </div>
 
       <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
-        {/* Alertas */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning" />
-              Alertas Ativos
+              {t('dashboard.activeAlerts')}
             </CardTitle>
             <Link to="/alertas">
               <Button variant="ghost" size="sm">
-                Ver todos
+                {t('dashboard.viewAllAlerts')}
               </Button>
             </Link>
           </CardHeader>
@@ -749,7 +741,7 @@ function AdminDashboard() {
                           <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                         </div>
                         <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                          {alerta.tipo === 'ALERTA_50K' ? '>50k' : 'Pendente'}
+                          {alerta.tipo === 'ALERTA_50K' ? '>50k' : t('common.pending')}
                         </Badge>
                       </div>
                     </div>
@@ -759,22 +751,21 @@ function AdminDashboard() {
             ) : (
               <div className="empty-state py-8">
                 <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
-                <p className="text-muted-foreground">Nenhum alerta ativo</p>
+                <p className="text-muted-foreground">{t('dashboard.noAlerts')}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Últimas Distribuições */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-accent" />
-              Últimas Distribuições
+              {t('dashboard.lastDistributions')}
             </CardTitle>
             <Link to="/distribuicoes">
               <Button variant="ghost" size="sm">
-                Ver todas
+                {t('dashboard.viewAll2')}
               </Button>
             </Link>
           </CardHeader>
@@ -808,7 +799,7 @@ function AdminDashboard() {
             ) : (
               <div className="empty-state py-8">
                 <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">Nenhuma distribuição registrada</p>
+                <p className="text-muted-foreground">{t('dashboard.noDistributionRegistered')}</p>
               </div>
             )}
           </CardContent>
@@ -819,20 +810,22 @@ function AdminDashboard() {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    ENVIADA_AO_CONTADOR: { label: 'Enviada ao Contador', className: 'status-recebida' },
-    RECEBIDA: { label: 'Recebida', className: 'status-recebida' },
-    EM_VALIDACAO: { label: 'Em validação', className: 'status-em-validacao' },
-    APROVADA: { label: 'Aprovada', className: 'status-aprovada' },
-    AJUSTE_SOLICITADO: { label: 'Ajuste solicitado', className: 'status-ajuste-solicitado' },
-    CANCELADA: { label: 'Cancelada', className: 'status-cancelada' },
+  const { t } = useLanguage();
+  const statusConfig: Record<string, { className: string }> = {
+    ENVIADA_AO_CONTADOR: { className: 'status-recebida' },
+    RECEBIDA: { className: 'status-recebida' },
+    EM_VALIDACAO: { className: 'status-em-validacao' },
+    APROVADA: { className: 'status-aprovada' },
+    AJUSTE_SOLICITADO: { className: 'status-ajuste-solicitado' },
+    CANCELADA: { className: 'status-cancelada' },
   };
 
-  const config = statusConfig[status] || { label: status, className: '' };
+  const config = statusConfig[status] || { className: '' };
+  const label = t(`status.${status}`) || status;
 
   return (
     <Badge variant="outline" className={cn('text-xs', config.className)}>
-      {config.label}
+      {label}
     </Badge>
   );
 }

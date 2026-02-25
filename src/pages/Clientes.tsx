@@ -81,6 +81,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Collapsible,
   CollapsibleContent,
@@ -89,6 +90,7 @@ import {
 
 export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
+  const { t } = useLanguage();
   const [search, setSearch] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
@@ -107,10 +109,8 @@ export default function ClientesPage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Clientes</h1>
-            <p className="text-muted-foreground">
-              Gerencie os clientes e seus sócios
-            </p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('clients.title')}</h1>
+            <p className="text-muted-foreground">{t('clients.subtitle')}</p>
           </div>
           <div className="flex gap-2">
             <Button

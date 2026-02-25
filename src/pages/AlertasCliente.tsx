@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAlertas, type TipoAlerta } from '@/hooks/useAlertas';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCompetencia, formatDate } from '@/lib/format';
@@ -47,6 +48,7 @@ const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; cla
 
 export default function AlertasClientePage() {
   const { clienteId } = useAuth();
+  const { t } = useLanguage();
   const [selectedTipo, setSelectedTipo] = useState<TipoAlerta | null>(null);
   const [showResolvidos, setShowResolvidos] = useState(false);
 
@@ -64,10 +66,8 @@ export default function AlertasClientePage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Alertas</h1>
-            <p className="text-muted-foreground">
-              Monitore alertas de valores elevados e pendências
-            </p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('alerts.title')}</h1>
+            <p className="text-muted-foreground">{t('alerts.subtitle')}</p>
           </div>
         </div>
 
