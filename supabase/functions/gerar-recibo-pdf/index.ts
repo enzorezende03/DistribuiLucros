@@ -6,8 +6,116 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+type Lang = "pt" | "en" | "es";
+
+const labels: Record<Lang, Record<string, string>> = {
+  pt: {
+    title: "RECIBO DE DISTRIBUIÇÃO DE LUCROS",
+    receiptNum: "Nº",
+    sectionData: "Dados da Distribuição",
+    competencia: "Competência",
+    dataDistribuicao: "Data da Distribuição",
+    formaPagamento: "Forma de Pagamento",
+    status: "Status",
+    sectionRateio: "Rateio por Sócio",
+    socio: "Sócio",
+    cpf: "CPF",
+    valor: "Valor",
+    total: "TOTAL",
+    responsavel: "Responsável pela Empresa",
+    geradoEm: "Documento gerado em",
+    as: "às",
+    // status values
+    ENVIADA_AO_CONTADOR: "Enviada ao Contador",
+    RECEBIDA: "Recebida",
+    EM_VALIDACAO: "Em Validação",
+    APROVADA: "Aprovada",
+    AJUSTE_SOLICITADO: "Ajuste Solicitado",
+    CANCELADA: "Cancelada",
+    // payment
+    transferencia: "Transferência Bancária",
+    pix: "PIX",
+    cheque: "Cheque",
+    dinheiro: "Dinheiro",
+    // months
+    m1: "Janeiro", m2: "Fevereiro", m3: "Março", m4: "Abril",
+    m5: "Maio", m6: "Junho", m7: "Julho", m8: "Agosto",
+    m9: "Setembro", m10: "Outubro", m11: "Novembro", m12: "Dezembro",
+  },
+  en: {
+    title: "PROFIT DISTRIBUTION RECEIPT",
+    receiptNum: "No.",
+    sectionData: "Distribution Details",
+    competencia: "Period",
+    dataDistribuicao: "Distribution Date",
+    formaPagamento: "Payment Method",
+    status: "Status",
+    sectionRateio: "Breakdown by Partner",
+    socio: "Partner",
+    cpf: "CPF",
+    valor: "Amount",
+    total: "TOTAL",
+    responsavel: "Company Representative",
+    geradoEm: "Document generated on",
+    as: "at",
+    ENVIADA_AO_CONTADOR: "Sent to Accountant",
+    RECEBIDA: "Received",
+    EM_VALIDACAO: "Under Review",
+    APROVADA: "Approved",
+    AJUSTE_SOLICITADO: "Adjustment Requested",
+    CANCELADA: "Cancelled",
+    transferencia: "Bank Transfer",
+    pix: "PIX",
+    cheque: "Check",
+    dinheiro: "Cash",
+    m1: "January", m2: "February", m3: "March", m4: "April",
+    m5: "May", m6: "June", m7: "July", m8: "August",
+    m9: "September", m10: "October", m11: "November", m12: "December",
+  },
+  es: {
+    title: "RECIBO DE DISTRIBUCIÓN DE GANANCIAS",
+    receiptNum: "Nº",
+    sectionData: "Datos de la Distribución",
+    competencia: "Período",
+    dataDistribuicao: "Fecha de Distribución",
+    formaPagamento: "Forma de Pago",
+    status: "Estado",
+    sectionRateio: "Desglose por Socio",
+    socio: "Socio",
+    cpf: "CPF",
+    valor: "Valor",
+    total: "TOTAL",
+    responsavel: "Responsable de la Empresa",
+    geradoEm: "Documento generado el",
+    as: "a las",
+    ENVIADA_AO_CONTADOR: "Enviada al Contador",
+    RECEBIDA: "Recibida",
+    EM_VALIDACAO: "En Validación",
+    APROVADA: "Aprobada",
+    AJUSTE_SOLICITADO: "Ajuste Solicitado",
+    CANCELADA: "Cancelada",
+    transferencia: "Transferencia Bancaria",
+    pix: "PIX",
+    cheque: "Cheque",
+    dinheiro: "Efectivo",
+    m1: "Enero", m2: "Febrero", m3: "Marzo", m4: "Abril",
+    m5: "Mayo", m6: "Junio", m7: "Julio", m8: "Agosto",
+    m9: "Septiembre", m10: "Octubre", m11: "Noviembre", m12: "Diciembre",
+  },
+};
+
+function getLabels(lang: string): Record<string, string> {
+  return labels[(lang as Lang)] || labels.pt;
+}
+
+function formatCurrency(value: number, lang: Lang): string {
+  const locale = lang === "en" ? "en-US" : lang === "es" ? "es-ES" : "pt-BR";
+  const currency = lang === "en" ? "USD" : "BRL";
+  if (lang === "en") {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value)
+      .replace("$", "R$");
+  }
+  return new Intl.NumberFormat(locale, { style: "currency", currency: "BRL" }).format(value);
 }
 
 function formatCPF(cpf: string): string {
@@ -22,35 +130,51 @@ function formatCNPJ(cnpj: string): string {
   return c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
 }
 
-function formatDate(d: string): string {
-  return new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
+function formatDate(d: string, lang: Lang): string {
+  const locale = lang === "en" ? "en-US" : lang === "es" ? "es-ES" : "pt-BR";
+  return new Date(d + "T12:00:00").toLocaleDateString(locale);
 }
 
-function formatCompetencia(comp: string): string {
+function formatCompetencia(comp: string, l: Record<string, string>): string {
   const [year, month] = comp.split("-");
-  const months = [
-    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
-  ];
-  return `${months[parseInt(month) - 1]}/${year}`;
+  const key = `m${parseInt(month)}`;
+  return `${l[key]}/${year}`;
 }
 
-function numberToWords(n: number): string {
-  // simplified - just return the formatted value
-  return formatCurrency(n);
+function translateStatus(status: string, l: Record<string, string>): string {
+  return l[status] || status;
 }
 
-function buildHtml(dist: any, cliente: any, itens: any[]): string {
+function translatePayment(forma: string, l: Record<string, string>): string {
+  const map: Record<string, string> = {
+    "Transferência Bancária": "transferencia",
+    "transferencia": "transferencia",
+    "PIX": "pix",
+    "Cheque": "cheque",
+    "Dinheiro": "dinheiro",
+  };
+  const key = map[forma];
+  return key ? l[key] : forma;
+}
+
+function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang): string {
+  const l = getLabels(lang);
+  const locale = lang === "en" ? "en-US" : lang === "es" ? "es-ES" : "pt-BR";
+
   const itensRows = itens
     .map(
       (item) => `
       <tr>
         <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${item.socio?.nome || "—"}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${formatCPF(item.socio?.cpf || "")}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${formatCurrency(Number(item.valor))}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${formatCurrency(Number(item.valor), lang)}</td>
       </tr>`
     )
     .join("");
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString(locale);
+  const timeStr = now.toLocaleTimeString(locale);
 
   return `<!DOCTYPE html>
 <html>
@@ -74,49 +198,48 @@ function buildHtml(dist: any, cliente: any, itens: any[]): string {
   .total-row { background:#2563eb; color:#fff; }
   .total-row td { padding:12px; font-size:16px; font-weight:700; }
   .footer { margin-top:40px; text-align:center; font-size:11px; color:#999; border-top:1px solid #e5e7eb; padding-top:16px; }
-  .signatures { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:50px; }
   .sig-line { border-top:1px solid #333; padding-top:8px; text-align:center; font-size:12px; }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>RECIBO DE DISTRIBUIÇÃO DE LUCROS</h1>
+    <h1>${l.title}</h1>
     <p>${cliente.razao_social}</p>
     <p>CNPJ: ${formatCNPJ(cliente.cnpj)}</p>
-    <div class="recibo-num">Nº ${dist.recibo_numero || "—"}</div>
+    <div class="recibo-num">${l.receiptNum} ${dist.recibo_numero || "—"}</div>
   </div>
 
   <div class="section">
-    <div class="section-title">Dados da Distribuição</div>
+    <div class="section-title">${l.sectionData}</div>
     <div class="info-grid">
-      <div><div class="info-label">Competência</div><div class="info-value">${formatCompetencia(dist.competencia)}</div></div>
-      <div><div class="info-label">Data da Distribuição</div><div class="info-value">${formatDate(dist.data_distribuicao)}</div></div>
-      <div><div class="info-label">Forma de Pagamento</div><div class="info-value">${dist.forma_pagamento}</div></div>
-      <div><div class="info-label">Status</div><div class="info-value">${dist.status}</div></div>
+      <div><div class="info-label">${l.competencia}</div><div class="info-value">${formatCompetencia(dist.competencia, l)}</div></div>
+      <div><div class="info-label">${l.dataDistribuicao}</div><div class="info-value">${formatDate(dist.data_distribuicao, lang)}</div></div>
+      <div><div class="info-label">${l.formaPagamento}</div><div class="info-value">${translatePayment(dist.forma_pagamento, l)}</div></div>
+      <div><div class="info-label">${l.status}</div><div class="info-value">${translateStatus(dist.status, l)}</div></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-title">Rateio por Sócio</div>
+    <div class="section-title">${l.sectionRateio}</div>
     <table>
-      <thead><tr><th>Sócio</th><th>CPF</th><th style="text-align:right">Valor</th></tr></thead>
+      <thead><tr><th>${l.socio}</th><th>${l.cpf}</th><th style="text-align:right">${l.valor}</th></tr></thead>
       <tbody>
         ${itensRows}
         <tr class="total-row">
-          <td colspan="2">TOTAL</td>
-          <td style="text-align:right">${formatCurrency(Number(dist.valor_total))}</td>
+          <td colspan="2">${l.total}</td>
+          <td style="text-align:right">${formatCurrency(Number(dist.valor_total), lang)}</td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <div style="margin-top:50px;max-width:300px;margin-left:auto;margin-right:auto;">
-    <div class="sig-line">Responsável pela Empresa</div>
+    <div class="sig-line">${l.responsavel}</div>
   </div>
 
   <div class="footer">
-    Documento gerado em ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}.
+    ${l.geradoEm} ${dateStr} ${l.as} ${timeStr}.
   </div>
 </div>
 </body>
@@ -129,7 +252,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { distribuicao_id } = await req.json();
+    const { distribuicao_id, lang } = await req.json();
+    const language: Lang = (["pt", "en", "es"].includes(lang) ? lang : "pt") as Lang;
 
     if (!distribuicao_id) {
       return new Response(JSON.stringify({ error: "distribuicao_id é obrigatório" }), {
@@ -142,7 +266,6 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch distribution with client info
     const { data: dist, error: distError } = await supabase
       .from("distribuicoes")
       .select("*, cliente:clientes(razao_social, cnpj)")
@@ -156,7 +279,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch items with partner info
     const { data: itens, error: itensError } = await supabase
       .from("distribuicao_itens")
       .select("*, socio:socios(nome, cpf)")
@@ -169,7 +291,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const html = buildHtml(dist, dist.cliente, itens || []);
+    const html = buildHtml(dist, dist.cliente, itens || [], language);
 
     return new Response(html, {
       headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
