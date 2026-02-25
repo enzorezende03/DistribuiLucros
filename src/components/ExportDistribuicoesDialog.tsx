@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
@@ -107,14 +107,24 @@ export function ExportDistribuicoesDialog({ open, onOpenChange }: ExportDistribu
         }
       }
 
-      const ws = XLSX.utils.json_to_sheet(rows);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Distribuições');
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Distribuições');
+      const columns = Object.keys(rows[0]);
+      ws.columns = columns.map((key) => ({ header: key, key }));
+      rows.forEach((row) => ws.addRow(row));
 
       const monthsLabel = selectedMonths.length === 1
         ? selectedMonths[0]
         : `${selectedMonths.length}_meses`;
-      XLSX.writeFile(wb, `distribuicoes_${monthsLabel}.xlsx`);
+
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `distribuicoes_${monthsLabel}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
 
       toast.success(`${data.length} distribuição(ões) exportada(s)!`);
       onOpenChange(false);
