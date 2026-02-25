@@ -6,30 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useAlertas, useResolverAlerta, type TipoAlerta } from '@/hooks/useAlertas';
 import { formatCompetencia, formatDate } from '@/lib/format';
-import {
-  AlertTriangle,
-  Loader2,
-  CheckCircle2,
-  Clock,
-  DollarSign,
-} from 'lucide-react';
+import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; className: string }> = {
   ALERTA_50K: {
@@ -45,6 +31,7 @@ const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; cla
 };
 
 export default function AlertasPage() {
+  const { t } = useLanguage();
   const [selectedTipo, setSelectedTipo] = useState<TipoAlerta | null>(null);
   const [showResolvidos, setShowResolvidos] = useState(false);
   
@@ -63,9 +50,9 @@ export default function AlertasPage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Alertas</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('alerts.title')}</h1>
             <p className="text-muted-foreground">
-              Monitore alertas de valores elevados e pendências
+              {t('alerts.subtitle')}
             </p>
           </div>
         </div>
@@ -77,12 +64,12 @@ export default function AlertasPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
-                Alertas de Valor &gt; R$50k
+                {t('alerts.value50kAlerts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{alertas50k.length}</p>
-              <p className="text-sm text-muted-foreground">alertas ativos</p>
+              <p className="text-sm text-muted-foreground">{t('alerts.activeAlerts')}</p>
             </CardContent>
           </Card>
 
@@ -91,12 +78,12 @@ export default function AlertasPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Pendências Mensais
+                {t('alerts.monthlyPending')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{alertasPendentes.length}</p>
-              <p className="text-sm text-muted-foreground">clientes pendentes</p>
+              <p className="text-sm text-muted-foreground">{t('alerts.pendingClients')}</p>
             </CardContent>
           </Card>
         </div>
@@ -107,7 +94,7 @@ export default function AlertasPage() {
             <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-warning" />
-                Lista de Alertas
+                {t('alerts.alertsList')}
               </CardTitle>
               <div className="flex gap-4">
                 <Select
@@ -115,10 +102,10 @@ export default function AlertasPage() {
                   onValueChange={(v) => setSelectedTipo(v === 'all' ? null : (v as TipoAlerta))}
                 >
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filtrar por tipo" />
+                    <SelectValue placeholder={t('alerts.filterByType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os tipos</SelectItem>
+                    <SelectItem value="all">{t('alerts.allTypes')}</SelectItem>
                     {Object.entries(tipoConfig).map(([key, { label }]) => (
                       <SelectItem key={key} value={key}>
                         {label}
@@ -131,7 +118,7 @@ export default function AlertasPage() {
                   size="sm"
                   onClick={() => setShowResolvidos(!showResolvidos)}
                 >
-                  {showResolvidos ? 'Ocultar Resolvidos' : 'Mostrar Resolvidos'}
+                  {showResolvidos ? t('alerts.hideResolved') : t('alerts.showResolved')}
                 </Button>
               </div>
             </div>
@@ -146,13 +133,13 @@ export default function AlertasPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead className="hidden md:table-cell">Sócio</TableHead>
-                      <TableHead className="hidden sm:table-cell">Competência</TableHead>
-                      <TableHead className="hidden lg:table-cell">Descrição</TableHead>
-                      <TableHead className="hidden sm:table-cell">Data</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t('alerts.type')}</TableHead>
+                      <TableHead>{t('alerts.client')}</TableHead>
+                      <TableHead className="hidden md:table-cell">{t('alerts.partner')}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t('alerts.competence')}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{t('alerts.description')}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t('alerts.date')}</TableHead>
+                      <TableHead>{t('alerts.status')}</TableHead>
                       <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -186,11 +173,11 @@ export default function AlertasPage() {
                           <TableCell>
                             {alerta.resolvido ? (
                               <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                                Resolvido
+                                {t('alerts.resolved')}
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                                Ativo
+                                {t('alerts.active')}
                               </Badge>
                             )}
                           </TableCell>
@@ -204,7 +191,7 @@ export default function AlertasPage() {
                                 className="gap-2"
                               >
                                 <CheckCircle2 className="h-4 w-4" />
-                                Resolver
+                                {t('alerts.resolve')}
                               </Button>
                             )}
                           </TableCell>
@@ -219,8 +206,8 @@ export default function AlertasPage() {
                 <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
                 <p className="text-muted-foreground">
                   {showResolvidos
-                    ? 'Nenhum alerta encontrado'
-                    : 'Nenhum alerta ativo no momento'}
+                    ? t('alerts.noAlertsFound')
+                    : t('alerts.noActiveAlerts')}
                 </p>
               </div>
             )}

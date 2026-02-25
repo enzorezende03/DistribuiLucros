@@ -2,6 +2,8 @@ import { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { languageFlags } from '@/translations';
 import { useClientes } from '@/hooks/useClientes';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +29,7 @@ import {
   Eye,
   ArrowLeft,
   Bell,
+  Globe,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
@@ -43,17 +46,18 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
-  { href: '/clientes', label: 'Clientes', icon: <Building2 className="h-5 w-5" />, adminOnly: true },
-  { href: '/distribuicoes', label: 'Distribuições', icon: <FileText className="h-5 w-5" /> },
-  { href: '/alertas', label: 'Alertas', icon: <AlertTriangle className="h-5 w-5" /> },
-  { href: '/notificacoes', label: 'Notificações', icon: <Bell className="h-5 w-5" /> },
-  { href: '/pendencias', label: 'Pendências', icon: <AlertCircle className="h-5 w-5" />, clienteOnly: true },
-  { href: '/simulacao', label: 'Simulação', icon: <Calculator className="h-5 w-5" />, clienteOnly: true },
+  { href: '/dashboard', label: 'nav.dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+  { href: '/clientes', label: 'nav.clientes', icon: <Building2 className="h-5 w-5" />, adminOnly: true },
+  { href: '/distribuicoes', label: 'nav.distribuicoes', icon: <FileText className="h-5 w-5" /> },
+  { href: '/alertas', label: 'nav.alertas', icon: <AlertTriangle className="h-5 w-5" /> },
+  { href: '/notificacoes', label: 'nav.notificacoes', icon: <Bell className="h-5 w-5" /> },
+  { href: '/pendencias', label: 'nav.pendencias', icon: <AlertCircle className="h-5 w-5" />, clienteOnly: true },
+  { href: '/simulacao', label: 'nav.simulacao', icon: <Calculator className="h-5 w-5" />, clienteOnly: true },
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
   const { user, signOut, isAdmin, isCliente, isImpersonating, impersonatedClienteId, startImpersonating, stopImpersonating, userClientes, selectedClienteId, selectCliente } = useAuth();
+  const { t, language, cycleLanguage } = useLanguage();
   const userRoleRaw = useAuth().userRole;
   const isRealAdmin = userRoleRaw?.role === 'admin';
   const isClienteWithMultiple = userRoleRaw?.role === 'cliente' && userClientes.length > 1;
@@ -88,7 +92,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         onClick={() => setMobileMenuOpen(false)}
       >
         {item.icon}
-        <span>{item.label}</span>
+        <span>{t(item.label)}</span>
         {isActive && <ChevronRight className="ml-auto h-4 w-4" />}
       </Link>
     );
@@ -98,9 +102,20 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:w-64 md:flex-col bg-sidebar border-r border-sidebar-border">
-        <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-          <TrendingUp className="h-6 w-6 text-sidebar-primary" />
-          <span className="font-semibold text-sidebar-foreground">DistribuiLucros</span>
+        <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-6 w-6 text-sidebar-primary" />
+            <span className="font-semibold text-sidebar-foreground">{t('sidebar.appName')}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+            onClick={cycleLanguage}
+            title={`${languageFlags[language]} ${language.toUpperCase()}`}
+          >
+            <span className="text-sm font-semibold">{languageFlags[language]}</span>
+          </Button>
         </div>
         
         <nav className="flex-1 space-y-1 p-4">
@@ -114,7 +129,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           <div className="border-t border-sidebar-border p-4">
             <p className="text-xs text-sidebar-foreground/50 mb-2 px-1 flex items-center gap-1">
               <Eye className="h-3 w-3" />
-              Ver como cliente
+              {t('sidebar.viewAsClient')}
             </p>
             <Select
               value={impersonatedClienteId || 'none'}
@@ -128,10 +143,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
               }}
             >
               <SelectTrigger className="w-full text-xs h-9 bg-sidebar-accent/30 border-sidebar-border">
-                <SelectValue placeholder="Selecione um cliente" />
+                <SelectValue placeholder={t('sidebar.selectClient')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">— Visão Admin —</SelectItem>
+                <SelectItem value="none">{t('sidebar.adminView')}</SelectItem>
                 {clientes?.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.razao_social}
@@ -147,7 +162,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           <div className="border-t border-sidebar-border p-4">
             <p className="text-xs text-sidebar-foreground/50 mb-2 px-1 flex items-center gap-1">
               <Building2 className="h-3 w-3" />
-              Empresa ativa
+              {t('sidebar.activeCompany')}
             </p>
             <Select
               value={selectedClienteId || ''}
@@ -156,7 +171,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
               }}
             >
               <SelectTrigger className="w-full text-xs h-9 bg-sidebar-accent/30 border-sidebar-border">
-                <SelectValue placeholder="Selecione uma empresa" />
+                <SelectValue placeholder={t('sidebar.selectCompany')} />
               </SelectTrigger>
               <SelectContent>
                 {userClientes.map((uc) => (
@@ -171,7 +186,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
         <div className="border-t border-sidebar-border p-4">
           <div className="mb-3 px-3">
-            <p className="text-xs text-sidebar-foreground/50">Logado como</p>
+            <p className="text-xs text-sidebar-foreground/50">{t('sidebar.loggedAs')}</p>
             <p className="text-sm font-medium text-sidebar-foreground truncate">
               {user?.email}
             </p>
@@ -179,7 +194,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
               'mt-1 inline-block text-xs px-2 py-0.5 rounded-full',
               isAdmin ? 'bg-sidebar-primary/20 text-sidebar-primary' : 'bg-sidebar-accent text-sidebar-accent-foreground'
             )}>
-              {isAdmin ? 'Admin' : 'Cliente'}
+              {isAdmin ? t('sidebar.admin') : t('sidebar.client')}
             </span>
           </div>
           <Button
@@ -188,7 +203,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
             onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4" />
-            Sair
+            {t('sidebar.logout')}
           </Button>
         </div>
       </aside>
@@ -198,15 +213,25 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         <header className="flex h-16 items-center justify-between border-b bg-card px-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-primary" />
-            <span className="font-semibold">DistribuiLucros</span>
+            <span className="font-semibold">{t('sidebar.appName')}</span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={cycleLanguage}
+            >
+              <span className="text-sm">{languageFlags[language]}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </header>
 
         {/* Mobile Menu */}
@@ -224,7 +249,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                 onClick={handleSignOut}
               >
                 <LogOut className="h-4 w-4" />
-                Sair
+                {t('sidebar.logout')}
               </Button>
             </div>
           </div>
@@ -248,6 +273,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
 function ImpersonationBanner() {
   const { isImpersonating, impersonatedClienteId, stopImpersonating } = useAuth();
+  const { t } = useLanguage();
   const { data: clientes } = useClientes({ enabled: isImpersonating });
 
   if (!isImpersonating) return null;
@@ -258,8 +284,8 @@ function ImpersonationBanner() {
     <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 text-sm">
         <Eye className="h-4 w-4 text-primary" />
-        <span className="font-medium">Visualizando como:</span>
-        <span className="text-primary font-semibold">{clienteName || 'Cliente'}</span>
+        <span className="font-medium">{t('sidebar.viewingAs')}</span>
+        <span className="text-primary font-semibold">{clienteName || t('sidebar.client')}</span>
       </div>
       <Button
         variant="ghost"
@@ -268,7 +294,7 @@ function ImpersonationBanner() {
         onClick={stopImpersonating}
       >
         <ArrowLeft className="h-3 w-3" />
-        Voltar ao Admin
+        {t('sidebar.backToAdmin')}
       </Button>
     </div>
   );
