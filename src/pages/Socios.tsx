@@ -64,8 +64,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SociosPage() {
+  const { t } = useLanguage();
   const { data: clientes } = useClientes();
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
   const { data: socios, isLoading } = useSocios(selectedClienteId);
@@ -85,10 +87,8 @@ export default function SociosPage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Sócios</h1>
-            <p className="text-muted-foreground">
-              Gerencie os sócios dos clientes
-            </p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('partners.title')}</h1>
+            <p className="text-muted-foreground">{t('partners.subtitle')}</p>
           </div>
           <Button
             className="gap-2"

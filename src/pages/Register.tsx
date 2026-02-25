@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,18 +15,19 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error('As senhas não coincidem');
+      toast.error(t('register.passwordMismatch'));
       return;
     }
 
     if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+      toast.error(t('register.passwordTooShort'));
       return;
     }
 
@@ -34,12 +36,12 @@ export default function RegisterPage() {
     const { error } = await signUp(email, password);
 
     if (error) {
-      toast.error('Erro ao cadastrar: ' + error.message);
+      toast.error(t('register.error') + ': ' + error.message);
       setLoading(false);
       return;
     }
 
-    toast.success('Conta criada com sucesso! Você já pode fazer login.');
+    toast.success(t('register.success'));
     navigate('/login');
   };
 
@@ -53,64 +55,34 @@ export default function RegisterPage() {
               <span className="text-2xl font-bold text-primary">DistribuiLucros</span>
             </div>
           </div>
-          <CardTitle className="text-2xl">Criar Conta</CardTitle>
-          <CardDescription>
-            Cadastre-se para acessar o sistema
-          </CardDescription>
+          <CardTitle className="text-2xl">{t('register.title')}</CardTitle>
+          <CardDescription>{t('register.subtitle')}</CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Label htmlFor="email">{t('login.email')}</Label>
+              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Label htmlFor="password">{t('login.password')}</Label>
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Label htmlFor="confirmPassword">{t('register.confirmPassword')}</Label>
+              <Input id="confirmPassword" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={loading} />
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Criar Conta
+              {t('register.submit')}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              Já tem uma conta?{' '}
-              <Link to="/login" className="text-primary hover:underline">
-                Entrar
-              </Link>
+              {t('register.hasAccount')}{' '}
+              <Link to="/login" className="text-primary hover:underline">{t('register.login')}</Link>
             </p>
           </CardFooter>
         </form>

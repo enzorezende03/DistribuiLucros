@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertCircle, FileText } from 'lucide-react';
@@ -29,7 +30,6 @@ function usePendencias(clienteId?: string | null) {
   return useQuery({
     queryKey: ['pendencias', clienteId],
     queryFn: async () => {
-      // First get distribuicao ids for this client
       let distQuery = supabase
         .from('distribuicoes')
         .select('id, competencia, valor_total, recibo_numero, cliente:clientes(razao_social)');
@@ -65,6 +65,7 @@ function usePendencias(clienteId?: string | null) {
 
 export default function PendenciasPage() {
   const { clienteId } = useAuth();
+  const { t } = useLanguage();
   const { data: pendencias, isLoading } = usePendencias(clienteId);
   const navigate = useNavigate();
 
@@ -72,8 +73,8 @@ export default function PendenciasPage() {
     <SidebarLayout>
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Pendências</h1>
-          <p className="text-muted-foreground">Distribuições que precisam de ajuste conforme solicitado pelo administrador</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('pending.title')}</h1>
+          <p className="text-muted-foreground">{t('pending.subtitle')}</p>
         </div>
 
         {isLoading ? (
@@ -84,8 +85,8 @@ export default function PendenciasPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <AlertCircle className="h-12 w-12 mb-4 opacity-30" />
-              <p className="text-lg font-medium">Nenhuma pendência</p>
-              <p className="text-sm">Não há distribuições com ajuste solicitado no momento.</p>
+              <p className="text-lg font-medium">{t('pending.noPending')}</p>
+              <p className="text-sm">{t('pending.noAdjustments')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -101,36 +102,23 @@ export default function PendenciasPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-sm">Ajuste Solicitado</p>
+                      <p className="font-semibold text-sm">{t('pending.adjustRequested')}</p>
                       {p.distribuicao?.recibo_numero && (
-                        <Badge variant="outline" className="text-xs">
-                          {p.distribuicao.recibo_numero}
-                        </Badge>
+                        <Badge variant="outline" className="text-xs">{p.distribuicao.recibo_numero}</Badge>
                       )}
                       {p.distribuicao?.competencia && (
-                        <Badge variant="secondary" className="text-xs">
-                          {p.distribuicao.competencia}
-                        </Badge>
+                        <Badge variant="secondary" className="text-xs">{p.distribuicao.competencia}</Badge>
                       )}
                     </div>
                     {p.observacao && (
-                      <p className="text-sm text-muted-foreground mt-2 bg-muted/50 rounded px-3 py-2 italic">
-                        {p.observacao}
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-2 bg-muted/50 rounded px-3 py-2 italic">{p.observacao}</p>
                     )}
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {formatDate(p.created_at)}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">{formatDate(p.created_at)}</p>
                   </div>
                   <div className="shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="gap-1 text-xs"
-                      onClick={() => navigate('/distribuicoes')}
-                    >
+                    <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate('/distribuicoes')}>
                       <FileText className="h-3 w-3" />
-                      Ver
+                      {t('pending.view')}
                     </Button>
                   </div>
                 </CardContent>
