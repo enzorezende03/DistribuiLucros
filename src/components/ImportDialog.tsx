@@ -141,6 +141,8 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
 
       const clientMap = new Map<string, ParsedClient>();
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
       for (const row of rows) {
         const cnpj = unmask(String(row.cnpj || ''));
         const razaoSocial = String(row.razao_social || '').trim();
@@ -150,14 +152,36 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
         if (!clientMap.has(cnpj)) {
           const errors: string[] = [];
           if (cnpj.length !== 14) errors.push('CNPJ inválido');
-          if (!String(row.email_responsavel || '').trim()) errors.push('E-mail obrigatório');
+
+          const emailResp = String(row.email_responsavel || '').trim();
+          if (!emailResp) {
+            errors.push('E-mail obrigatório');
+          } else if (!emailRegex.test(emailResp)) {
+            errors.push('E-mail responsável inválido');
+          } else if (emailResp.length > 255) {
+            errors.push('E-mail responsável muito longo (máx 255)');
+          }
+
+          const emailCopia = String(row.email_copia || '').trim() || undefined;
+          if (emailCopia && !emailRegex.test(emailCopia)) {
+            errors.push('E-mail cópia inválido');
+          }
+
+          if (razaoSocial.length > 255) {
+            errors.push('Razão social muito longa (máx 255 caracteres)');
+          }
+
+          const telefone = row.telefone ? unmask(String(row.telefone)) : undefined;
+          if (telefone && (telefone.length < 10 || telefone.length > 11)) {
+            errors.push('Telefone inválido (deve ter 10 ou 11 dígitos)');
+          }
 
           clientMap.set(cnpj, {
-            razao_social: razaoSocial,
+            razao_social: razaoSocial.slice(0, 255),
             cnpj,
-            email_responsavel: String(row.email_responsavel || '').trim(),
-            email_copia: String(row.email_copia || '').trim() || undefined,
-            telefone: row.telefone ? unmask(String(row.telefone)) : undefined,
+            email_responsavel: emailResp.slice(0, 255),
+            email_copia: emailCopia?.slice(0, 255),
+            telefone,
             socios: [],
             errors,
           });
@@ -171,8 +195,11 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           if (socioCpf.length !== 11) {
             client.errors.push(`CPF inválido para ${socioNome}`);
           }
+          if (socioNome.length > 255) {
+            client.errors.push(`Nome do sócio muito longo: ${socioNome.slice(0, 20)}...`);
+          }
           client.socios.push({
-            nome: socioNome,
+            nome: socioNome.slice(0, 255),
             cpf: socioCpf,
             percentual: row.socio_percentual ? parseFloat(String(row.socio_percentual)) : undefined,
           });
