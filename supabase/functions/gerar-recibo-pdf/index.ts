@@ -252,6 +252,32 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate the caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // Create an RLS-aware client using the caller's token
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { distribuicao_id, lang } = await req.json();
     const language: Lang = (["pt", "en", "es"].includes(lang) ? lang : "pt") as Lang;
 
@@ -262,11 +288,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data: dist, error: distError } = await supabase
+    // Use RLS-aware client so only authorized distributions are returned
+    const { data: dist, error: distError } = await supabaseAuth
       .from("distribuicoes")
       .select("*, cliente:clientes(razao_social, cnpj)")
       .eq("id", distribuicao_id)
@@ -279,7 +302,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: itens, error: itensError } = await supabase
+    const { data: itens, error: itensError } = await supabaseAuth
       .from("distribuicao_itens")
       .select("*, socio:socios(nome, cpf)")
       .eq("distribuicao_id", distribuicao_id);
