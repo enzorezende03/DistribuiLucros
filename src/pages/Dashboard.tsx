@@ -377,7 +377,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                           <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                         </div>
                         <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                          {alerta.tipo === 'ALERTA_50K' ? '>50k' : t('common.pending')}
+                          {alerta.tipo === 'ALERTA_50K' ? t('alerts.value50k') : t('common.pending')}
                         </Badge>
                       </div>
                     </div>
@@ -741,7 +741,7 @@ function AdminDashboard() {
                           <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                         </div>
                         <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                          {alerta.tipo === 'ALERTA_50K' ? '>50k' : t('common.pending')}
+                          {alerta.tipo === 'ALERTA_50K' ? t('alerts.value50k') : t('common.pending')}
                         </Badge>
                       </div>
                     </div>
