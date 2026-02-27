@@ -131,21 +131,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
+        if (!session) {
+          setSession(null);
+          setUser(null);
+          setUserRole(null);
+          setUserClientes([]);
+          setSelectedClienteId(null);
+          setRoleLoaded(false);
+          return;
+        }
 
-        if (session?.user) {
-          const [role, clientes] = await Promise.all([
-            fetchUserRole(session.user.id),
-            fetchUserClientes(session.user.id),
-          ]);
-          if (!isMounted) return;
-          setUserRole(role);
-          setUserClientes(clientes);
-          setRoleLoaded(true);
-          if (role?.role === 'cliente' && clientes.length === 1) {
-            setSelectedClienteId(clientes[0].cliente_id);
-          }
+        const { data: userData, error: userError } = await supabase.auth.getUser(session.access_token);
+        if (!isMounted) return;
+
+        if (userError || !userData.user) {
+          setSession(null);
+          setUser(null);
+          setUserRole(null);
+          setUserClientes([]);
+          setSelectedClienteId(null);
+          setRoleLoaded(false);
+          return;
+        }
+
+        setSession(session);
+        setUser(userData.user);
+
+        const [role, clientes] = await Promise.all([
+          fetchUserRole(session.user.id),
+          fetchUserClientes(session.user.id),
+        ]);
+        if (!isMounted) return;
+        setUserRole(role);
+        setUserClientes(clientes);
+        setRoleLoaded(true);
+        if (role?.role === 'cliente' && clientes.length === 1) {
+          setSelectedClienteId(clientes[0].cliente_id);
         }
       } finally {
         if (isMounted) setLoading(false);

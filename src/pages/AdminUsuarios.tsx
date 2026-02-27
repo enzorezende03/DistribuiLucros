@@ -35,10 +35,23 @@ export default function AdminUsuariosPage() {
       const res = await supabase.functions.invoke('manage-admin', {
         body: { action: 'list' },
       });
-      if (res.error) throw new Error(res.error.message);
-      if (res.data?.error) throw new Error(res.data.error);
+      if (res.error) {
+        const message = res.error.message || 'falha na chamada';
+        if (message.includes('401') || message.includes('Não autorizado')) {
+          throw new Error('Sessão expirada. Faça login novamente.');
+        }
+        throw new Error(message);
+      }
+      if (res.data?.error) {
+        if (res.data.error === 'Não autorizado') {
+          throw new Error('Sessão expirada. Faça login novamente.');
+        }
+        throw new Error(res.data.error);
+      }
       return (res.data?.admins || []) as AdminUser[];
     },
+    enabled: !!user,
+    retry: false,
   });
 
   const handleCreate = async (e: React.FormEvent) => {
