@@ -374,6 +374,30 @@ const translations: Record<Language, Record<string, string>> = {
     'notFound.message': 'Oops! Página não encontrada',
     'notFound.returnHome': 'Voltar ao Início',
 
+    // Admin Usuarios
+    'admin.title': 'Gerenciar Administradores',
+    'admin.subtitle': 'Crie e visualize os administradores do sistema',
+    'admin.newAdmin': 'Novo Administrador',
+    'admin.existingAdmins': 'Administradores Existentes',
+    'admin.name': 'Nome',
+    'admin.surname': 'Sobrenome',
+    'admin.email': 'E-mail',
+    'admin.password': 'Senha',
+    'admin.createAdmin': 'Criar Administrador',
+    'admin.createdAt': 'Criado em',
+    'admin.noAdmins': 'Nenhum administrador encontrado',
+    'admin.loadError': 'Erro ao carregar administradores',
+    'admin.createSuccess': 'Administrador criado com sucesso!',
+    'admin.fillNameSurname': 'Preencha nome e sobrenome',
+    'admin.fillEmailPassword': 'Preencha e-mail e senha',
+    'admin.passwordMinLength': 'A senha deve ter pelo menos 6 caracteres',
+    'admin.sessionExpired': 'Sessão expirada. Faça login novamente.',
+
+    // Register extra
+    'register.name': 'Nome',
+    'register.surname': 'Sobrenome',
+    'register.fillNameSurname': 'Preencha nome e sobrenome',
+
     // Common
     'common.loading': 'Carregando...',
     'common.save': 'Salvar',
@@ -753,6 +777,30 @@ const translations: Record<Language, Record<string, string>> = {
     'notFound.message': 'Oops! Page not found',
     'notFound.returnHome': 'Return to Home',
 
+    // Admin Usuarios
+    'admin.title': 'Manage Administrators',
+    'admin.subtitle': 'Create and view system administrators',
+    'admin.newAdmin': 'New Administrator',
+    'admin.existingAdmins': 'Existing Administrators',
+    'admin.name': 'First Name',
+    'admin.surname': 'Last Name',
+    'admin.email': 'Email',
+    'admin.password': 'Password',
+    'admin.createAdmin': 'Create Administrator',
+    'admin.createdAt': 'Created on',
+    'admin.noAdmins': 'No administrators found',
+    'admin.loadError': 'Error loading administrators',
+    'admin.createSuccess': 'Administrator created successfully!',
+    'admin.fillNameSurname': 'Fill in first and last name',
+    'admin.fillEmailPassword': 'Fill in email and password',
+    'admin.passwordMinLength': 'Password must be at least 6 characters',
+    'admin.sessionExpired': 'Session expired. Please log in again.',
+
+    // Register extra
+    'register.name': 'First Name',
+    'register.surname': 'Last Name',
+    'register.fillNameSurname': 'Fill in first and last name',
+
     // Common
     'common.loading': 'Loading...',
     'common.save': 'Save',
@@ -1131,6 +1179,30 @@ const translations: Record<Language, Record<string, string>> = {
     'notFound.title': '404',
     'notFound.message': '¡Ups! Página no encontrada',
     'notFound.returnHome': 'Volver al Inicio',
+
+    // Admin Usuarios
+    'admin.title': 'Gestionar Administradores',
+    'admin.subtitle': 'Cree y visualice los administradores del sistema',
+    'admin.newAdmin': 'Nuevo Administrador',
+    'admin.existingAdmins': 'Administradores Existentes',
+    'admin.name': 'Nombre',
+    'admin.surname': 'Apellido',
+    'admin.email': 'Correo',
+    'admin.password': 'Contraseña',
+    'admin.createAdmin': 'Crear Administrador',
+    'admin.createdAt': 'Creado el',
+    'admin.noAdmins': 'Ningún administrador encontrado',
+    'admin.loadError': 'Error al cargar administradores',
+    'admin.createSuccess': '¡Administrador creado exitosamente!',
+    'admin.fillNameSurname': 'Complete nombre y apellido',
+    'admin.fillEmailPassword': 'Complete correo y contraseña',
+    'admin.passwordMinLength': 'La contraseña debe tener al menos 6 caracteres',
+    'admin.sessionExpired': 'Sesión expirada. Inicie sesión nuevamente.',
+
+    // Register extra
+    'register.name': 'Nombre',
+    'register.surname': 'Apellido',
+    'register.fillNameSurname': 'Complete nombre y apellido',
 
     // Common
     'common.loading': 'Cargando...',

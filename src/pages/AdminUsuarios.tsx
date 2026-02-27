@@ -57,15 +57,15 @@ export default function AdminUsuariosPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !sobrenome.trim()) {
-      toast.error('Preencha nome e sobrenome');
+      toast.error(t('admin.fillNameSurname'));
       return;
     }
     if (!email || !password) {
-      toast.error('Preencha e-mail e senha');
+      toast.error(t('admin.fillEmailPassword'));
       return;
     }
     if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+      toast.error(t('admin.passwordMinLength'));
       return;
     }
 
@@ -77,7 +77,7 @@ export default function AdminUsuariosPage() {
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
 
-      toast.success('Administrador criado com sucesso!');
+      toast.success(t('admin.createSuccess'));
       setNome('');
       setSobrenome('');
       setEmail('');
@@ -90,35 +90,40 @@ export default function AdminUsuariosPage() {
     }
   };
 
+  const dateLocale = (() => {
+    const lang = t('nav.dashboard') === 'Dashboard' && t('common.save') === 'Save' ? 'en' :
+                 t('common.save') === 'Guardar' ? 'es' : 'pt';
+    return lang === 'en' ? 'en-US' : lang === 'es' ? 'es-ES' : 'pt-BR';
+  })();
+
   return (
     <SidebarLayout>
       <div className="p-4 md:p-6 space-y-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
             <ShieldCheck className="h-7 w-7 text-primary" />
-            Gerenciar Administradores
+            {t('admin.title')}
           </h1>
-          <p className="text-muted-foreground">Crie e visualize os administradores do sistema</p>
+          <p className="text-muted-foreground">{t('admin.subtitle')}</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Create admin form */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <UserPlus className="h-5 w-5" />
-                Novo Administrador
+                {t('admin.newAdmin')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleCreate} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="admin-nome">Nome *</Label>
+                    <Label htmlFor="admin-nome">{t('admin.name')} *</Label>
                     <Input
                       id="admin-nome"
                       type="text"
-                      placeholder="Nome"
+                      placeholder={t('admin.name')}
                       value={nome}
                       onChange={(e) => setNome(e.target.value)}
                       required
@@ -126,11 +131,11 @@ export default function AdminUsuariosPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="admin-sobrenome">Sobrenome *</Label>
+                    <Label htmlFor="admin-sobrenome">{t('admin.surname')} *</Label>
                     <Input
                       id="admin-sobrenome"
                       type="text"
-                      placeholder="Sobrenome"
+                      placeholder={t('admin.surname')}
                       value={sobrenome}
                       onChange={(e) => setSobrenome(e.target.value)}
                       required
@@ -139,7 +144,7 @@ export default function AdminUsuariosPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="admin-email">E-mail *</Label>
+                  <Label htmlFor="admin-email">{t('admin.email')} *</Label>
                   <Input
                     id="admin-email"
                     type="email"
@@ -151,7 +156,7 @@ export default function AdminUsuariosPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="admin-password">Senha</Label>
+                  <Label htmlFor="admin-password">{t('admin.password')}</Label>
                   <Input
                     id="admin-password"
                     type="password"
@@ -164,18 +169,17 @@ export default function AdminUsuariosPage() {
                 </div>
                 <Button type="submit" className="w-full gap-2" disabled={creating}>
                   {creating && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Criar Administrador
+                  {t('admin.createAdmin')}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {/* Admins list */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Administradores Existentes
+                {t('admin.existingAdmins')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -185,7 +189,7 @@ export default function AdminUsuariosPage() {
                 </div>
               ) : isError ? (
                 <p className="text-sm text-destructive text-center py-8">
-                  Erro ao carregar administradores: {error instanceof Error ? error.message : 'falha de rede'}
+                  {t('admin.loadError')}: {error instanceof Error ? error.message : ''}
                 </p>
               ) : admins && admins.length > 0 ? (
                 <div className="space-y-3">
@@ -200,7 +204,7 @@ export default function AdminUsuariosPage() {
                         )}
                         <p className="text-sm text-muted-foreground">{admin.email}</p>
                         <p className="text-xs text-muted-foreground">
-                          Criado em {new Date(admin.created_at).toLocaleDateString('pt-BR')}
+                          {t('admin.createdAt')} {new Date(admin.created_at).toLocaleDateString(dateLocale)}
                         </p>
                       </div>
                       <Badge variant="secondary" className="gap-1">
@@ -212,7 +216,7 @@ export default function AdminUsuariosPage() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  Nenhum administrador encontrado
+                  {t('admin.noAdmins')}
                 </p>
               )}
             </CardContent>
