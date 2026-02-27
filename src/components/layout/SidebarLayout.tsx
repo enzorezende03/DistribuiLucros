@@ -48,6 +48,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'nav.dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
   { href: '/clientes', label: 'nav.clientes', icon: <Building2 className="h-5 w-5" />, adminOnly: true },
+  { href: '/admin-usuarios', label: 'nav.adminUsuarios', icon: <Users className="h-5 w-5" />, adminOnly: true },
   { href: '/distribuicoes', label: 'nav.distribuicoes', icon: <FileText className="h-5 w-5" /> },
   { href: '/alertas', label: 'nav.alertas', icon: <AlertTriangle className="h-5 w-5" /> },
   { href: '/notificacoes', label: 'nav.notificacoes', icon: <Bell className="h-5 w-5" /> },
