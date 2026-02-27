@@ -29,14 +29,14 @@ export default function AdminUsuariosPage() {
   const [password, setPassword] = useState('');
   const [creating, setCreating] = useState(false);
 
-  const { data: admins, isLoading } = useQuery({
+  const { data: admins, isLoading, isError, error } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
       const res = await supabase.functions.invoke('manage-admin', {
         body: { action: 'list' },
       });
       if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
       return (res.data?.admins || []) as AdminUser[];
     },
   });
@@ -170,6 +170,10 @@ export default function AdminUsuariosPage() {
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
+              ) : isError ? (
+                <p className="text-sm text-destructive text-center py-8">
+                  Erro ao carregar administradores: {error instanceof Error ? error.message : 'falha de rede'}
+                </p>
               ) : admins && admins.length > 0 ? (
                 <div className="space-y-3">
                   {admins.map((admin) => (
