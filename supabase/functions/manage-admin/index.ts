@@ -95,6 +95,44 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "update_metadata") {
+      const { user_id, metadata } = await req.json().catch(() => ({ user_id: null, metadata: null }));
+      // We already parsed the body above, so re-read from the original parse
+      const body = { action, email, password, nome, sobrenome };
+      const targetEmail = body.email;
+      if (!targetEmail) {
+        return new Response(JSON.stringify({ error: "E-mail obrigatório" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Find user by email
+      const { data: { users }, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+      const target = (users || []).find((u) => u.email === targetEmail);
+      if (!target) {
+        return new Response(JSON.stringify({ error: "Usuário não encontrado" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(target.id, {
+        user_metadata: {
+          nome: nome || "",
+          sobrenome: sobrenome || "",
+          full_name: [nome, sobrenome].filter(Boolean).join(" "),
+        },
+      });
+      if (updErr) {
+        return new Response(JSON.stringify({ error: updErr.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "list") {
       const { data: adminRoles, error } = await supabaseAdmin
         .from("user_roles")
