@@ -392,6 +392,14 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.fillEmailPassword': 'Preencha e-mail e senha',
     'admin.passwordMinLength': 'A senha deve ter pelo menos 6 caracteres',
     'admin.sessionExpired': 'Sessão expirada. Faça login novamente.',
+    'admin.editAdmin': 'Editar Administrador',
+    'admin.deleteAdmin': 'Excluir Administrador',
+    'admin.deleteConfirm': 'Tem certeza que deseja excluir este administrador?',
+    'admin.deleteSuccess': 'Administrador excluído com sucesso!',
+    'admin.editSuccess': 'Administrador atualizado com sucesso!',
+    'admin.cannotDeleteSelf': 'Você não pode excluir a si mesmo',
+    'admin.save': 'Salvar',
+    'admin.cancel': 'Cancelar',
 
     // Register extra
     'register.name': 'Nome',
@@ -795,6 +803,14 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.fillEmailPassword': 'Fill in email and password',
     'admin.passwordMinLength': 'Password must be at least 6 characters',
     'admin.sessionExpired': 'Session expired. Please log in again.',
+    'admin.editAdmin': 'Edit Administrator',
+    'admin.deleteAdmin': 'Delete Administrator',
+    'admin.deleteConfirm': 'Are you sure you want to delete this administrator?',
+    'admin.deleteSuccess': 'Administrator deleted successfully!',
+    'admin.editSuccess': 'Administrator updated successfully!',
+    'admin.cannotDeleteSelf': 'You cannot delete yourself',
+    'admin.save': 'Save',
+    'admin.cancel': 'Cancel',
 
     // Register extra
     'register.name': 'First Name',
@@ -1198,6 +1214,14 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.fillEmailPassword': 'Complete correo y contraseña',
     'admin.passwordMinLength': 'La contraseña debe tener al menos 6 caracteres',
     'admin.sessionExpired': 'Sesión expirada. Inicie sesión nuevamente.',
+    'admin.editAdmin': 'Editar Administrador',
+    'admin.deleteAdmin': 'Eliminar Administrador',
+    'admin.deleteConfirm': '¿Está seguro de que desea eliminar este administrador?',
+    'admin.deleteSuccess': '¡Administrador eliminado exitosamente!',
+    'admin.editSuccess': '¡Administrador actualizado exitosamente!',
+    'admin.cannotDeleteSelf': 'No puede eliminarse a sí mismo',
+    'admin.save': 'Guardar',
+    'admin.cancel': 'Cancelar',
 
     // Register extra
     'register.name': 'Nombre',
