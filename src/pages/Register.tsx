@@ -24,7 +24,7 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (!nome.trim() || !sobrenome.trim()) {
-      toast.error('Preencha nome e sobrenome');
+      toast.error(t('register.fillNameSurname'));
       return;
     }
 
@@ -70,12 +70,12 @@ export default function RegisterPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="nome">Nome *</Label>
-                <Input id="nome" type="text" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required disabled={loading} />
+                <Label htmlFor="nome">{t('register.name')} *</Label>
+                <Input id="nome" type="text" placeholder={t('register.name')} value={nome} onChange={(e) => setNome(e.target.value)} required disabled={loading} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sobrenome">Sobrenome *</Label>
-                <Input id="sobrenome" type="text" placeholder="Sobrenome" value={sobrenome} onChange={(e) => setSobrenome(e.target.value)} required disabled={loading} />
+                <Label htmlFor="sobrenome">{t('register.surname')} *</Label>
+                <Input id="sobrenome" type="text" placeholder={t('register.surname')} value={sobrenome} onChange={(e) => setSobrenome(e.target.value)} required disabled={loading} />
               </div>
             </div>
             <div className="space-y-2">
