@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { action, email, password } = await req.json();
+    const { action, email, password, nome, sobrenome } = await req.json();
 
     // Service role client for admin operations
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
@@ -63,6 +63,11 @@ Deno.serve(async (req) => {
         email,
         password,
         email_confirm: true,
+        user_metadata: {
+          nome: nome || "",
+          sobrenome: sobrenome || "",
+          full_name: [nome, sobrenome].filter(Boolean).join(" "),
+        },
       });
 
       if (createError) {
@@ -102,13 +107,15 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Get emails
+      // Get emails and names
       const admins = await Promise.all(
         (adminRoles || []).map(async (r) => {
           const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(r.user_id);
+          const meta = user?.user_metadata || {};
           return {
             user_id: r.user_id,
             email: user?.email || "unknown",
+            nome: meta.full_name || meta.nome || "",
             created_at: r.created_at,
           };
         })
