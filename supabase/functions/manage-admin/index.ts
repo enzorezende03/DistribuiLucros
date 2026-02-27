@@ -2,7 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 Deno.serve(async (req) => {
@@ -112,10 +113,20 @@ Deno.serve(async (req) => {
         (adminRoles || []).map(async (r) => {
           const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(r.user_id);
           const meta = user?.user_metadata || {};
+          const email = user?.email || "unknown";
+          const fallbackName = email === "unknown"
+            ? ""
+            : email
+                .split("@")[0]
+                .split(/[._-]+/)
+                .filter(Boolean)
+                .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(" ");
+
           return {
             user_id: r.user_id,
-            email: user?.email || "unknown",
-            nome: meta.full_name || meta.nome || "",
+            email,
+            nome: meta.full_name || [meta.nome, meta.sobrenome].filter(Boolean).join(" ") || fallbackName,
             created_at: r.created_at,
           };
         })
