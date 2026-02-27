@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 interface AdminUser {
   user_id: string;
   email: string;
+  nome: string;
   created_at: string;
 }
 
@@ -22,6 +23,8 @@ export default function AdminUsuariosPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [nome, setNome] = useState('');
+  const [sobrenome, setSobrenome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [creating, setCreating] = useState(false);
@@ -40,6 +43,10 @@ export default function AdminUsuariosPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!nome.trim() || !sobrenome.trim()) {
+      toast.error('Preencha nome e sobrenome');
+      return;
+    }
     if (!email || !password) {
       toast.error('Preencha e-mail e senha');
       return;
@@ -52,12 +59,14 @@ export default function AdminUsuariosPage() {
     setCreating(true);
     try {
       const res = await supabase.functions.invoke('manage-admin', {
-        body: { action: 'create', email, password },
+        body: { action: 'create', email, password, nome: nome.trim(), sobrenome: sobrenome.trim() },
       });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
 
       toast.success('Administrador criado com sucesso!');
+      setNome('');
+      setSobrenome('');
       setEmail('');
       setPassword('');
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -90,8 +99,34 @@ export default function AdminUsuariosPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleCreate} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-nome">Nome *</Label>
+                    <Input
+                      id="admin-nome"
+                      type="text"
+                      placeholder="Nome"
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      required
+                      disabled={creating}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-sobrenome">Sobrenome *</Label>
+                    <Input
+                      id="admin-sobrenome"
+                      type="text"
+                      placeholder="Sobrenome"
+                      value={sobrenome}
+                      onChange={(e) => setSobrenome(e.target.value)}
+                      required
+                      disabled={creating}
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label htmlFor="admin-email">E-mail</Label>
+                  <Label htmlFor="admin-email">E-mail *</Label>
                   <Input
                     id="admin-email"
                     type="email"
@@ -143,7 +178,10 @@ export default function AdminUsuariosPage() {
                       className="flex items-center justify-between p-3 rounded-lg border"
                     >
                       <div>
-                        <p className="font-medium text-sm">{admin.email}</p>
+                        {admin.nome && (
+                          <p className="font-semibold text-sm">{admin.nome}</p>
+                        )}
+                        <p className="text-sm text-muted-foreground">{admin.email}</p>
                         <p className="text-xs text-muted-foreground">
                           Criado em {new Date(admin.created_at).toLocaleDateString('pt-BR')}
                         </p>
