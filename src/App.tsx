@@ -19,6 +19,7 @@ import AlertasClientePage from "@/pages/AlertasCliente";
 import NotificacoesPage from "@/pages/Notificacoes";
 import PendenciasPage from "@/pages/Pendencias";
 import SimulacaoPage from "@/pages/Simulacao";
+import AdminUsuariosPage from "@/pages/AdminUsuarios";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -63,6 +64,7 @@ function AppRoutes() {
       {/* Protected routes */}
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/clientes" element={<ProtectedRoute requireAdmin><ClientesPage /></ProtectedRoute>} />
+      <Route path="/admin-usuarios" element={<ProtectedRoute requireAdmin><AdminUsuariosPage /></ProtectedRoute>} />
       <Route path="/socios" element={<Navigate to="/clientes" replace />} />
       <Route path="/distribuicoes" element={<ProtectedRoute><DistribuicoesPage /></ProtectedRoute>} />
       <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
