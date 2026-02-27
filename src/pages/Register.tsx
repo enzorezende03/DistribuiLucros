@@ -10,6 +10,8 @@ import { TrendingUp, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function RegisterPage() {
+  const [nome, setNome] = useState('');
+  const [sobrenome, setSobrenome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,6 +22,11 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!nome.trim() || !sobrenome.trim()) {
+      toast.error('Preencha nome e sobrenome');
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast.error(t('register.passwordMismatch'));
@@ -33,7 +40,7 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, nome.trim(), sobrenome.trim());
 
     if (error) {
       toast.error(t('register.error') + ': ' + error.message);
@@ -61,6 +68,16 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome *</Label>
+                <Input id="nome" type="text" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required disabled={loading} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sobrenome">Sobrenome *</Label>
+                <Input id="sobrenome" type="text" placeholder="Sobrenome" value={sobrenome} onChange={(e) => setSobrenome(e.target.value)} required disabled={loading} />
+              </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">{t('login.email')}</Label>
               <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
