@@ -2,3 +2,6 @@ project_id = "cjgkckhnghqzrmypnuni"
 
 [functions.gerar-recibo-pdf]
 verify_jwt = false
+
+[functions.manage-admin]
+verify_jwt = false
