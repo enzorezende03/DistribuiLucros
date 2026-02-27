@@ -6,60 +6,52 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Verify caller is admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Não autorizado" }, 401);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Client with caller's JWT to check admin
     const supabaseAuth = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
     const { data: { user: caller } } = await supabaseAuth.auth.getUser();
     if (!caller) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Não autorizado" }, 401);
     }
 
-    // Check admin role
     const { data: isAdmin } = await supabaseAuth.rpc("is_admin");
     if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Apenas administradores podem gerenciar admins" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Apenas administradores podem gerenciar admins" }, 403);
     }
 
-    const { action, email, password, nome, sobrenome } = await req.json();
+    const body = await req.json();
+    const { action, email, password, nome, sobrenome, user_id: targetUserId } = body;
 
-    // Service role client for admin operations
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
+    // === CREATE ===
     if (action === "create") {
       if (!email || !password) {
-        return new Response(JSON.stringify({ error: "E-mail e senha são obrigatórios" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: "E-mail e senha são obrigatórios" }, 400);
       }
 
-      // Create user
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
@@ -72,67 +64,21 @@ Deno.serve(async (req) => {
       });
 
       if (createError) {
-        return new Response(JSON.stringify({ error: createError.message }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: createError.message }, 400);
       }
 
-      // Assign admin role
       const { error: roleError } = await supabaseAdmin
         .from("user_roles")
         .insert({ user_id: newUser.user.id, role: "admin" });
 
       if (roleError) {
-        return new Response(JSON.stringify({ error: "Usuário criado mas erro ao atribuir role: " + roleError.message }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: "Usuário criado mas erro ao atribuir role: " + roleError.message }, 500);
       }
 
-      return new Response(JSON.stringify({ success: true, user_id: newUser.user.id }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ success: true, user_id: newUser.user.id });
     }
 
-    if (action === "update_metadata") {
-      const { user_id, metadata } = await req.json().catch(() => ({ user_id: null, metadata: null }));
-      // We already parsed the body above, so re-read from the original parse
-      const body = { action, email, password, nome, sobrenome };
-      const targetEmail = body.email;
-      if (!targetEmail) {
-        return new Response(JSON.stringify({ error: "E-mail obrigatório" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      // Find user by email
-      const { data: { users }, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
-      const target = (users || []).find((u) => u.email === targetEmail);
-      if (!target) {
-        return new Response(JSON.stringify({ error: "Usuário não encontrado" }), {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(target.id, {
-        user_metadata: {
-          nome: nome || "",
-          sobrenome: sobrenome || "",
-          full_name: [nome, sobrenome].filter(Boolean).join(" "),
-        },
-      });
-      if (updErr) {
-        return new Response(JSON.stringify({ error: updErr.message }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    // === LIST ===
     if (action === "list") {
       const { data: adminRoles, error } = await supabaseAdmin
         .from("user_roles")
@@ -140,21 +86,17 @@ Deno.serve(async (req) => {
         .eq("role", "admin");
 
       if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: error.message }, 500);
       }
 
-      // Get emails and names
       const admins = await Promise.all(
         (adminRoles || []).map(async (r) => {
           const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(r.user_id);
           const meta = user?.user_metadata || {};
-          const email = user?.email || "unknown";
-          const fallbackName = email === "unknown"
+          const userEmail = user?.email || "unknown";
+          const fallbackName = userEmail === "unknown"
             ? ""
-            : email
+            : userEmail
                 .split("@")[0]
                 .split(/[._-]+/)
                 .filter(Boolean)
@@ -163,26 +105,69 @@ Deno.serve(async (req) => {
 
           return {
             user_id: r.user_id,
-            email,
+            email: userEmail,
             nome: meta.full_name || [meta.nome, meta.sobrenome].filter(Boolean).join(" ") || fallbackName,
             created_at: r.created_at,
           };
         })
       );
 
-      return new Response(JSON.stringify({ admins }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ admins });
     }
 
-    return new Response(JSON.stringify({ error: "Ação inválida" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // === UPDATE ===
+    if (action === "update") {
+      if (!targetUserId) {
+        return jsonResponse({ error: "user_id obrigatório" }, 400);
+      }
+
+      const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(targetUserId, {
+        user_metadata: {
+          nome: nome || "",
+          sobrenome: sobrenome || "",
+          full_name: [nome, sobrenome].filter(Boolean).join(" "),
+        },
+      });
+
+      if (updErr) {
+        return jsonResponse({ error: updErr.message }, 500);
+      }
+
+      return jsonResponse({ success: true });
+    }
+
+    // === DELETE ===
+    if (action === "delete") {
+      if (!targetUserId) {
+        return jsonResponse({ error: "user_id obrigatório" }, 400);
+      }
+
+      if (targetUserId === caller.id) {
+        return jsonResponse({ error: "Não é possível excluir a si mesmo" }, 400);
+      }
+
+      // Remove admin role
+      const { error: roleErr } = await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("user_id", targetUserId)
+        .eq("role", "admin");
+
+      if (roleErr) {
+        return jsonResponse({ error: roleErr.message }, 500);
+      }
+
+      // Delete user from auth
+      const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
+      if (delErr) {
+        return jsonResponse({ error: delErr.message }, 500);
+      }
+
+      return jsonResponse({ success: true });
+    }
+
+    return jsonResponse({ error: "Ação inválida" }, 400);
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: err.message }, 500);
   }
 });
