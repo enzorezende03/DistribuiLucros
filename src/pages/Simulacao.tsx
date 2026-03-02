@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Calculator, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getExcessColor } from '@/lib/excessColor';
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -110,7 +111,7 @@ export default function SimulacaoPage() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">{t('simulation.tax')}</span>
               </div>
-              <p className="text-base font-bold text-foreground">{breakableCurrency(imposto)}</p>
+              <p className="text-base font-bold" style={!isento ? { color: getExcessColor(valorDistribuicao) } : undefined}>{breakableCurrency(imposto)}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {isento ? t('simulation.noTax') : `${t('simulation.taxOver')} ${breakableCurrency(valorDistribuicao)}`}
               </p>

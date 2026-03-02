@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getExcessColor } from '@/lib/excessColor';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface RateioItem {
@@ -227,7 +228,7 @@ export default function NovaDistribuicaoPage() {
                         const ir = (valor - 50000) * 0.1;
                         return socio ? (
                           <div key={item.socio_id} className="mt-1 text-xs">
-                            • {socio.nome}: {formatCurrency(valor)} — {t('newDist.estimatedIR')}: {formatCurrency(ir)}
+                            • {socio.nome}: <span style={{ color: getExcessColor(valor) }} className="font-semibold">{formatCurrency(valor)}</span> — {t('newDist.estimatedIR')}: <span style={{ color: getExcessColor(valor) }} className="font-semibold">{formatCurrency(ir)}</span>
                           </div>
                         ) : null;
                       })}

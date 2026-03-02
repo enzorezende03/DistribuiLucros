@@ -1,5 +1,6 @@
 import { formatCurrency } from '@/lib/format';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getExcessColor } from '@/lib/excessColor';
 
 interface AlertaDescricaoProps {
   descricao: string;
@@ -39,7 +40,7 @@ export function AlertaDescricao({ descricao, tipo }: AlertaDescricaoProps) {
       {excedenteValor > 0 && (
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">{t('alerts.excess')}:</span>
-          <span className="font-medium text-warning">
+          <span className="font-medium" style={{ color: getExcessColor(totalValor) }}>
             {formatCurrency(excedenteValor)}
             {percentual && (
               <span className="text-xs ml-1">({percentual})</span>
