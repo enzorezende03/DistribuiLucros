@@ -111,10 +111,10 @@ export default function SimulacaoPage() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">{t('simulation.tax')}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div>
                 <p className={`text-base font-bold ${isento ? 'text-green-600' : ''}`} style={!isento ? { color: getExcessColor(valorDistribuicao) } : undefined}>{breakableCurrency(imposto)}</p>
                 {!isento && (
-                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-muted" style={{ color: getExcessColor(valorDistribuicao) }}>
+                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-muted inline-block mt-1" style={{ color: getExcessColor(valorDistribuicao) }}>
                     +{getExcessPercent(valorDistribuicao).toFixed(0)}%
                   </span>
                 )}
