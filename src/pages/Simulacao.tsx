@@ -105,7 +105,7 @@ export default function SimulacaoPage() {
             </CardContent>
           </Card>
 
-          <Card className={!isento ? 'border-destructive/30 bg-destructive/5' : ''}>
+          <Card className={!isento ? 'border-destructive/30 bg-destructive/5' : 'border-green-500/30 bg-green-50/50 dark:bg-green-950/20'}>
             <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
