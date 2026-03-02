@@ -90,13 +90,13 @@ export default function SimulacaoPage() {
         </Card>
 
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          <Card className={isento ? 'border-green-500/30 bg-green-50/50 dark:bg-green-950/20' : ''}>
+          <Card className={isento ? 'border-[hsl(152,45%,38%)]/30 bg-[hsl(152,45%,38%)]/5' : ''}>
             <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
-                {isento ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" /> : <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />}
+                {isento ? <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: 'hsl(152, 45%, 38%)' }} /> : <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />}
                 <span className="text-sm font-medium text-muted-foreground">{t('simulation.statusLabel')}</span>
               </div>
-              <p className={`text-base font-bold break-all ${isento ? 'text-green-600' : 'text-amber-600'}`}>
+              <p className={`text-base font-bold break-all ${!isento ? 'text-amber-600' : ''}`} style={isento ? { color: 'hsl(152, 45%, 38%)' } : undefined}>
                 {isento ? t('simulation.exempt') : t('simulation.taxable')}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -105,14 +105,14 @@ export default function SimulacaoPage() {
             </CardContent>
           </Card>
 
-          <Card className={!isento ? 'border-destructive/30 bg-destructive/5' : 'border-green-500/30 bg-green-50/50 dark:bg-green-950/20'}>
+          <Card className={!isento ? 'border-destructive/30 bg-destructive/5' : 'border-[hsl(152,45%,38%)]/30 bg-[hsl(152,45%,38%)]/5'}>
             <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">{t('simulation.tax')}</span>
               </div>
               <div>
-                <p className={`text-base font-bold ${isento ? 'text-green-600' : ''}`} style={!isento ? { color: getExcessColor(valorDistribuicao) } : undefined}>{breakableCurrency(imposto)}</p>
+                <p className="text-base font-bold" style={{ color: isento ? 'hsl(152, 45%, 38%)' : getExcessColor(valorDistribuicao) }}>{breakableCurrency(imposto)}</p>
                 {!isento && (
                   <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-muted inline-block mt-1" style={{ color: getExcessColor(valorDistribuicao) }}>
                     +{getExcessPercent(valorDistribuicao).toFixed(0)}%
