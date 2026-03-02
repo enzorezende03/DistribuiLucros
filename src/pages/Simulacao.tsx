@@ -80,7 +80,7 @@ export default function SimulacaoPage() {
             </div>
             <div className="space-y-2">
               <Label>{t('simulation.quickAdjust')}</Label>
-              <Slider value={[valorDistribuicao]} onValueChange={handleSliderChange} max={500000} step={1000} className="py-2" />
+              <Slider value={[valorDistribuicao]} onValueChange={handleSliderChange} max={500000} step={1000} className="py-2" rangeColor={!isento ? getExcessColor(valorDistribuicao) : undefined} />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>R$ 0</span>
                 <span>R$ 500.000</span>
