@@ -7,7 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Calculator, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getExcessColor } from '@/lib/excessColor';
+import { getExcessColor, getExcessPercent } from '@/lib/excessColor';
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -111,7 +111,14 @@ export default function SimulacaoPage() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm font-medium text-muted-foreground">{t('simulation.tax')}</span>
               </div>
-              <p className={`text-base font-bold ${isento ? 'text-green-600' : ''}`} style={!isento ? { color: getExcessColor(valorDistribuicao) } : undefined}>{breakableCurrency(imposto)}</p>
+              <div className="flex items-center gap-2">
+                <p className={`text-base font-bold ${isento ? 'text-green-600' : ''}`} style={!isento ? { color: getExcessColor(valorDistribuicao) } : undefined}>{breakableCurrency(imposto)}</p>
+                {!isento && (
+                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-muted" style={{ color: getExcessColor(valorDistribuicao) }}>
+                    +{getExcessPercent(valorDistribuicao).toFixed(0)}%
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {isento ? t('simulation.noTax') : `${t('simulation.taxOver')} ${breakableCurrency(valorDistribuicao)}`}
               </p>
