@@ -232,6 +232,16 @@ export default function NovaDistribuicaoPage() {
                           </div>
                         ) : null;
                       })}
+                      {(() => {
+                        const totalIR = rateio
+                          .filter((item) => parseFloat(item.valor) > 50000)
+                          .reduce((sum, item) => sum + parseFloat(item.valor) * 0.1, 0);
+                        return totalIR > 0 ? (
+                          <div className="mt-2 pt-2 border-t border-yellow-500/30 text-sm font-bold">
+                            {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIR)}</span>
+                          </div>
+                        ) : null;
+                      })()}
                     </AlertDescription>
                   </Alert>
                 )}
