@@ -7,6 +7,39 @@ interface AlertaDescricaoProps {
   tipo: string;
 }
 
+function parseCurrencyValue(value: string): number {
+  const cleaned = value.replace(/[^\d.,-]/g, '').trim();
+  if (!cleaned) return 0;
+
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+
+  if (lastComma !== -1 && lastDot !== -1) {
+    const decimalSeparator = lastComma > lastDot ? ',' : '.';
+    const thousandsSeparator = decimalSeparator === ',' ? '.' : ',';
+    const normalized = cleaned.split(thousandsSeparator).join('').replace(decimalSeparator, '.');
+    return Number(normalized) || 0;
+  }
+
+  if (lastComma !== -1) {
+    const decimalPlaces = cleaned.length - lastComma - 1;
+    const normalized = decimalPlaces <= 2
+      ? cleaned.replace(/\./g, '').replace(',', '.')
+      : cleaned.replace(/,/g, '');
+    return Number(normalized) || 0;
+  }
+
+  if (lastDot !== -1) {
+    const decimalPlaces = cleaned.length - lastDot - 1;
+    const normalized = decimalPlaces <= 2
+      ? cleaned.replace(/,/g, '')
+      : cleaned.replace(/\./g, '');
+    return Number(normalized) || 0;
+  }
+
+  return Number(cleaned) || 0;
+}
+
 export function AlertaDescricao({ descricao, tipo }: AlertaDescricaoProps) {
   const { t } = useLanguage();
 
@@ -14,16 +47,12 @@ export function AlertaDescricao({ descricao, tipo }: AlertaDescricaoProps) {
     return <span className="text-sm">{descricao}</span>;
   }
 
-  const totalMatch = descricao.match(/Total:\s*R\$\s*([\d.,]+)/);
-  const excedenteMatch = descricao.match(/Excedente:\s*R\$\s*([\d.,]+)/);
-  const percentualMatch = descricao.match(/\(([\d.,]+%)\s*acima do limite\)/);
+  const totalMatch = descricao.match(/Total:\s*R\$\s*([\d.,]+)/i);
+  const excedenteMatch = descricao.match(/Excedente:\s*R\$\s*([\d.,]+)/i);
+  const percentualMatch = descricao.match(/\(([\d.,]+%)\s*(?:acima do limite|above limit|por encima del límite)\)/i);
 
-  const totalValor = totalMatch
-    ? parseFloat(totalMatch[1].replace(/\./g, '').replace(',', '.'))
-    : 0;
-  const excedenteValor = excedenteMatch
-    ? parseFloat(excedenteMatch[1].replace(/\./g, '').replace(',', '.'))
-    : 0;
+  const totalValor = totalMatch ? parseCurrencyValue(totalMatch[1]) : 0;
+  const excedenteValor = excedenteMatch ? parseCurrencyValue(excedenteMatch[1]) : 0;
   const percentual = percentualMatch ? percentualMatch[1] : null;
   const imposto = totalValor > 0 ? totalValor * 0.10 : 0;
 
