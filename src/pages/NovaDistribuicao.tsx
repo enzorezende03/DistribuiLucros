@@ -220,7 +220,7 @@ export default function NovaDistribuicaoPage() {
                           </div>
                           <div className="w-full sm:w-48 space-y-2">
                             <Label>{t('newDist.valueLabel')}</Label>
-                            <Input type="number" step="0.01" min="0" placeholder="0,00" value={item.valor} onChange={(e) => updateRateioItem(index, 'valor', e.target.value)} className="money-value" />
+                            <Input placeholder="0,00" value={item.valor} onChange={(e) => { const masked = maskCurrencyInput(e.target.value); updateRateioItem(index, 'valor', masked); }} className="money-value" />
                           </div>
                           <Button type="button" variant="ghost" size="icon" onClick={() => removeRateioItem(index)} disabled={rateio.length === 1} className="text-destructive hover:text-destructive shrink-0">
                             <Trash2 className="h-4 w-4" />
