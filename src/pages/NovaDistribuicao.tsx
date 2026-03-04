@@ -76,19 +76,19 @@ export default function NovaDistribuicaoPage() {
     setRateio(newRateio);
   };
 
-  const valorTotal = rateio.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+  const valorTotal = rateio.reduce((sum, item) => sum + parseMaskedCurrency(item.valor), 0);
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.competencia) newErrors.push(t('newDist.selectCompetence'));
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
     if (!formData.forma_pagamento) newErrors.push(t('newDist.informPayment'));
-    const validRateio = rateio.filter((item) => item.socio_id && parseFloat(item.valor) > 0);
+    const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
     const sociosDuplicados = rateio.map((item) => item.socio_id).filter((id, index, arr) => id && arr.indexOf(id) !== index);
     if (sociosDuplicados.length > 0) newErrors.push(t('newDist.duplicatePartners'));
     rateio.forEach((item, index) => {
-      if (item.socio_id && parseFloat(item.valor) <= 0) newErrors.push(`${t('common.item')} ${index + 1}: ${t('newDist.valueGreaterThanZero')}`);
+      if (item.socio_id && parseMaskedCurrency(item.valor) <= 0) newErrors.push(`${t('common.item')} ${index + 1}: ${t('newDist.valueGreaterThanZero')}`);
     });
     setErrors(newErrors);
     if (newErrors.length > 0) { toast.error(newErrors[0]); window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -98,7 +98,7 @@ export default function NovaDistribuicaoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm() || !clienteId) return;
-    const itens = rateio.filter((item) => item.socio_id && parseFloat(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseFloat(item.valor) }));
+    const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
       cliente_id: clienteId, competencia: formData.competencia, data_distribuicao: formData.data_distribuicao,
       valor_total: valorTotal, forma_pagamento: formData.forma_pagamento,
