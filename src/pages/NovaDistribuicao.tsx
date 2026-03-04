@@ -231,14 +231,14 @@ export default function NovaDistribuicaoPage() {
                   </>
                 )}
 
-                {rateio.some((item) => parseFloat(item.valor) > 50000) && (
+                {rateio.some((item) => parseMaskedCurrency(item.valor) > 50000) && (
                   <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-200 [&>svg]:text-yellow-600">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-sm font-medium">
                       <strong>{t('common.attention')}:</strong> {t('newDist.irWarning')}
-                      {rateio.filter((item) => parseFloat(item.valor) > 50000).map((item) => {
+                      {rateio.filter((item) => parseMaskedCurrency(item.valor) > 50000).map((item) => {
                         const socio = sociosAtivos.find((s) => s.id === item.socio_id);
-                        const valor = parseFloat(item.valor);
+                        const valor = parseMaskedCurrency(item.valor);
                         const ir = valor * 0.1;
                         return socio ? (
                           <div key={item.socio_id} className="mt-1 text-xs">
@@ -248,8 +248,8 @@ export default function NovaDistribuicaoPage() {
                       })}
                       {(() => {
                         const totalIR = rateio
-                          .filter((item) => parseFloat(item.valor) > 50000)
-                          .reduce((sum, item) => sum + parseFloat(item.valor) * 0.1, 0);
+                          .filter((item) => parseMaskedCurrency(item.valor) > 50000)
+                          .reduce((sum, item) => sum + parseMaskedCurrency(item.valor) * 0.1, 0);
                         return totalIR > 0 ? (
                           <div className="mt-2 pt-2 border-t border-yellow-500/30 text-sm font-bold">
                             {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIR)}</span>
