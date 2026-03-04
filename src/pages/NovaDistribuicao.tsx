@@ -25,6 +25,20 @@ interface RateioItem {
   valor: string;
 }
 
+function maskCurrencyInput(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '0,00';
+  const num = parseInt(digits, 10);
+  return (num / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function parseMaskedCurrency(masked: string): number {
+  return parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0;
+}
+
 export default function NovaDistribuicaoPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
