@@ -225,7 +225,7 @@ export default function NovaDistribuicaoPage() {
                       {rateio.filter((item) => parseFloat(item.valor) > 50000).map((item) => {
                         const socio = sociosAtivos.find((s) => s.id === item.socio_id);
                         const valor = parseFloat(item.valor);
-                        const ir = (valor - 50000) * 0.1;
+                        const ir = valor * 0.1;
                         return socio ? (
                           <div key={item.socio_id} className="mt-1 text-xs">
                             • {socio.nome}: <span style={{ color: getExcessColor(valor) }} className="font-semibold">{formatCurrency(valor)}</span> — {t('newDist.estimatedIR')}: <span style={{ color: getExcessColor(valor) }} className="font-semibold">{formatCurrency(ir)}</span>
