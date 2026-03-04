@@ -25,6 +25,20 @@ interface RateioItem {
   valor: string;
 }
 
+function maskCurrencyInput(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '0,00';
+  const num = parseInt(digits, 10);
+  return (num / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function parseMaskedCurrency(masked: string): number {
+  return parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0;
+}
+
 export default function NovaDistribuicaoPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -62,19 +76,19 @@ export default function NovaDistribuicaoPage() {
     setRateio(newRateio);
   };
 
-  const valorTotal = rateio.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+  const valorTotal = rateio.reduce((sum, item) => sum + parseMaskedCurrency(item.valor), 0);
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.competencia) newErrors.push(t('newDist.selectCompetence'));
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
     if (!formData.forma_pagamento) newErrors.push(t('newDist.informPayment'));
-    const validRateio = rateio.filter((item) => item.socio_id && parseFloat(item.valor) > 0);
+    const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
     const sociosDuplicados = rateio.map((item) => item.socio_id).filter((id, index, arr) => id && arr.indexOf(id) !== index);
     if (sociosDuplicados.length > 0) newErrors.push(t('newDist.duplicatePartners'));
     rateio.forEach((item, index) => {
-      if (item.socio_id && parseFloat(item.valor) <= 0) newErrors.push(`${t('common.item')} ${index + 1}: ${t('newDist.valueGreaterThanZero')}`);
+      if (item.socio_id && parseMaskedCurrency(item.valor) <= 0) newErrors.push(`${t('common.item')} ${index + 1}: ${t('newDist.valueGreaterThanZero')}`);
     });
     setErrors(newErrors);
     if (newErrors.length > 0) { toast.error(newErrors[0]); window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -84,7 +98,7 @@ export default function NovaDistribuicaoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm() || !clienteId) return;
-    const itens = rateio.filter((item) => item.socio_id && parseFloat(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseFloat(item.valor) }));
+    const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
       cliente_id: clienteId, competencia: formData.competencia, data_distribuicao: formData.data_distribuicao,
       valor_total: valorTotal, forma_pagamento: formData.forma_pagamento,
@@ -206,7 +220,7 @@ export default function NovaDistribuicaoPage() {
                           </div>
                           <div className="w-full sm:w-48 space-y-2">
                             <Label>{t('newDist.valueLabel')}</Label>
-                            <Input type="number" step="0.01" min="0" placeholder="0,00" value={item.valor} onChange={(e) => updateRateioItem(index, 'valor', e.target.value)} className="money-value" />
+                            <Input placeholder="0,00" value={item.valor} onChange={(e) => { const masked = maskCurrencyInput(e.target.value); updateRateioItem(index, 'valor', masked); }} className="money-value" />
                           </div>
                           <Button type="button" variant="ghost" size="icon" onClick={() => removeRateioItem(index)} disabled={rateio.length === 1} className="text-destructive hover:text-destructive shrink-0">
                             <Trash2 className="h-4 w-4" />
@@ -217,14 +231,14 @@ export default function NovaDistribuicaoPage() {
                   </>
                 )}
 
-                {rateio.some((item) => parseFloat(item.valor) > 50000) && (
+                {rateio.some((item) => parseMaskedCurrency(item.valor) > 50000) && (
                   <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-200 [&>svg]:text-yellow-600">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-sm font-medium">
                       <strong>{t('common.attention')}:</strong> {t('newDist.irWarning')}
-                      {rateio.filter((item) => parseFloat(item.valor) > 50000).map((item) => {
+                      {rateio.filter((item) => parseMaskedCurrency(item.valor) > 50000).map((item) => {
                         const socio = sociosAtivos.find((s) => s.id === item.socio_id);
-                        const valor = parseFloat(item.valor);
+                        const valor = parseMaskedCurrency(item.valor);
                         const ir = valor * 0.1;
                         return socio ? (
                           <div key={item.socio_id} className="mt-1 text-xs">
@@ -234,8 +248,8 @@ export default function NovaDistribuicaoPage() {
                       })}
                       {(() => {
                         const totalIR = rateio
-                          .filter((item) => parseFloat(item.valor) > 50000)
-                          .reduce((sum, item) => sum + parseFloat(item.valor) * 0.1, 0);
+                          .filter((item) => parseMaskedCurrency(item.valor) > 50000)
+                          .reduce((sum, item) => sum + parseMaskedCurrency(item.valor) * 0.1, 0);
                         return totalIR > 0 ? (
                           <div className="mt-2 pt-2 border-t border-yellow-500/30 text-sm font-bold">
                             {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIR)}</span>
