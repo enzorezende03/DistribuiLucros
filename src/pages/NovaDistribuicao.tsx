@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
 import { useCreateDistribuicao } from '@/hooks/useDistribuicoes';
-import { formatCurrency, formatCompetencia, getCompetenciaAnterior, formatCPF } from '@/lib/format';
+import { formatCurrency, formatCompetencia, getCurrentCompetencia, formatCPF } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -33,7 +33,7 @@ export default function NovaDistribuicaoPage() {
   const { data: socios } = useSocios(clienteId);
   const createDistribuicao = useCreateDistribuicao();
 
-  const competenciaAnterior = getCompetenciaAnterior();
+  const currentCompetencia = getCurrentCompetencia();
 
   const competenciaOptions = Array.from({ length: 7 }, (_, i) => {
     const now = new Date();
@@ -44,7 +44,7 @@ export default function NovaDistribuicaoPage() {
   });
 
   const [formData, setFormData] = useState({
-    competencia: competenciaAnterior,
+    competencia: currentCompetencia,
     data_distribuicao: new Date().toISOString().split('T')[0],
     forma_pagamento: '',
   });
