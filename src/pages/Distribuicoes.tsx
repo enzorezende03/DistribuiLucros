@@ -543,8 +543,9 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
   const handleDownloadPdf = useCallback(async () => {
     setDownloading(true);
     try {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
       const { data, error } = await supabase.functions.invoke('gerar-recibo-pdf', {
-        body: { distribuicao_id: distribuicao.id, lang: language },
+        body: { distribuicao_id: distribuicao.id, lang: language, mobile: isMobile },
       });
 
       if (error) throw error;
@@ -554,7 +555,6 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
       const url = URL.createObjectURL(blob);
       
       // On mobile, use a download link instead of window.open + print
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
       if (isMobile) {
         const a = document.createElement('a');
         a.href = url;
@@ -716,15 +716,15 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
     if (!distribuicaoId) return;
     setDownloading(true);
     try {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
       const { data, error } = await supabase.functions.invoke('gerar-recibo-pdf', {
-        body: { distribuicao_id: distribuicaoId, lang: language },
+        body: { distribuicao_id: distribuicaoId, lang: language, mobile: isMobile },
       });
       if (error) throw error;
       const html = typeof data === 'string' ? data : await new Response(data).text();
       const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
       const url = URL.createObjectURL(blob);
 
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
       if (isMobile) {
         const a = document.createElement('a');
         a.href = url;
