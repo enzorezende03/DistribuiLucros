@@ -716,8 +716,9 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
     if (!distribuicaoId) return;
     setDownloading(true);
     try {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
       const { data, error } = await supabase.functions.invoke('gerar-recibo-pdf', {
-        body: { distribuicao_id: distribuicaoId, lang: language },
+        body: { distribuicao_id: distribuicaoId, lang: language, mobile: isMobile },
       });
       if (error) throw error;
       const html = typeof data === 'string' ? data : await new Response(data).text();
