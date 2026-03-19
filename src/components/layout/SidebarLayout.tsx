@@ -214,7 +214,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       </aside>
 
       {/* Mobile Header */}
-      <div className="flex flex-1 flex-col md:hidden">
+      <div className="flex flex-1 flex-col min-w-0 md:hidden">
         <header className="flex h-16 items-center justify-between border-b bg-card px-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-primary" />
