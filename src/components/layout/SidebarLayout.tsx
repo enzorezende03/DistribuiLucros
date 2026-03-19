@@ -257,7 +257,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         )}
 
         {/* Mobile Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 max-w-full">
           <ImpersonationBanner />
           {children}
         </main>
