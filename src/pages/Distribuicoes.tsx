@@ -552,12 +552,25 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
       const html = typeof data === 'string' ? data : await new Response(data).text();
       const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
       const url = URL.createObjectURL(blob);
-      const w = window.open(url, '_blank');
-      if (w) {
-        w.onload = () => {
-          URL.revokeObjectURL(url);
-          setTimeout(() => w.print(), 500);
-        };
+      
+      // On mobile, use a download link instead of window.open + print
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+      if (isMobile) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `recibo-${distribuicao.recibo_numero || distribuicao.id}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } else {
+        const w = window.open(url, '_blank');
+        if (w) {
+          w.onload = () => {
+            URL.revokeObjectURL(url);
+            setTimeout(() => w.print(), 500);
+          };
+        }
       }
     } catch (err: any) {
       toast.error(t('distributions.errorGenerating') + ': ' + (err.message || 'erro desconhecido'));
@@ -710,12 +723,24 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
       const html = typeof data === 'string' ? data : await new Response(data).text();
       const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
       const url = URL.createObjectURL(blob);
-      const w = window.open(url, '_blank');
-      if (w) {
-        w.onload = () => {
-          URL.revokeObjectURL(url);
-          setTimeout(() => w.print(), 500);
-        };
+
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+      if (isMobile) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `recibo-${distribuicaoId}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } else {
+        const w = window.open(url, '_blank');
+        if (w) {
+          w.onload = () => {
+            URL.revokeObjectURL(url);
+            setTimeout(() => w.print(), 500);
+          };
+        }
       }
     } catch (err: any) {
       toast.error(t('distributions.errorGenerating') + ': ' + (err.message || 'erro desconhecido'));

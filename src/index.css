@@ -198,7 +198,7 @@
 
   /* Stat card */
   .stat-card {
-    @apply relative overflow-hidden rounded-lg border bg-card p-4 md:p-6 shadow-sm min-w-0;
+    @apply relative overflow-hidden rounded-lg border bg-card p-3 md:p-6 shadow-sm min-w-0;
   }
 
   .stat-card-accent {
@@ -221,7 +221,7 @@
   }
 
   .money-value-lg {
-    @apply text-sm sm:text-lg lg:text-2xl font-bold font-mono tabular-nums text-foreground;
+    @apply text-xs sm:text-lg lg:text-2xl font-bold font-mono tabular-nums text-foreground;
   }
 
   /* Navigation active state */

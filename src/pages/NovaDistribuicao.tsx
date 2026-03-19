@@ -260,12 +260,12 @@ export default function NovaDistribuicaoPage() {
                   </Alert>
                 )}
 
-                <div className="flex items-center justify-between p-4 rounded-lg bg-accent/10 border border-accent/20">
+                <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-accent/10 border border-accent/20">
                   <div className="flex items-center gap-2">
-                    <Calculator className="h-5 w-5 text-accent" />
-                    <span className="font-semibold text-lg">{t('newDist.totalDistribution')}</span>
+                    <Calculator className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+                    <span className="font-semibold text-sm sm:text-lg">{t('newDist.totalDistribution')}</span>
                   </div>
-                  <span className="text-2xl font-bold money-value text-accent">{formatCurrency(valorTotal)}</span>
+                  <span className="text-base sm:text-2xl font-bold money-value text-accent">{formatCurrency(valorTotal)}</span>
                 </div>
               </CardContent>
             </Card>
