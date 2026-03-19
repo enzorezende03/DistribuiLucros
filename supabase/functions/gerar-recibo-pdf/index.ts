@@ -296,7 +296,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { distribuicao_id, lang } = await req.json();
+    const { distribuicao_id, lang, mobile } = await req.json();
     const language: Lang = (["pt", "en", "es"].includes(lang) ? lang : "pt") as Lang;
 
     if (!distribuicao_id) {
