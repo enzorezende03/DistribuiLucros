@@ -143,7 +143,7 @@ export default function NotificacoesPage() {
                       <p className="text-sm text-muted-foreground mt-1">{mensagem}</p>
                       <p className="text-xs text-muted-foreground mt-2">{formatDate(n.created_at)}</p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                       {n.distribuicao_id && (
                         <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/distribuicoes`)}>
                           <FileText className="h-3 w-3" />

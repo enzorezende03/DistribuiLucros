@@ -115,7 +115,7 @@ export default function PendenciasPage() {
                     )}
                     <p className="text-xs text-muted-foreground mt-2">{formatDate(p.created_at)}</p>
                   </div>
-                  <div className="shrink-0">
+                  <div className="shrink-0 self-end sm:self-auto">
                     <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate('/distribuicoes')}>
                       <FileText className="h-3 w-3" />
                       {t('pending.view')}

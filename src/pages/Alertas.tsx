@@ -101,7 +101,7 @@ export default function AlertasPage() {
                   value={selectedTipo || 'all'}
                   onValueChange={(v) => setSelectedTipo(v === 'all' ? null : (v as TipoAlerta))}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder={t('alerts.filterByType')} />
                   </SelectTrigger>
                   <SelectContent>
