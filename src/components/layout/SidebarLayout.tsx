@@ -104,9 +104,9 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-background max-w-[100vw]" style={{ overflowX: 'hidden', overflowY: 'hidden' }}>
+    <div className="flex min-h-screen bg-background max-w-[100vw] overflow-x-hidden">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:w-64 md:flex-col bg-sidebar border-r border-sidebar-border">
+      <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:flex-col self-start bg-sidebar border-r border-sidebar-border">
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-sidebar-primary" />
@@ -214,7 +214,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       </aside>
 
       {/* Mobile Header */}
-      <div className="flex flex-1 flex-col md:hidden">
+      <div className="flex flex-1 flex-col min-w-0 md:hidden">
         <header className="flex h-16 items-center justify-between border-b bg-card px-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-primary" />
@@ -296,14 +296,14 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         )}
 
         {/* Mobile Content */}
-        <main className="flex-1 min-w-0 max-w-full" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
+        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden">
           <ImpersonationBanner />
           {children}
         </main>
       </div>
 
       {/* Desktop Content */}
-      <main className="hidden md:flex flex-1 flex-col min-w-0 max-w-full" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
+      <main className="hidden md:flex flex-1 flex-col min-w-0 max-w-full overflow-x-hidden">
         <ImpersonationBanner />
         {children}
       </main>
