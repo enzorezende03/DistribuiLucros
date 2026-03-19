@@ -96,7 +96,7 @@ export default function NotificacoesPage() {
 
   return (
     <SidebarLayout>
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('notifications.title')}</h1>
