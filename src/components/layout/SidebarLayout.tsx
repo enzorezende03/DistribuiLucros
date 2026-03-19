@@ -241,16 +241,51 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="absolute top-16 left-0 right-0 z-50 bg-card border-b shadow-lg animate-fade-in">
+          <div className="absolute top-16 left-0 right-0 z-50 bg-card border-b shadow-lg animate-fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
             <nav className="space-y-1 p-4">
               {filteredNavItems.map((item) => (
-                <NavLink key={item.href} item={item} />
+                <NavLink key={item.href} item={item} mobile />
               ))}
             </nav>
+
+            {/* Impersonation selector for admin on mobile */}
+            {isRealAdmin && (
+              <div className="border-t p-4">
+                <p className="text-xs text-muted-foreground mb-2 px-1 flex items-center gap-1">
+                  <Eye className="h-3 w-3" />
+                  {t('sidebar.viewAsClient')}
+                </p>
+                <Select
+                  value={impersonatedClienteId || 'none'}
+                  onValueChange={(v) => {
+                    if (v === 'none') {
+                      stopImpersonating();
+                    } else {
+                      startImpersonating(v);
+                      setMobileMenuOpen(false);
+                      navigate('/dashboard');
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full text-xs h-9">
+                    <SelectValue placeholder={t('sidebar.selectClient')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('sidebar.adminView')}</SelectItem>
+                    {clientes?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.razao_social}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="border-t p-4">
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-2"
+                className="w-full justify-start gap-2 text-foreground/70"
                 onClick={handleSignOut}
               >
                 <LogOut className="h-4 w-4" />
