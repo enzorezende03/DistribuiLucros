@@ -106,7 +106,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   return (
     <div className="flex h-screen bg-background max-w-[100vw] overflow-hidden">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:flex-col self-start bg-sidebar border-r border-sidebar-border">
+      <aside className="hidden md:flex md:w-64 md:flex-col md:shrink-0 bg-sidebar border-r border-sidebar-border">
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-sidebar-primary" />
