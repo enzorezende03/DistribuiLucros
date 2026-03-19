@@ -104,7 +104,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-background max-w-[100vw] overflow-x-hidden">
+    <div className="flex h-screen bg-background max-w-[100vw]" style={{ overflowX: 'hidden', overflowY: 'hidden' }}>
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:w-64 md:flex-col bg-sidebar border-r border-sidebar-border">
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
@@ -296,14 +296,14 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         )}
 
         {/* Mobile Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 max-w-full">
+        <main className="flex-1 min-w-0 max-w-full" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
           <ImpersonationBanner />
           {children}
         </main>
       </div>
 
       {/* Desktop Content */}
-      <main className="hidden md:flex flex-1 flex-col overflow-y-auto overflow-x-hidden min-w-0 max-w-full">
+      <main className="hidden md:flex flex-1 flex-col min-w-0 max-w-full" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
         <ImpersonationBanner />
         {children}
       </main>
