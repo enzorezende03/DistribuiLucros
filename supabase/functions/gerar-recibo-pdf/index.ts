@@ -157,7 +157,7 @@ function translatePayment(forma: string, l: Record<string, string>): string {
   return key ? l[key] : forma;
 }
 
-function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang): string {
+function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang, mobile: boolean): string {
   const l = getLabels(lang);
   const locale = lang === "en" ? "en-US" : lang === "es" ? "es-ES" : "pt-BR";
 
@@ -165,9 +165,9 @@ function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang): string {
     .map(
       (item) => `
       <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${item.socio?.nome || "—"}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${formatCPF(item.socio?.cpf || "")}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${formatCurrency(Number(item.valor), lang)}</td>
+        <td style="padding:${mobile ? '6px 8px' : '8px 12px'};border-bottom:1px solid #e5e7eb;font-size:${mobile ? '12px' : '14px'};">${item.socio?.nome || "—"}</td>
+        <td style="padding:${mobile ? '6px 8px' : '8px 12px'};border-bottom:1px solid #e5e7eb;font-size:${mobile ? '12px' : '14px'};">${formatCPF(item.socio?.cpf || "")}</td>
+        <td style="padding:${mobile ? '6px 8px' : '8px 12px'};border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;font-size:${mobile ? '12px' : '14px'};">${formatCurrency(Number(item.valor), lang)}</td>
       </tr>`
     )
     .join("");
@@ -176,9 +176,26 @@ function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang): string {
   const dateStr = now.toLocaleDateString(locale);
   const timeStr = now.toLocaleTimeString(locale);
 
+  const mobileStyles = mobile ? `
+    body { padding:16px 12px; }
+    .container { max-width:100%; }
+    .header h1 { font-size:16px; }
+    .header p { font-size:11px; }
+    .recibo-num { font-size:13px; }
+    .section-title { font-size:11px; }
+    .info-grid { grid-template-columns:1fr 1fr; gap:4px 12px; }
+    .info-label { font-size:10px; }
+    .info-value { font-size:12px; margin-bottom:6px; }
+    th { padding:6px 8px; font-size:10px; }
+    .total-row td { padding:8px; font-size:13px; }
+    .sig-line { font-size:11px; }
+    .footer { font-size:10px; }
+  ` : '';
+
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; color:#1a1a1a; padding:40px; background:#fff; }
@@ -199,6 +216,7 @@ function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang): string {
   .total-row td { padding:12px; font-size:16px; font-weight:700; }
   .footer { margin-top:40px; text-align:center; font-size:11px; color:#999; border-top:1px solid #e5e7eb; padding-top:16px; }
   .sig-line { border-top:1px solid #333; padding-top:8px; text-align:center; font-size:12px; }
+  ${mobileStyles}
 </style>
 </head>
 <body>
