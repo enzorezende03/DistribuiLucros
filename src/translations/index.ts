@@ -469,6 +469,7 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.pendingApproval': 'Awaiting approval',
     'dashboard.monthlyPending': 'Monthly pending',
     'dashboard.registerDistribution': 'Register Distribution',
+    'dashboard.registerNewDistributionShort': 'Register New Distribution',
     'dashboard.actionRequired': 'Action required',
     'dashboard.informDistribution': 'Report if there was profit distribution in',
     'dashboard.happened': 'Yes',
