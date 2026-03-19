@@ -555,7 +555,6 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
       const url = URL.createObjectURL(blob);
       
       // On mobile, use a download link instead of window.open + print
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
       if (isMobile) {
         const a = document.createElement('a');
         a.href = url;
