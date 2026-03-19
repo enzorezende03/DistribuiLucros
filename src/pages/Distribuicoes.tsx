@@ -543,8 +543,9 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
   const handleDownloadPdf = useCallback(async () => {
     setDownloading(true);
     try {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
       const { data, error } = await supabase.functions.invoke('gerar-recibo-pdf', {
-        body: { distribuicao_id: distribuicao.id, lang: language },
+        body: { distribuicao_id: distribuicao.id, lang: language, mobile: isMobile },
       });
 
       if (error) throw error;
