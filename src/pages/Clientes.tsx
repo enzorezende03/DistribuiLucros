@@ -106,7 +106,7 @@ export default function ClientesPage() {
 
   return (
     <SidebarLayout>
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-hidden">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
         <div className="page-header">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('clients.title')}</h1>
