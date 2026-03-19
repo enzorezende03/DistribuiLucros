@@ -125,58 +125,80 @@ export default function AlertasClientePage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : alertas && alertas.length > 0 ? (
-              <div className="rounded-md border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('alerts.type')}</TableHead>
-                      <TableHead>{t('alerts.partner')}</TableHead>
-                      <TableHead className="hidden sm:table-cell">{t('alerts.competence')}</TableHead>
-                      <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
-                      <TableHead className="hidden sm:table-cell">{t('alerts.date')}</TableHead>
-                      <TableHead>{t('alerts.status')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {alertas.map((alerta) => {
-                      const config = tipoConfig[alerta.tipo];
-                      return (
-                        <TableRow key={alerta.id} className="table-row-interactive">
-                          <TableCell>
-                            <div className={cn('inline-flex items-center gap-2 px-2 py-1 rounded-full border', config.className)}>
-                              {config.icon}
-                              <span className="text-xs font-medium">{config.label}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {alerta.socio?.nome || '-'}
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            {formatCompetencia(alerta.competencia)}
-                          </TableCell>
-                          <TableCell className="max-w-[300px] hidden md:table-cell">
-                            <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
-                            {formatDate(alerta.created_at)}
-                          </TableCell>
-                          <TableCell>
-                            {alerta.resolvido ? (
-                              <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                                {t('alerts.resolved')}
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                                {t('alerts.active')}
-                              </Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+              <>
+                {/* Mobile card layout */}
+                <div className="space-y-3 sm:hidden">
+                  {alertas.map((alerta) => {
+                    const config = tipoConfig[alerta.tipo];
+                    return (
+                      <div key={alerta.id} className="rounded-lg border p-4 space-y-3">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className={cn('inline-flex items-center gap-2 px-2 py-1 rounded-full border', config.className)}>
+                            {config.icon}
+                            <span className="text-xs font-medium">{config.label}</span>
+                          </div>
+                          {alerta.resolvido ? (
+                            <Badge variant="outline" className="bg-success/10 text-success border-success/20">{t('alerts.resolved')}</Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">{t('alerts.active')}</Badge>
+                          )}
+                        </div>
+                        {alerta.socio?.nome && (
+                          <p className="font-medium text-sm">{alerta.socio.nome}</p>
+                        )}
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{formatCompetencia(alerta.competencia)}</span>
+                          <span>{formatDate(alerta.created_at)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop table layout */}
+                <div className="rounded-md border overflow-hidden hidden sm:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('alerts.type')}</TableHead>
+                        <TableHead>{t('alerts.partner')}</TableHead>
+                        <TableHead>{t('alerts.competence')}</TableHead>
+                        <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
+                        <TableHead className="hidden md:table-cell">{t('alerts.date')}</TableHead>
+                        <TableHead>{t('alerts.status')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {alertas.map((alerta) => {
+                        const config = tipoConfig[alerta.tipo];
+                        return (
+                          <TableRow key={alerta.id} className="table-row-interactive">
+                            <TableCell>
+                              <div className={cn('inline-flex items-center gap-2 px-2 py-1 rounded-full border', config.className)}>
+                                {config.icon}
+                                <span className="text-xs font-medium">{config.label}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">{alerta.socio?.nome || '-'}</TableCell>
+                            <TableCell>{formatCompetencia(alerta.competencia)}</TableCell>
+                            <TableCell className="max-w-[300px] hidden md:table-cell">
+                              <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(alerta.created_at)}</TableCell>
+                            <TableCell>
+                              {alerta.resolvido ? (
+                                <Badge variant="outline" className="bg-success/10 text-success border-success/20">{t('alerts.resolved')}</Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">{t('alerts.active')}</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <div className="empty-state py-12">
                 <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
