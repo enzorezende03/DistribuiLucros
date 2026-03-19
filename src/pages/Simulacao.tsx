@@ -59,7 +59,7 @@ export default function SimulacaoPage() {
 
   return (
     <SidebarLayout>
-      <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4 md:space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <Calculator className="h-6 w-6 text-primary" />
@@ -89,7 +89,7 @@ export default function SimulacaoPage() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
           <Card className={isento ? 'border-[hsl(152,45%,38%)]/30 bg-[hsl(152,45%,38%)]/5' : ''}>
             <CardContent className="pt-6 overflow-hidden">
               <div className="flex items-center gap-2 mb-1">

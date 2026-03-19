@@ -257,14 +257,14 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         )}
 
         {/* Mobile Content */}
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <ImpersonationBanner />
           {children}
         </main>
       </div>
 
       {/* Desktop Content */}
-      <main className="hidden md:flex flex-1 flex-col overflow-auto">
+      <main className="hidden md:flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <ImpersonationBanner />
         {children}
       </main>

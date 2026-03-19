@@ -134,7 +134,7 @@ export default function NotificacoesPage() {
                     !n.lida && 'border-primary/30 bg-primary/5'
                   )}
                 >
-                  <CardContent className="flex items-start gap-4 p-4">
+                  <CardContent className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-4">
                     <div className="mt-1 rounded-full bg-primary/10 p-2">
                       <Bell className="h-4 w-4 text-primary" />
                     </div>
@@ -143,7 +143,7 @@ export default function NotificacoesPage() {
                       <p className="text-sm text-muted-foreground mt-1">{mensagem}</p>
                       <p className="text-xs text-muted-foreground mt-2">{formatDate(n.created_at)}</p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                       {n.distribuicao_id && (
                         <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/distribuicoes`)}>
                           <FileText className="h-3 w-3" />

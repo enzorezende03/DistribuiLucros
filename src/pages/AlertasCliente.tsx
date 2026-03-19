@@ -92,12 +92,12 @@ export default function AlertasClientePage() {
                 <AlertTriangle className="h-5 w-5 text-warning" />
                 {t('alerts.alertsList')}
               </CardTitle>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
                 <Select
                   value={selectedTipo || 'all'}
                   onValueChange={(v) => setSelectedTipo(v === 'all' ? null : (v as TipoAlerta))}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder={t('alerts.filterByType')} />
                   </SelectTrigger>
                   <SelectContent>
