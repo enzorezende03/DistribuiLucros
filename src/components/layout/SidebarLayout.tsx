@@ -100,7 +100,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background max-w-[100vw] overflow-x-hidden">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:w-64 md:flex-col bg-sidebar border-r border-sidebar-border">
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
