@@ -78,7 +78,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     return true;
   });
 
-  const NavLink = ({ item }: { item: NavItem }) => {
+  const NavLink = ({ item, mobile }: { item: NavItem; mobile?: boolean }) => {
     const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
     
     return (
@@ -86,9 +86,13 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         to={item.href}
         className={cn(
           'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all',
-          isActive
-            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+          mobile
+            ? isActive
+              ? 'bg-primary/10 text-primary font-medium'
+              : 'text-foreground/70 hover:bg-muted hover:text-foreground'
+            : isActive
+              ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+              : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
         )}
         onClick={() => setMobileMenuOpen(false)}
       >
