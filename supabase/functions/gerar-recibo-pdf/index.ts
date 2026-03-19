@@ -332,7 +332,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const html = buildHtml(dist, dist.cliente, itens || [], language);
+    const html = buildHtml(dist, dist.cliente, itens || [], language, !!mobile);
 
     return new Response(html, {
       headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
