@@ -303,7 +303,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       </div>
 
       {/* Desktop Content */}
-      <main className="hidden md:flex flex-1 flex-col overflow-y-auto overflow-x-hidden min-w-0 max-w-full">
+      <main className="hidden md:flex flex-1 flex-col min-w-0 max-w-full" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
         <ImpersonationBanner />
         {children}
       </main>
