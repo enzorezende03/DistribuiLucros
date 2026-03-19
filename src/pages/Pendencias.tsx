@@ -96,7 +96,7 @@ export default function PendenciasPage() {
                 key={p.id}
                 className="transition-all hover:shadow-md border-yellow-500/30 bg-yellow-500/5"
               >
-                <CardContent className="flex items-start gap-4 p-4">
+                <CardContent className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-4">
                   <div className="mt-1 rounded-full bg-yellow-500/10 p-2">
                     <AlertCircle className="h-4 w-4 text-yellow-600" />
                   </div>
