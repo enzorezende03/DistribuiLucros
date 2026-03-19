@@ -59,7 +59,7 @@ export default function SimulacaoPage() {
 
   return (
     <SidebarLayout>
-      <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4 md:space-y-6">
+      <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4 md:space-y-6 overflow-hidden">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <Calculator className="h-6 w-6 text-primary" />
