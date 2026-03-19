@@ -725,7 +725,6 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
       const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
       const url = URL.createObjectURL(blob);
 
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
       if (isMobile) {
         const a = document.createElement('a');
         a.href = url;
