@@ -57,7 +57,8 @@ export default function DashboardPage() {
               <Link to="/distribuicoes/nova">
                 <Button className="gap-2">
                   <PlusCircle className="h-4 w-4" />
-                  {t('dashboard.registerDistribution')}
+                  <span className="hidden sm:inline">{t('dashboard.registerDistribution')}</span>
+                  <span className="sm:hidden">{t('dashboard.registerNewDistributionShort')}</span>
                 </Button>
               </Link>
             </div>
