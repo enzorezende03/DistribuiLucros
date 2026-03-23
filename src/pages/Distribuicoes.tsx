@@ -316,7 +316,7 @@ export default function DistribuicoesPage() {
                         <span className="font-semibold money-value text-sm">{formatCurrency(Number(dist.valor_total))}</span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
-                        <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} />
+                        <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
                         <span className="text-xs text-muted-foreground">{formatDate(dist.data_distribuicao)}</span>
                       </div>
                     </div>
