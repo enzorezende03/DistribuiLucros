@@ -94,7 +94,7 @@ const statusClassNames: Record<StatusDistribuicao, string> = {
 };
 
 export default function DistribuicoesPage() {
-  const { isAdmin, clienteId } = useAuth();
+  const { isAdmin, clienteId, isImpersonating, userRole } = useAuth();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const competenciaParam = searchParams.get('competencia');
