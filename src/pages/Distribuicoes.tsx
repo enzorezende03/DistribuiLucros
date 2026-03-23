@@ -94,7 +94,7 @@ const statusClassNames: Record<StatusDistribuicao, string> = {
 };
 
 export default function DistribuicoesPage() {
-  const { isAdmin, clienteId } = useAuth();
+  const { isAdmin, clienteId, isImpersonating, userRole } = useAuth();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const competenciaParam = searchParams.get('competencia');
@@ -316,7 +316,7 @@ export default function DistribuicoesPage() {
                         <span className="font-semibold money-value text-sm">{formatCurrency(Number(dist.valor_total))}</span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
-                        <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} />
+                        <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
                         <span className="text-xs text-muted-foreground">{formatDate(dist.data_distribuicao)}</span>
                       </div>
                     </div>
@@ -396,7 +396,7 @@ export default function DistribuicoesPage() {
                             <TableCell className="text-sm hidden md:table-cell">{dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}</TableCell>
                           )}
                           <TableCell>
-                            <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} />
+                            <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
                           </TableCell>
                           <TableCell>
                             <DistribuicaoActions distribuicao={dist} isAdmin={isAdmin} onView={() => setViewingDistribuicao(dist.id)} />
@@ -448,7 +448,7 @@ function StatusBadge({ status }: { status: StatusDistribuicao }) {
   );
 }
 
-function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribuicaoId: string; status: StatusDistribuicao; isAdmin: boolean }) {
+function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin, isRealAdmin = false }: { distribuicaoId: string; status: StatusDistribuicao; isAdmin: boolean; isRealAdmin?: boolean }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [historico, setHistorico] = useState<{ id: string; status_novo: string; observacao: string | null; created_at: string }[] | null>(null);
@@ -546,7 +546,7 @@ function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribui
                             {h.observacao}
                           </p>
                         )}
-                        {isAdmin && (
+                        {isRealAdmin && (
                           <button
                             className="text-xs text-primary hover:underline"
                             onClick={() => { setEditingId(h.id); setEditValue(h.observacao || ''); }}
