@@ -448,7 +448,7 @@ function StatusBadge({ status }: { status: StatusDistribuicao }) {
   );
 }
 
-function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribuicaoId: string; status: StatusDistribuicao; isAdmin: boolean }) {
+function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin, isRealAdmin = false }: { distribuicaoId: string; status: StatusDistribuicao; isAdmin: boolean; isRealAdmin?: boolean }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [historico, setHistorico] = useState<{ id: string; status_novo: string; observacao: string | null; created_at: string }[] | null>(null);
