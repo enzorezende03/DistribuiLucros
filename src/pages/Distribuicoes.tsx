@@ -451,16 +451,22 @@ function StatusBadge({ status }: { status: StatusDistribuicao }) {
 function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribuicaoId: string; status: StatusDistribuicao; isAdmin: boolean }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
-  const [historico, setHistorico] = useState<{ status_novo: string; observacao: string | null; created_at: string }[] | null>(null);
+  const [historico, setHistorico] = useState<{ id: string; status_novo: string; observacao: string | null; created_at: string }[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleOpen = async (isOpen: boolean) => {
     setOpen(isOpen);
+    if (!isOpen) {
+      setEditingId(null);
+    }
     if (isOpen && !historico) {
       setLoading(true);
       const { data } = await supabase
         .from('distribuicao_historico')
-        .select('status_novo, observacao, created_at')
+        .select('id, status_novo, observacao, created_at')
         .eq('distribuicao_id', distribuicaoId)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -469,9 +475,21 @@ function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribui
     }
   };
 
-  if (isAdmin) {
-    return <StatusBadge status={status} />;
-  }
+  const handleSaveEdit = async (id: string) => {
+    setSaving(true);
+    const { error } = await supabase
+      .from('distribuicao_historico')
+      .update({ observacao: editValue || null })
+      .eq('id', id);
+    if (error) {
+      toast.error('Erro ao editar observação');
+    } else {
+      setHistorico(prev => prev?.map(h => h.id === id ? { ...h, observacao: editValue || null } : h) || null);
+      toast.success('Observação atualizada!');
+    }
+    setEditingId(null);
+    setSaving(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={handleOpen}>
@@ -493,20 +511,50 @@ function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin }: { distribui
             <p className="text-sm text-muted-foreground p-3">{t('distributions.noHistory')}</p>
           ) : (
             <div className="divide-y">
-              {historico.map((h, i) => {
+              {historico.map((h) => {
                 const cfg = statusClassNames[h.status_novo as StatusDistribuicao];
+                const isEditing = editingId === h.id;
                 return (
-                  <div key={i} className="p-3 space-y-1">
+                  <div key={h.id} className="p-3 space-y-1">
                     <div className="flex items-center justify-between">
                       <Badge variant="outline" className={cn('text-xs', cfg)}>
                         {t(statusKeys[h.status_novo as StatusDistribuicao]) || h.status_novo}
                       </Badge>
                       <span className="text-xs text-muted-foreground">{formatDate(h.created_at)}</span>
                     </div>
-                    {h.observacao && (
-                      <p className="text-sm text-muted-foreground bg-muted/50 rounded px-2 py-1 italic">
-                        {h.observacao}
-                      </p>
+                    {isEditing ? (
+                      <div className="space-y-1.5">
+                        <Textarea
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="text-xs min-h-[50px]"
+                          placeholder="Observação..."
+                        />
+                        <div className="flex gap-1 justify-end">
+                          <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={() => setEditingId(null)}>
+                            Cancelar
+                          </Button>
+                          <Button size="sm" className="h-6 text-xs px-2" onClick={() => handleSaveEdit(h.id)} disabled={saving}>
+                            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Salvar'}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {h.observacao && (
+                          <p className="text-sm text-muted-foreground bg-muted/50 rounded px-2 py-1 italic">
+                            {h.observacao}
+                          </p>
+                        )}
+                        {isAdmin && (
+                          <button
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => { setEditingId(h.id); setEditValue(h.observacao || ''); }}
+                          >
+                            {h.observacao ? 'Editar observação' : 'Adicionar observação'}
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 );
