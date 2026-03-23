@@ -396,7 +396,7 @@ export default function DistribuicoesPage() {
                             <TableCell className="text-sm hidden md:table-cell">{dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}</TableCell>
                           )}
                           <TableCell>
-                            <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} />
+                            <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
                           </TableCell>
                           <TableCell>
                             <DistribuicaoActions distribuicao={dist} isAdmin={isAdmin} onView={() => setViewingDistribuicao(dist.id)} />
