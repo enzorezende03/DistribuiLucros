@@ -546,7 +546,7 @@ function StatusBadgeWithHistory({ distribuicaoId, status, isAdmin, isRealAdmin =
                             {h.observacao}
                           </p>
                         )}
-                        {isRealAdmin && (
+                        {isAdmin && (
                           <button
                             className="text-xs text-primary hover:underline"
                             onClick={() => { setEditingId(h.id); setEditValue(h.observacao || ''); }}
