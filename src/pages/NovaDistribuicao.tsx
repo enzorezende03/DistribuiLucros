@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
 import { useCreateDistribuicao } from '@/hooks/useDistribuicoes';
-import { formatCurrency, formatCompetencia, getCurrentCompetencia, formatCPF } from '@/lib/format';
+import { formatCurrency, getCurrentCompetencia, formatCPF } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
