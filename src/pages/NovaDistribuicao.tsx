@@ -46,6 +46,7 @@ export default function NovaDistribuicaoPage() {
   const { data: cliente } = useCliente(clienteId);
   const { data: socios } = useSocios(clienteId);
   const createDistribuicao = useCreateDistribuicao();
+  const { data: existingDistribuicoes } = useDistribuicoes(clienteId);
 
   const currentCompetencia = getCurrentCompetencia();
 
