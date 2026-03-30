@@ -303,9 +303,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                         if (!val) return null;
                         return (
                           <div key={month} className="flex items-center justify-between px-3 py-2 text-sm">
-                            <span className="text-muted-foreground">{formatCompetencia(month)}</span>
-                            <span className="font-medium money-value">{formatCurrency(val)}</span>
-                          </div>
+                            <span className="text-muted-foreground">{formatDate(month + '-01')}</span>
                         );
                       })}
                     </div>
