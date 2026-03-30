@@ -173,7 +173,7 @@ export function ExportDistribuicoesDialog({ open, onOpenChange }: ExportDistribu
                   checked={selectedMonths.includes(month)}
                   onCheckedChange={() => toggleMonth(month)}
                 />
-                <span className="text-sm">{formatCompetencia(month)}</span>
+                <span className="text-sm">{formatMonth(month)}</span>
               </label>
             ))}
           </div>
