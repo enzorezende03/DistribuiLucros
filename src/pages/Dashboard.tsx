@@ -241,7 +241,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   className="w-full gap-2"
                   onClick={() => {
                     setTotalMesDialogOpen(false);
-                    navigate(`/distribuicoes?competencia=${competenciaAnterior}`);
+                    navigate(`/distribuicoes`);
                   }}
                 >
                   <FileText className="h-4 w-4" />
