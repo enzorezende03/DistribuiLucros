@@ -82,6 +82,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Collapsible,
@@ -583,6 +584,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
   const createCliente = useCreateCliente();
   const updateCliente = useUpdateCliente();
   const isEditing = !!cliente;
+  const [fetchingCnpj, setFetchingCnpj] = useState(false);
 
   const [formData, setFormData] = useState<CreateClienteData>({
     razao_social: '',
@@ -597,6 +599,46 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
   const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string }[]>([
     { nome: '', cpf: '', percentual: '' },
   ]);
+
+  const handleFetchCnpj = async () => {
+    const cnpjClean = unmask(formData.cnpj);
+    if (cnpjClean.length !== 14) {
+      toast.error('Digite um CNPJ válido com 14 dígitos.');
+      return;
+    }
+    setFetchingCnpj(true);
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjClean}`);
+      if (!res.ok) throw new Error('CNPJ não encontrado');
+      const data = await res.json();
+
+      const telefone = data.ddd_telefone_1
+        ? unmask(String(data.ddd_telefone_1))
+        : '';
+
+      setFormData((prev) => ({
+        ...prev,
+        razao_social: data.razao_social || prev.razao_social,
+        telefone: telefone ? maskPhone(telefone) : prev.telefone,
+      }));
+
+      // Import QSA (sócios)
+      if (data.qsa && data.qsa.length > 0) {
+        const newSocios = data.qsa.map((s: any) => ({
+          nome: s.nome_socio || '',
+          cpf: s.cnpj_cpf_do_socio ? unmask(String(s.cnpj_cpf_do_socio)) : '',
+          percentual: '',
+        }));
+        setSocios(newSocios);
+      }
+
+      toast.success('Dados importados da Receita Federal!');
+    } catch {
+      toast.error('Não foi possível consultar o CNPJ. Verifique e tente novamente.');
+    } finally {
+      setFetchingCnpj(false);
+    }
+  };
 
   useState(() => {
     if (open && cliente) {
@@ -729,15 +771,38 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
           <div className="space-y-2">
             <Label htmlFor="cnpj">{t('clients.cnpjLabel')}</Label>
-            <Input
-              id="cnpj"
-              value={formData.cnpj}
-              onChange={(e) => setFormData({ ...formData, cnpj: maskCNPJ(e.target.value) })}
-              placeholder="00.000.000/0000-00"
-              maxLength={18}
-              required
-              disabled={isPending}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="cnpj"
+                value={formData.cnpj}
+                onChange={(e) => setFormData({ ...formData, cnpj: maskCNPJ(e.target.value) })}
+                placeholder="00.000.000/0000-00"
+                maxLength={18}
+                required
+                disabled={isPending || fetchingCnpj}
+                className="flex-1"
+              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleFetchCnpj}
+                      disabled={isPending || fetchingCnpj || unmask(formData.cnpj).length !== 14}
+                    >
+                      {fetchingCnpj ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Consultar CNPJ na Receita Federal</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           <div className="space-y-2">
