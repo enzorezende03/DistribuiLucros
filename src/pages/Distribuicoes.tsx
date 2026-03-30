@@ -41,6 +41,7 @@ import {
   MoreHorizontal,
   Trash2,
   CheckSquare,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   DropdownMenu,
