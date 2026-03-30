@@ -809,6 +809,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             </Select>
           </div>
 
+          {!isEditing && (
             <div className="space-y-3 pt-2 border-t">
               <div className="flex items-center justify-between">
                 <Label className="text-base font-semibold flex items-center gap-2">
