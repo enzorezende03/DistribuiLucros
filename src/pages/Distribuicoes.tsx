@@ -212,22 +212,6 @@ export default function DistribuicoesPage() {
                   </Select>
                 )}
                 <Select
-                  value={selectedCompetencia || 'all'}
-                  onValueChange={(v) => setSelectedCompetencia(v === 'all' ? null : v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('distributions.filterByCompetence')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('distributions.allCompetences')}</SelectItem>
-                    {competenciaOptions.map((comp) => (
-                      <SelectItem key={comp} value={comp}>
-                        {formatCompetencia(comp)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
                   value={selectedStatus || 'all'}
                   onValueChange={(v) => setSelectedStatus(v === 'all' ? null : (v as StatusDistribuicao))}
                 >
