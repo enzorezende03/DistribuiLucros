@@ -21,7 +21,7 @@ export interface Cliente {
 export interface CreateClienteData {
   razao_social: string;
   cnpj: string;
-  email_responsavel: string;
+  email_responsavel?: string;
   email_copia?: string;
   telefone?: string;
   status?: StatusCliente;
