@@ -626,7 +626,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       if (data.qsa && data.qsa.length > 0) {
         const newSocios = data.qsa.map((s: any) => ({
           nome: s.nome_socio || '',
-          cpf: s.cnpj_cpf_do_socio ? unmask(String(s.cnpj_cpf_do_socio)) : '',
+          cpf: '',
           percentual: '',
         }));
         setSocios(newSocios);
