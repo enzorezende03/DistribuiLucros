@@ -41,6 +41,7 @@ import {
   MoreHorizontal,
   Trash2,
   CheckSquare,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -648,6 +649,18 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
                     {t('distributions.markAs')} {t(statusKeys[key as StatusDistribuicao])}
                   </DropdownMenuItem>
                 ))}
+              </>
+            )}
+            {!isAdmin && distribuicao.status === 'RECEBIDA' && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => openStatusDialog('AJUSTE_SOLICITADO')}
+                  disabled={updateStatus.isPending}
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  {t('distributions.requestAdjustment') || 'Solicitar Ajuste'}
+                </DropdownMenuItem>
               </>
             )}
             {canDelete && (
