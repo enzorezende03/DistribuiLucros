@@ -13,7 +13,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAlertas, type TipoAlerta } from '@/hooks/useAlertas';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatCompetencia, formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
