@@ -87,7 +87,7 @@ export function ExportDistribuicoesDialog({ open, onOpenChange }: ExportDistribu
       for (const dist of data) {
         const baseRow = {
           'Recibo': dist.recibo_numero || '',
-          'Período': month,
+          'Período': formatMonth(dist.competencia),
           'Data Distribuição': dist.data_distribuicao,
           'Cliente': (dist as any).cliente?.razao_social || '',
           'CNPJ': formatCNPJ((dist as any).cliente?.cnpj || ''),
