@@ -115,14 +115,6 @@ export default function DistribuicoesPage() {
   const [search, setSearch] = useState('');
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
 
-  // Gerar opções de competência (últimos 12 meses)
-  const competenciaOptions = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  });
 
   let filteredDistribuicoes = distribuicoes;
   if (selectedStatus) {
