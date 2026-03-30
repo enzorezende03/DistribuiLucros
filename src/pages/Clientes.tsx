@@ -696,6 +696,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       email_copia: '',
       telefone: '',
       status: 'ativo',
+      tag: '2M_CONTABILIDADE',
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
   };
