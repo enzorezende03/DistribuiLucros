@@ -419,7 +419,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                     <div>
                       <p className="font-medium">{dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatCompetencia(dist.competencia)} • {dist.recibo_numero}
+                        {formatDate(dist.data_distribuicao)} • {dist.recibo_numero}
                       </p>
                     </div>
                     <div className="text-right">
