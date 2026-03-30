@@ -235,25 +235,45 @@ export default function NovaDistribuicaoPage() {
                   </>
                 )}
 
-                {rateio.some((item) => parseMaskedCurrency(item.valor) > 50000) && (
+                {rateio.some((item) => {
+                  const valorForm = parseMaskedCurrency(item.valor);
+                  const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                  return (valorForm + acumulado) > 50000;
+                }) && (
                   <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-200 [&>svg]:text-yellow-600">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-sm font-medium">
                       <strong>{t('common.attention')}:</strong> {t('newDist.irWarning')}
-                      {rateio.filter((item) => parseMaskedCurrency(item.valor) > 50000).map((item) => {
+                      {rateio.filter((item) => {
+                        const valorForm = parseMaskedCurrency(item.valor);
+                        const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                        return (valorForm + acumulado) > 50000;
+                      }).map((item) => {
                         const socio = sociosAtivos.find((s) => s.id === item.socio_id);
-                        const valor = parseMaskedCurrency(item.valor);
-                        const ir = valor * 0.1;
+                        const valorForm = parseMaskedCurrency(item.valor);
+                        const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                        const totalSocio = valorForm + acumulado;
+                        const ir = totalSocio * 0.1;
                         return socio ? (
                           <div key={item.socio_id} className="mt-1 text-xs">
-                            • {socio.nome}: <span style={{ color: getExcessColor(valor) }} className="font-semibold">{formatCurrency(valor)}</span> — {t('newDist.estimatedIR')}: <span style={{ color: getExcessColor(valor) }} className="font-semibold">{formatCurrency(ir)}</span>
+                            • {socio.nome}: <span style={{ color: getExcessColor(totalSocio) }} className="font-semibold">{formatCurrency(totalSocio)}</span>
+                            {acumulado > 0 && <span className="text-muted-foreground"> (já distribuído: {formatCurrency(acumulado)})</span>}
+                            {' '}— {t('newDist.estimatedIR')}: <span style={{ color: getExcessColor(totalSocio) }} className="font-semibold">{formatCurrency(ir)}</span>
                           </div>
                         ) : null;
                       })}
                       {(() => {
                         const totalIR = rateio
-                          .filter((item) => parseMaskedCurrency(item.valor) > 50000)
-                          .reduce((sum, item) => sum + parseMaskedCurrency(item.valor) * 0.1, 0);
+                          .filter((item) => {
+                            const valorForm = parseMaskedCurrency(item.valor);
+                            const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                            return (valorForm + acumulado) > 50000;
+                          })
+                          .reduce((sum, item) => {
+                            const valorForm = parseMaskedCurrency(item.valor);
+                            const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                            return sum + (valorForm + acumulado) * 0.1;
+                          }, 0);
                         return totalIR > 0 ? (
                           <div className="mt-2 pt-2 border-t border-yellow-500/30 text-sm font-bold">
                             {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIR)}</span>
