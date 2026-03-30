@@ -158,8 +158,8 @@ export default function AlertasPage() {
                           )}
                         </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{formatCompetencia(alerta.competencia)}</span>
                           <span>{formatDate(alerta.created_at)}</span>
+                        </div>
                         </div>
                         {!alerta.resolvido && (
                           <Button
