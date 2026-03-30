@@ -152,7 +152,7 @@ export function useCreateDistribuicao() {
         cliente_id: distribuicao.cliente_id,
         distribuicao_id: data.id,
         titulo: `Nova distribuição recebida: ${nomeEmpresa}`,
-        mensagem: `A empresa ${nomeEmpresa} enviou uma nova distribuição no valor de R$ ${distribuicao.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} para a competência ${distribuicao.competencia}.`,
+        mensagem: `A empresa ${nomeEmpresa} enviou uma nova distribuição no valor de R$ ${distribuicao.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`,
         is_admin_notificacao: true,
       });
 

@@ -28,7 +28,7 @@ import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, u
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatCurrency, formatCompetencia, formatDate, getCompetenciaAnterior } from '@/lib/format';
+import { formatCurrency, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
@@ -97,13 +97,11 @@ export default function DistribuicoesPage() {
   const { isAdmin, clienteId, isImpersonating, userRole } = useAuth();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const competenciaParam = searchParams.get('competencia');
   const { t } = useLanguage();
   const { data: clientes } = useClientes();
   const queryClienteId = isAdmin ? null : clienteId;
   const { data: socios } = useSocios(queryClienteId);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
-  const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(competenciaParam);
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
   const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -112,20 +110,11 @@ export default function DistribuicoesPage() {
   
   const filterClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: distribuicoes, isLoading } = useDistribuicoes(
-    filterClienteId,
-    selectedCompetencia || undefined
+    filterClienteId
   );
   const [search, setSearch] = useState('');
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
 
-  // Gerar opções de competência (últimos 12 meses)
-  const competenciaOptions = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  });
 
   let filteredDistribuicoes = distribuicoes;
   if (selectedStatus) {
@@ -223,22 +212,6 @@ export default function DistribuicoesPage() {
                   </Select>
                 )}
                 <Select
-                  value={selectedCompetencia || 'all'}
-                  onValueChange={(v) => setSelectedCompetencia(v === 'all' ? null : v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('distributions.filterByCompetence')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('distributions.allCompetences')}</SelectItem>
-                    {competenciaOptions.map((comp) => (
-                      <SelectItem key={comp} value={comp}>
-                        {formatCompetencia(comp)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
                   value={selectedStatus || 'all'}
                   onValueChange={(v) => setSelectedStatus(v === 'all' ? null : (v as StatusDistribuicao))}
                 >
@@ -312,7 +285,6 @@ export default function DistribuicoesPage() {
                         {isAdmin ? dist.cliente?.razao_social : dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ')}
                       </p>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs text-muted-foreground">{formatCompetencia(dist.competencia)}</span>
                         <span className="font-semibold money-value text-sm">{formatCurrency(Number(dist.valor_total))}</span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
@@ -349,8 +321,7 @@ export default function DistribuicoesPage() {
                         )}
                         <TableHead>{t('distributions.receipt')}</TableHead>
                         {isAdmin && <TableHead className="hidden md:table-cell">{t('distributions.client')}</TableHead>}
-                        <TableHead>{t('distributions.competence')}</TableHead>
-                        <TableHead className="hidden lg:table-cell">{t('distributions.date')}</TableHead>
+                        <TableHead>{t('distributions.date')}</TableHead>
                         <TableHead className="text-right">{t('distributions.value')}</TableHead>
                         {!isAdmin && <TableHead className="hidden md:table-cell">{t('distributions.partners')}</TableHead>}
                         <TableHead>{t('distributions.status')}</TableHead>
@@ -389,8 +360,7 @@ export default function DistribuicoesPage() {
                           {isAdmin && (
                             <TableCell className="font-medium hidden md:table-cell">{dist.cliente?.razao_social}</TableCell>
                           )}
-                          <TableCell>{formatCompetencia(dist.competencia)}</TableCell>
-                          <TableCell className="hidden lg:table-cell">{formatDate(dist.data_distribuicao)}</TableCell>
+                          <TableCell>{formatDate(dist.data_distribuicao)}</TableCell>
                           <TableCell className="text-right font-semibold money-value">{formatCurrency(Number(dist.valor_total))}</TableCell>
                           {!isAdmin && (
                             <TableCell className="text-sm hidden md:table-cell">{dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}</TableCell>
@@ -816,10 +786,6 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">{t('distributions.competence')}</p>
-              <p className="font-medium">{formatCompetencia(distribuicao.competencia)}</p>
-            </div>
             <div>
               <p className="text-sm text-muted-foreground">{t('distributions.distributionDate')}</p>
               <p className="font-medium">{formatDate(distribuicao.data_distribuicao)}</p>

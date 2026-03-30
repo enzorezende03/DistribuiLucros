@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
 import { useCreateDistribuicao } from '@/hooks/useDistribuicoes';
-import { formatCurrency, formatCompetencia, getCurrentCompetencia, formatCPF } from '@/lib/format';
+import { formatCurrency, getCurrentCompetencia, formatCPF } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,19 +49,18 @@ export default function NovaDistribuicaoPage() {
 
   const currentCompetencia = getCurrentCompetencia();
 
-  const competenciaOptions = Array.from({ length: 7 }, (_, i) => {
-    const now = new Date();
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  });
-
   const [formData, setFormData] = useState({
-    competencia: currentCompetencia,
     data_distribuicao: new Date().toISOString().split('T')[0],
     forma_pagamento: '',
   });
+
+  // Auto-derive competencia from data_distribuicao
+  const getCompetenciaFromDate = (dateStr: string) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
 
   const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -80,7 +79,6 @@ export default function NovaDistribuicaoPage() {
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
-    if (!formData.competencia) newErrors.push(t('newDist.selectCompetence'));
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
     if (!formData.forma_pagamento) newErrors.push(t('newDist.informPayment'));
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
@@ -100,7 +98,7 @@ export default function NovaDistribuicaoPage() {
     if (!validateForm() || !clienteId) return;
     const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
-      cliente_id: clienteId, competencia: formData.competencia, data_distribuicao: formData.data_distribuicao,
+      cliente_id: clienteId, competencia: getCompetenciaFromDate(formData.data_distribuicao), data_distribuicao: formData.data_distribuicao,
       valor_total: valorTotal, forma_pagamento: formData.forma_pagamento,
       solicitante_nome: user?.email || 'Sistema', solicitante_email: user?.email || '', itens,
     });
@@ -151,16 +149,7 @@ export default function NovaDistribuicaoPage() {
                 <CardDescription>{t('newDist.distributionDataDesc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="competencia">{t('newDist.competence')} *</Label>
-                    <Select value={formData.competencia} onValueChange={(v) => setFormData({ ...formData, competencia: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {competenciaOptions.map((comp) => (<SelectItem key={comp} value={comp}>{formatCompetencia(comp)}</SelectItem>))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
                     <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />

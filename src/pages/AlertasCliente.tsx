@@ -13,7 +13,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAlertas, type TipoAlerta } from '@/hooks/useAlertas';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatCompetencia, formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -146,8 +146,7 @@ export default function AlertasClientePage() {
                         {alerta.socio?.nome && (
                           <p className="font-medium text-sm">{alerta.socio.nome}</p>
                         )}
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{formatCompetencia(alerta.competencia)}</span>
+                        <div className="text-xs text-muted-foreground">
                           <span>{formatDate(alerta.created_at)}</span>
                         </div>
                       </div>
@@ -162,8 +161,8 @@ export default function AlertasClientePage() {
                       <TableRow>
                         <TableHead>{t('alerts.type')}</TableHead>
                         <TableHead>{t('alerts.partner')}</TableHead>
-                        <TableHead>{t('alerts.competence')}</TableHead>
-                        <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
+                        <TableHead>{t('alerts.description')}</TableHead>
+                        
                         <TableHead className="hidden md:table-cell">{t('alerts.date')}</TableHead>
                         <TableHead>{t('alerts.status')}</TableHead>
                       </TableRow>
@@ -180,8 +179,7 @@ export default function AlertasClientePage() {
                               </div>
                             </TableCell>
                             <TableCell className="font-medium">{alerta.socio?.nome || '-'}</TableCell>
-                            <TableCell>{formatCompetencia(alerta.competencia)}</TableCell>
-                            <TableCell className="max-w-[300px] hidden md:table-cell">
+                            <TableCell className="max-w-[300px]">
                               <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(alerta.created_at)}</TableCell>

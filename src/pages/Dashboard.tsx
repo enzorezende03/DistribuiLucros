@@ -17,7 +17,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
-import { formatCurrency, breakableCurrency, formatCompetencia, getCompetenciaAnterior, formatDate } from '@/lib/format';
+import { formatCurrency, breakableCurrency, getCompetenciaAnterior, formatDate } from '@/lib/format';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import {
@@ -119,7 +119,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <div>
                 <h3 className="font-semibold">{t('dashboard.actionRequired')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t('dashboard.informDistribution')} {formatCompetencia(competenciaAnterior)}
+                  {t('dashboard.informDistribution')}
                 </p>
               </div>
             </div>
@@ -208,7 +208,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-info" />
-              {t('dashboard.monthDetails')} — {formatCompetencia(competenciaAnterior)}
+              {t('dashboard.monthDetails')}
             </DialogTitle>
           </DialogHeader>
           {(() => {
@@ -241,7 +241,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   className="w-full gap-2"
                   onClick={() => {
                     setTotalMesDialogOpen(false);
-                    navigate(`/distribuicoes?competencia=${competenciaAnterior}`);
+                    navigate(`/distribuicoes`);
                   }}
                 >
                   <FileText className="h-4 w-4" />
@@ -303,7 +303,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                         if (!val) return null;
                         return (
                           <div key={month} className="flex items-center justify-between px-3 py-2 text-sm">
-                            <span className="text-muted-foreground">{formatCompetencia(month)}</span>
+                            <span className="text-muted-foreground">{formatDate(month + '-01')}</span>
                             <span className="font-medium money-value">{formatCurrency(val)}</span>
                           </div>
                         );
@@ -320,7 +320,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                   className="w-full gap-2"
                   onClick={() => {
                     setTotalAnoDialogOpen(false);
-                    navigate(`/distribuicoes?competencia=${anoAtual}`);
+                    navigate(`/distribuicoes`);
                   }}
                 >
                   <FileText className="h-4 w-4" />
@@ -421,7 +421,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                     <div>
                       <p className="font-medium">{dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatCompetencia(dist.competencia)} • {dist.recibo_numero}
+                        {formatDate(dist.data_distribuicao)} • {dist.recibo_numero}
                       </p>
                     </div>
                     <div className="text-right">
@@ -610,8 +610,8 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-sm">{t('dashboard.adjustRequested')}</p>
-                      {p.distribuicao?.competencia && (
-                        <Badge variant="secondary" className="text-xs">{p.distribuicao.competencia}</Badge>
+                      {p.distribuicao?.recibo_numero && (
+                        <Badge variant="outline" className="text-xs">{p.distribuicao.recibo_numero}</Badge>
                       )}
                     </div>
                     {p.observacao && (
@@ -657,9 +657,6 @@ function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <p className="money-value-lg">{formatCurrency(totalMes)}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {formatCompetencia(competenciaAtual)}
-            </p>
           </CardContent>
         </Card>
 
@@ -785,7 +782,7 @@ function AdminDashboard() {
                     <div>
                       <p className="font-medium">{dist.cliente?.razao_social}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatCompetencia(dist.competencia)} • {dist.recibo_numero}
+                        {formatDate(dist.data_distribuicao)} • {dist.recibo_numero}
                       </p>
                     </div>
                     <div className="text-right">

@@ -15,7 +15,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Download, Loader2, FileSpreadsheet } from 'lucide-react';
-import { formatCompetencia, formatCurrency, formatCPF, formatCNPJ } from '@/lib/format';
+import { formatCurrency, formatCPF, formatCNPJ, formatDate } from '@/lib/format';
+
+function formatMonth(month: string): string {
+  const [year, m] = month.split('-');
+  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  return `${months[parseInt(m) - 1]}/${year}`;
+}
 
 interface ExportDistribuicoesDialogProps {
   open: boolean;
@@ -81,7 +87,7 @@ export function ExportDistribuicoesDialog({ open, onOpenChange }: ExportDistribu
       for (const dist of data) {
         const baseRow = {
           'Recibo': dist.recibo_numero || '',
-          'Competência': formatCompetencia(dist.competencia),
+          'Período': formatMonth(dist.competencia),
           'Data Distribuição': dist.data_distribuicao,
           'Cliente': (dist as any).cliente?.razao_social || '',
           'CNPJ': formatCNPJ((dist as any).cliente?.cnpj || ''),
@@ -173,7 +179,7 @@ export function ExportDistribuicoesDialog({ open, onOpenChange }: ExportDistribu
                   checked={selectedMonths.includes(month)}
                   onCheckedChange={() => toggleMonth(month)}
                 />
-                <span className="text-sm">{formatCompetencia(month)}</span>
+                <span className="text-sm">{formatMonth(month)}</span>
               </label>
             ))}
           </div>
