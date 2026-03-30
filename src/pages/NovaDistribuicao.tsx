@@ -79,7 +79,6 @@ export default function NovaDistribuicaoPage() {
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
-    if (!formData.competencia) newErrors.push(t('newDist.selectCompetence'));
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
     if (!formData.forma_pagamento) newErrors.push(t('newDist.informPayment'));
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
