@@ -110,7 +110,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       <aside className="hidden md:flex md:w-64 md:flex-col md:shrink-0 bg-sidebar border-r border-sidebar-border">
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-sidebar-primary" />
+            <img src={logo2m} alt="2M" className="h-8 object-contain" />
             <span className="font-semibold text-sidebar-foreground">{t('sidebar.appName')}</span>
           </div>
           <Button

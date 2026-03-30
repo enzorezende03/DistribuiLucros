@@ -39,10 +39,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md animate-fade-in-up">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-primary">DistribuiLucros</span>
-            </div>
+            <img src={logo2m} alt="2M Contabilidade" className="h-20 object-contain" />
           </div>
           <CardTitle className="text-2xl">{t('login.title')}</CardTitle>
           <CardDescription>{t('login.subtitle')}</CardDescription>
