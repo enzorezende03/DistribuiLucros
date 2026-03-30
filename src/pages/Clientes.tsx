@@ -888,36 +888,13 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     </Button>
                   )}
                   <p className="text-xs font-medium text-muted-foreground">{t('clients.partnerNumber')} {index + 1}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <div className="sm:col-span-1">
+                  <div>
                       <Input
                         placeholder={t('clients.fullNamePlaceholder')}
                         value={socio.nome}
                         onChange={(e) => updateSocio(index, 'nome', e.target.value)}
                         disabled={isPending}
                       />
-                    </div>
-                    <div>
-                      <Input
-                        placeholder={t('clients.cpfPlaceholder')}
-                        value={socio.cpf}
-                        onChange={(e) => updateSocio(index, 'cpf', maskCPF(e.target.value))}
-                        maxLength={14}
-                        disabled={isPending}
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        placeholder={t('clients.percentagePlaceholder')}
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                        value={socio.percentual}
-                        onChange={(e) => updateSocio(index, 'percentual', e.target.value)}
-                        disabled={isPending}
-                      />
-                    </div>
                   </div>
                 </div>
               ))}
