@@ -39,6 +39,7 @@ import {
   type Cliente,
   type CreateClienteData,
   type StatusCliente,
+  type TagCliente,
 } from '@/hooks/useClientes';
 import {
   useSocios,
@@ -246,9 +247,18 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
               <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <Building2 className="h-4 w-4 text-primary" />
               </div>
-              <div className="min-w-0">
-                <p className="font-medium truncate">{cliente.razao_social}</p>
-                <p className="text-sm text-muted-foreground font-mono">{formatCNPJ(cliente.cnpj)}</p>
+              <div className="min-w-0 flex items-center gap-2">
+                <div>
+                  <p className="font-medium truncate">{cliente.razao_social}</p>
+                  <p className="text-sm text-muted-foreground font-mono">{formatCNPJ(cliente.cnpj)}</p>
+                </div>
+                <Badge variant="outline" className={
+                  cliente.tag === '2M_SAUDE'
+                    ? 'border-blue-500/50 text-blue-600 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-400'
+                    : 'border-orange-500/50 text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                }>
+                  {cliente.tag === '2M_SAUDE' ? '2M Saúde' : '2M Contabilidade'}
+                </Badge>
               </div>
             </button>
           </CollapsibleTrigger>
@@ -581,6 +591,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     email_copia: '',
     telefone: '',
     status: 'ativo',
+    tag: '2M_CONTABILIDADE',
   });
 
   const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string }[]>([
@@ -596,6 +607,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         email_copia: cliente.email_copia || '',
         telefone: cliente.telefone || '',
         status: cliente.status,
+        tag: cliente.tag || '2M_CONTABILIDADE',
       });
     } else if (open) {
       setFormData({
@@ -605,6 +617,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         email_copia: '',
         telefone: '',
         status: 'ativo',
+        tag: '2M_CONTABILIDADE',
       });
       setSocios([{ nome: '', cpf: '', percentual: '' }]);
     }
@@ -618,6 +631,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       email_copia: cliente.email_copia || '',
       telefone: cliente.telefone || '',
       status: cliente.status,
+      tag: cliente.tag || '2M_CONTABILIDADE',
     });
   }
 
@@ -682,6 +696,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       email_copia: '',
       telefone: '',
       status: 'ativo',
+      tag: '2M_CONTABILIDADE',
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
   };
@@ -773,6 +788,23 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               <SelectContent>
                 <SelectItem value="ativo">{t('clients.active')}</SelectItem>
                 <SelectItem value="suspenso">{t('clients.suspended')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tag">Empresa</Label>
+            <Select
+              value={formData.tag || '2M_CONTABILIDADE'}
+              onValueChange={(value: TagCliente) => setFormData({ ...formData, tag: value })}
+              disabled={isPending}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2M_CONTABILIDADE">2M Contabilidade</SelectItem>
+                <SelectItem value="2M_SAUDE">2M Saúde</SelectItem>
               </SelectContent>
             </Select>
           </div>

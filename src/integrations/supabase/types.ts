@@ -71,6 +71,7 @@ export type Database = {
           id: string
           razao_social: string
           status: Database["public"]["Enums"]["status_cliente"]
+          tag: Database["public"]["Enums"]["tag_cliente"]
           telefone: string | null
           updated_at: string
         }
@@ -82,6 +83,7 @@ export type Database = {
           id?: string
           razao_social: string
           status?: Database["public"]["Enums"]["status_cliente"]
+          tag?: Database["public"]["Enums"]["tag_cliente"]
           telefone?: string | null
           updated_at?: string
         }
@@ -93,6 +95,7 @@ export type Database = {
           id?: string
           razao_social?: string
           status?: Database["public"]["Enums"]["status_cliente"]
+          tag?: Database["public"]["Enums"]["tag_cliente"]
           telefone?: string | null
           updated_at?: string
         }
@@ -479,6 +482,7 @@ export type Database = {
         | "APROVADA"
         | "AJUSTE_SOLICITADO"
         | "CANCELADA"
+      tag_cliente: "2M_SAUDE" | "2M_CONTABILIDADE"
       tipo_alerta: "ALERTA_50K" | "PENDENTE_MES"
     }
     CompositeTypes: {
@@ -618,6 +622,7 @@ export const Constants = {
         "AJUSTE_SOLICITADO",
         "CANCELADA",
       ],
+      tag_cliente: ["2M_SAUDE", "2M_CONTABILIDADE"],
       tipo_alerta: ["ALERTA_50K", "PENDENTE_MES"],
     },
   },
