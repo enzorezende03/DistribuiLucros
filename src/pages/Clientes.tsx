@@ -696,16 +696,10 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     e.preventDefault();
 
     if (!isEditing) {
-      const validSocios = socios.filter((s) => s.nome.trim() && s.cpf.trim());
+      const validSocios = socios.filter((s) => s.nome.trim());
       if (validSocios.length === 0) {
         toast.error(t('clients.partnerRequired'));
         return;
-      }
-      for (const s of validSocios) {
-        if (unmask(s.cpf).length !== 11) {
-          toast.error(`${t('clients.invalidCpf')} "${s.nome}".`);
-          return;
-        }
       }
     }
 
@@ -721,10 +715,10 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
     } else {
       const validSocios = socios
-        .filter((s) => s.nome.trim() && s.cpf.trim())
+        .filter((s) => s.nome.trim())
         .map((s) => ({
           nome: s.nome.trim(),
-          cpf: unmask(s.cpf),
+          cpf: s.cpf ? unmask(s.cpf) : '',
           percentual: s.percentual ? parseFloat(s.percentual) : undefined,
         }));
 
