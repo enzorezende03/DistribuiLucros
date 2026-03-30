@@ -361,8 +361,7 @@ export default function DistribuicoesPage() {
                           {isAdmin && (
                             <TableCell className="font-medium hidden md:table-cell">{dist.cliente?.razao_social}</TableCell>
                           )}
-                          <TableCell>{formatCompetencia(dist.competencia)}</TableCell>
-                          <TableCell className="hidden lg:table-cell">{formatDate(dist.data_distribuicao)}</TableCell>
+                          <TableCell>{formatDate(dist.data_distribuicao)}</TableCell>
                           <TableCell className="text-right font-semibold money-value">{formatCurrency(Number(dist.valor_total))}</TableCell>
                           {!isAdmin && (
                             <TableCell className="text-sm hidden md:table-cell">{dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}</TableCell>
