@@ -146,8 +146,7 @@ export default function AlertasClientePage() {
                         {alerta.socio?.nome && (
                           <p className="font-medium text-sm">{alerta.socio.nome}</p>
                         )}
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{formatCompetencia(alerta.competencia)}</span>
+                        <div className="text-xs text-muted-foreground">
                           <span>{formatDate(alerta.created_at)}</span>
                         </div>
                       </div>
