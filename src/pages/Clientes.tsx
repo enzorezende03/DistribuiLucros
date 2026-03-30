@@ -591,6 +591,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     email_copia: '',
     telefone: '',
     status: 'ativo',
+    tag: '2M_CONTABILIDADE',
   });
 
   const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string }[]>([
