@@ -78,6 +78,20 @@ export default function NovaDistribuicaoPage() {
 
   const valorTotal = rateio.reduce((sum, item) => sum + parseMaskedCurrency(item.valor), 0);
 
+  // Compute accumulated totals per socio for current competencia from existing distributions
+  const competenciaAtual = getCompetenciaFromDate(formData.data_distribuicao);
+  const acumuladoPorSocio = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!existingDistribuicoes) return map;
+    for (const dist of existingDistribuicoes) {
+      if (dist.competencia !== competenciaAtual) continue;
+      for (const item of dist.itens || []) {
+        map.set(item.socio_id, (map.get(item.socio_id) || 0) + Number(item.valor));
+      }
+    }
+    return map;
+  }, [existingDistribuicoes, competenciaAtual]);
+
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
