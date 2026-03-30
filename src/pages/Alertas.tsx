@@ -206,6 +206,7 @@ export default function AlertasPage() {
                             <TableCell className="font-medium">{alerta.cliente?.razao_social}</TableCell>
                             <TableCell className="hidden md:table-cell">{alerta.socio?.nome || '-'}</TableCell>
                             <TableCell className="max-w-[300px] hidden md:table-cell">
+                              <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(alerta.created_at)}</TableCell>
                             <TableCell>
