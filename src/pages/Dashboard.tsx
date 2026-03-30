@@ -657,9 +657,6 @@ function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <p className="money-value-lg">{formatCurrency(totalMes)}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {formatCompetencia(competenciaAtual)}
-            </p>
           </CardContent>
         </Card>
 
