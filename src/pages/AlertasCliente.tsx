@@ -180,6 +180,7 @@ export default function AlertasClientePage() {
                             </TableCell>
                             <TableCell className="font-medium">{alerta.socio?.nome || '-'}</TableCell>
                             <TableCell className="max-w-[300px]">
+                              <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(alerta.created_at)}</TableCell>
                             <TableCell>
