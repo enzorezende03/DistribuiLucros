@@ -812,7 +812,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               type="email"
               value={formData.email_responsavel}
               onChange={(e) => setFormData({ ...formData, email_responsavel: e.target.value })}
-              required
               disabled={isPending}
             />
           </div>
