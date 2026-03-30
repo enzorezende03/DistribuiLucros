@@ -847,7 +847,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.notificacoes': 'Notificaciones',
     'nav.pendencias': 'Pendientes',
     'nav.simulacao': 'Simulación',
-    'nav.adminUsuarios': 'Administradores',
+    'nav.adminUsuarios': 'Usuarios',
     'sidebar.appName': 'DistribuiLucros',
     'sidebar.viewAsClient': 'Ver como cliente',
     'sidebar.adminView': '— Vista Admin —',
