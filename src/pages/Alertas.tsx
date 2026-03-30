@@ -186,7 +186,7 @@ export default function AlertasPage() {
                         <TableHead>{t('alerts.type')}</TableHead>
                         <TableHead>{t('alerts.client')}</TableHead>
                         <TableHead className="hidden md:table-cell">{t('alerts.partner')}</TableHead>
-                        <TableHead>{t('alerts.competence')}</TableHead>
+                        <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
                         <TableHead className="hidden lg:table-cell">{t('alerts.description')}</TableHead>
                         <TableHead className="hidden md:table-cell">{t('alerts.date')}</TableHead>
                         <TableHead>{t('alerts.status')}</TableHead>
