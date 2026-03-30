@@ -322,7 +322,6 @@ export default function DistribuicoesPage() {
                         <TableHead>{t('distributions.receipt')}</TableHead>
                         {isAdmin && <TableHead className="hidden md:table-cell">{t('distributions.client')}</TableHead>}
                         <TableHead>{t('distributions.date')}</TableHead>
-                        <TableHead className="hidden lg:table-cell">{t('distributions.date')}</TableHead>
                         <TableHead className="text-right">{t('distributions.value')}</TableHead>
                         {!isAdmin && <TableHead className="hidden md:table-cell">{t('distributions.partners')}</TableHead>}
                         <TableHead>{t('distributions.status')}</TableHead>
