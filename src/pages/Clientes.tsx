@@ -631,6 +631,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       email_copia: cliente.email_copia || '',
       telefone: cliente.telefone || '',
       status: cliente.status,
+      tag: cliente.tag || '2M_CONTABILIDADE',
     });
   }
 
