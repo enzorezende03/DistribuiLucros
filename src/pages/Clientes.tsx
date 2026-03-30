@@ -39,6 +39,7 @@ import {
   type Cliente,
   type CreateClienteData,
   type StatusCliente,
+  type TagCliente,
 } from '@/hooks/useClientes';
 import {
   useSocios,
