@@ -17,7 +17,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
-import { formatCurrency, breakableCurrency, getCompetenciaAnterior, formatDate } from '@/lib/format';
+import { formatCurrency, breakableCurrency, getCompetenciaAnterior, getCurrentCompetencia, formatDate } from '@/lib/format';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import {
