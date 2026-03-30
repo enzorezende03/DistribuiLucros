@@ -608,8 +608,7 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-sm">{t('dashboard.adjustRequested')}</p>
-                      {p.distribuicao?.competencia && (
-                        <Badge variant="secondary" className="text-xs">{p.distribuicao.competencia}</Badge>
+                      {p.distribuicao?.recibo_numero && (
                       )}
                     </div>
                     {p.observacao && (
