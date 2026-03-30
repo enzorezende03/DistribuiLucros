@@ -17,7 +17,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
-import { formatCurrency, breakableCurrency, getCompetenciaAnterior, formatDate } from '@/lib/format';
+import { formatCurrency, breakableCurrency, getCompetenciaAnterior, getCurrentCompetencia, formatDate } from '@/lib/format';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import {
@@ -90,12 +90,13 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const navigate = useNavigate();
   const [totalAnoDialogOpen, setTotalAnoDialogOpen] = useState(false);
   const competenciaAnterior = getCompetenciaAnterior();
+  const competenciaAtual = getCurrentCompetencia();
   const hasConfirmacao = confirmacoes?.some(c => c.competencia === competenciaAnterior);
   const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior);
   const mesResolvido = hasConfirmacao || hasDistribuicao;
 
   const totalAno = distribuicoes?.reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
-  const totalMes = distribuicoes?.filter(d => d.competencia === competenciaAnterior)
+  const totalMes = distribuicoes?.filter(d => d.competencia === competenciaAtual)
     .reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
 
   const handleNaoHouve = async () => {
@@ -212,7 +213,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             </DialogTitle>
           </DialogHeader>
           {(() => {
-            const distMes = distribuicoes?.filter(d => d.competencia === competenciaAnterior) || [];
+            const distMes = distribuicoes?.filter(d => d.competencia === competenciaAtual) || [];
             const socioMap = new Map<string, { nome: string; total: number }>();
             for (const dist of distMes) {
               for (const item of dist.itens || []) {
