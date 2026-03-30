@@ -584,6 +584,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
   const createCliente = useCreateCliente();
   const updateCliente = useUpdateCliente();
   const isEditing = !!cliente;
+  const [fetchingCnpj, setFetchingCnpj] = useState(false);
 
   const [formData, setFormData] = useState<CreateClienteData>({
     razao_social: '',
@@ -598,6 +599,46 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
   const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string }[]>([
     { nome: '', cpf: '', percentual: '' },
   ]);
+
+  const handleFetchCnpj = async () => {
+    const cnpjClean = unmask(formData.cnpj);
+    if (cnpjClean.length !== 14) {
+      toast.error('Digite um CNPJ válido com 14 dígitos.');
+      return;
+    }
+    setFetchingCnpj(true);
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjClean}`);
+      if (!res.ok) throw new Error('CNPJ não encontrado');
+      const data = await res.json();
+
+      const telefone = data.ddd_telefone_1
+        ? unmask(String(data.ddd_telefone_1))
+        : '';
+
+      setFormData((prev) => ({
+        ...prev,
+        razao_social: data.razao_social || prev.razao_social,
+        telefone: telefone ? maskPhone(telefone) : prev.telefone,
+      }));
+
+      // Import QSA (sócios)
+      if (data.qsa && data.qsa.length > 0) {
+        const newSocios = data.qsa.map((s: any) => ({
+          nome: s.nome_socio || '',
+          cpf: s.cnpj_cpf_do_socio ? unmask(String(s.cnpj_cpf_do_socio)) : '',
+          percentual: '',
+        }));
+        setSocios(newSocios);
+      }
+
+      toast.success('Dados importados da Receita Federal!');
+    } catch {
+      toast.error('Não foi possível consultar o CNPJ. Verifique e tente novamente.');
+    } finally {
+      setFetchingCnpj(false);
+    }
+  };
 
   useState(() => {
     if (open && cliente) {
