@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export type StatusCliente = 'ativo' | 'suspenso';
+export type TagCliente = '2M_SAUDE' | '2M_CONTABILIDADE';
 
 export interface Cliente {
   id: string;
@@ -12,6 +13,7 @@ export interface Cliente {
   email_copia: string | null;
   telefone: string | null;
   status: StatusCliente;
+  tag: TagCliente;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +25,7 @@ export interface CreateClienteData {
   email_copia?: string;
   telefone?: string;
   status?: StatusCliente;
+  tag?: TagCliente;
   socios?: { nome: string; cpf: string; percentual?: number }[];
 }
 
