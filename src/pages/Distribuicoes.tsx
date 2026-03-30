@@ -650,6 +650,18 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
                 ))}
               </>
             )}
+            {!isAdmin && distribuicao.status === 'RECEBIDA' && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => openStatusDialog('AJUSTE_SOLICITADO')}
+                  disabled={updateStatus.isPending}
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  {t('distributions.requestAdjustment') || 'Solicitar Ajuste'}
+                </DropdownMenuItem>
+              </>
+            )}
             {canDelete && (
               <>
                 <DropdownMenuSeparator />
