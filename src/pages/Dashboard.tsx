@@ -208,7 +208,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-info" />
-              {t('dashboard.monthDetails')} — {formatCompetencia(competenciaAnterior)}
+              {t('dashboard.monthDetails')}
             </DialogTitle>
           </DialogHeader>
           {(() => {
