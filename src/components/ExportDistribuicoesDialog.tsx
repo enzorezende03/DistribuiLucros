@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Download, Loader2, FileSpreadsheet } from 'lucide-react';
-import { formatCompetencia, formatCurrency, formatCPF, formatCNPJ } from '@/lib/format';
+import { formatCurrency, formatCPF, formatCNPJ } from '@/lib/format';
 
 interface ExportDistribuicoesDialogProps {
   open: boolean;
