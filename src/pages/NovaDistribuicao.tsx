@@ -50,10 +50,17 @@ export default function NovaDistribuicaoPage() {
   const currentCompetencia = getCurrentCompetencia();
 
   const [formData, setFormData] = useState({
-    competencia: currentCompetencia,
     data_distribuicao: new Date().toISOString().split('T')[0],
     forma_pagamento: '',
   });
+
+  // Auto-derive competencia from data_distribuicao
+  const getCompetenciaFromDate = (dateStr: string) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
 
   const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
   const [errors, setErrors] = useState<string[]>([]);
