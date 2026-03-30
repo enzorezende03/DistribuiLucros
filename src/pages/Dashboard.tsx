@@ -782,7 +782,7 @@ function AdminDashboard() {
                     <div>
                       <p className="font-medium">{dist.cliente?.razao_social}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatCompetencia(dist.competencia)} • {dist.recibo_numero}
+                        {formatDate(dist.data_distribuicao)} • {dist.recibo_numero}
                       </p>
                     </div>
                     <div className="text-right">
