@@ -98,7 +98,7 @@ export default function NovaDistribuicaoPage() {
     if (!validateForm() || !clienteId) return;
     const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
-      cliente_id: clienteId, competencia: formData.competencia, data_distribuicao: formData.data_distribuicao,
+      cliente_id: clienteId, competencia: getCompetenciaFromDate(formData.data_distribuicao), data_distribuicao: formData.data_distribuicao,
       valor_total: valorTotal, forma_pagamento: formData.forma_pagamento,
       solicitante_nome: user?.email || 'Sistema', solicitante_email: user?.email || '', itens,
     });
