@@ -285,7 +285,6 @@ export default function DistribuicoesPage() {
                         {isAdmin ? dist.cliente?.razao_social : dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ')}
                       </p>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs text-muted-foreground">{formatCompetencia(dist.competencia)}</span>
                         <span className="font-semibold money-value text-sm">{formatCurrency(Number(dist.valor_total))}</span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
