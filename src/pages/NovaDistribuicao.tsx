@@ -149,16 +149,7 @@ export default function NovaDistribuicaoPage() {
                 <CardDescription>{t('newDist.distributionDataDesc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="competencia">{t('newDist.competence')} *</Label>
-                    <Select value={formData.competencia} onValueChange={(v) => setFormData({ ...formData, competencia: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {competenciaOptions.map((comp) => (<SelectItem key={comp} value={comp}>{formatCompetencia(comp)}</SelectItem>))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
                     <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />
