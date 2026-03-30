@@ -218,7 +218,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       <div className="flex flex-1 flex-col min-w-0 md:hidden">
         <header className="flex h-16 items-center justify-between border-b bg-card px-4">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-primary" />
+            <img src={logo2m} alt="2M" className="h-7 object-contain" />
             <span className="font-semibold">{t('sidebar.appName')}</span>
           </div>
           <div className="flex items-center gap-1">
