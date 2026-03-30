@@ -306,6 +306,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                             <span className="text-muted-foreground">{formatDate(month + '-01')}</span>
                             <span className="font-medium money-value">{formatCurrency(val)}</span>
                           </div>
+                        );
                       })}
                     </div>
                   </div>
