@@ -792,7 +792,23 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             </Select>
           </div>
 
-          {!isEditing && (
+          <div className="space-y-2">
+            <Label htmlFor="tag">Empresa</Label>
+            <Select
+              value={formData.tag || '2M_CONTABILIDADE'}
+              onValueChange={(value: TagCliente) => setFormData({ ...formData, tag: value })}
+              disabled={isPending}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2M_CONTABILIDADE">2M Contabilidade</SelectItem>
+                <SelectItem value="2M_SAUDE">2M Saúde</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
             <div className="space-y-3 pt-2 border-t">
               <div className="flex items-center justify-between">
                 <Label className="text-base font-semibold flex items-center gap-2">
