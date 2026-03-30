@@ -231,7 +231,6 @@ function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang, mobile: bo
   <div class="section">
     <div class="section-title">${l.sectionData}</div>
     <div class="info-grid">
-      <div><div class="info-label">${l.competencia}</div><div class="info-value">${formatCompetencia(dist.competencia, l)}</div></div>
       <div><div class="info-label">${l.dataDistribuicao}</div><div class="info-value">${formatDate(dist.data_distribuicao, lang)}</div></div>
       <div><div class="info-label">${l.formaPagamento}</div><div class="info-value">${translatePayment(dist.forma_pagamento, l)}</div></div>
       <div><div class="info-label">${l.status}</div><div class="info-value">${translateStatus(dist.status, l)}</div></div>
