@@ -179,9 +179,7 @@ export default function AlertasClientePage() {
                               </div>
                             </TableCell>
                             <TableCell className="font-medium">{alerta.socio?.nome || '-'}</TableCell>
-                            <TableCell>{formatCompetencia(alerta.competencia)}</TableCell>
-                            <TableCell className="max-w-[300px] hidden md:table-cell">
-                              <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
+                            <TableCell className="max-w-[300px]">
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(alerta.created_at)}</TableCell>
                             <TableCell>

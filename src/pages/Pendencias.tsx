@@ -106,9 +106,6 @@ export default function PendenciasPage() {
                       {p.distribuicao?.recibo_numero && (
                         <Badge variant="outline" className="text-xs">{p.distribuicao.recibo_numero}</Badge>
                       )}
-                      {p.distribuicao?.competencia && (
-                        <Badge variant="secondary" className="text-xs">{p.distribuicao.competencia}</Badge>
-                      )}
                     </div>
                     {p.observacao && (
                       <p className="text-sm text-muted-foreground mt-2 bg-muted/50 rounded px-3 py-2 italic">{p.observacao}</p>
