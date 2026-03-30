@@ -696,16 +696,10 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     e.preventDefault();
 
     if (!isEditing) {
-      const validSocios = socios.filter((s) => s.nome.trim() && s.cpf.trim());
+      const validSocios = socios.filter((s) => s.nome.trim());
       if (validSocios.length === 0) {
         toast.error(t('clients.partnerRequired'));
         return;
-      }
-      for (const s of validSocios) {
-        if (unmask(s.cpf).length !== 11) {
-          toast.error(`${t('clients.invalidCpf')} "${s.nome}".`);
-          return;
-        }
       }
     }
 
@@ -721,10 +715,10 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
     } else {
       const validSocios = socios
-        .filter((s) => s.nome.trim() && s.cpf.trim())
+        .filter((s) => s.nome.trim())
         .map((s) => ({
           nome: s.nome.trim(),
-          cpf: unmask(s.cpf),
+          cpf: s.cpf ? unmask(s.cpf) : '',
           percentual: s.percentual ? parseFloat(s.percentual) : undefined,
         }));
 
@@ -817,16 +811,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email_copia">{t('clients.emailCopy')}</Label>
-            <Input
-              id="email_copia"
-              type="email"
-              value={formData.email_copia}
-              onChange={(e) => setFormData({ ...formData, email_copia: e.target.value })}
-              disabled={isPending}
-            />
-          </div>
+
+
 
           <div className="space-y-2">
             <Label htmlFor="telefone">{t('clients.phoneLabel')}</Label>
@@ -902,36 +888,13 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     </Button>
                   )}
                   <p className="text-xs font-medium text-muted-foreground">{t('clients.partnerNumber')} {index + 1}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <div className="sm:col-span-1">
+                  <div>
                       <Input
                         placeholder={t('clients.fullNamePlaceholder')}
                         value={socio.nome}
                         onChange={(e) => updateSocio(index, 'nome', e.target.value)}
                         disabled={isPending}
                       />
-                    </div>
-                    <div>
-                      <Input
-                        placeholder={t('clients.cpfPlaceholder')}
-                        value={socio.cpf}
-                        onChange={(e) => updateSocio(index, 'cpf', maskCPF(e.target.value))}
-                        maxLength={14}
-                        disabled={isPending}
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        placeholder={t('clients.percentagePlaceholder')}
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                        value={socio.percentual}
-                        onChange={(e) => updateSocio(index, 'percentual', e.target.value)}
-                        disabled={isPending}
-                      />
-                    </div>
                   </div>
                 </div>
               ))}

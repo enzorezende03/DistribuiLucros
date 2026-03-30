@@ -348,7 +348,7 @@ export type Database = {
         Row: {
           ativo: boolean
           cliente_id: string
-          cpf: string
+          cpf: string | null
           created_at: string
           id: string
           nome: string
@@ -358,7 +358,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           cliente_id: string
-          cpf: string
+          cpf?: string | null
           created_at?: string
           id?: string
           nome: string
@@ -368,7 +368,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           cliente_id?: string
-          cpf?: string
+          cpf?: string | null
           created_at?: string
           id?: string
           nome?: string
