@@ -962,8 +962,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     const data: CreateSocioData = {
       cliente_id: clienteId,
       nome: formData.nome,
-      cpf: unmask(formData.cpf),
-      percentual: formData.percentual ? parseFloat(formData.percentual) : undefined,
+      cpf: formData.cpf ? unmask(formData.cpf) : '',
       ativo: formData.ativo,
     };
 
