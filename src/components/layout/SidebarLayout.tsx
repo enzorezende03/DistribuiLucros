@@ -32,6 +32,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import logo2m from '@/assets/logo-2m.png';
 
 interface SidebarLayoutProps {
   children: ReactNode;
