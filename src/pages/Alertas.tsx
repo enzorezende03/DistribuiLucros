@@ -157,9 +157,8 @@ export default function AlertasPage() {
                             <p className="text-xs text-muted-foreground">{alerta.socio.nome}</p>
                           )}
                         </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           <span>{formatDate(alerta.created_at)}</span>
-                        </div>
                         </div>
                         {!alerta.resolvido && (
                           <Button
