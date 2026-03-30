@@ -1001,33 +1001,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="cpf">{t('partners.cpf')} *</Label>
-            <Input
-              id="cpf"
-              value={formData.cpf}
-              onChange={(e) => setFormData({ ...formData, cpf: maskCPF(e.target.value) })}
-              placeholder="000.000.000-00"
-              maxLength={14}
-              required
-              disabled={isPending}
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="percentual">{t('partners.participationPercentage')}</Label>
-            <Input
-              id="percentual"
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
-              value={formData.percentual}
-              onChange={(e) => setFormData({ ...formData, percentual: e.target.value })}
-              placeholder="Ex: 50"
-              disabled={isPending}
-            />
-          </div>
 
           <div className="flex items-center justify-between">
             <Label htmlFor="ativo">{t('partners.active')}</Label>
