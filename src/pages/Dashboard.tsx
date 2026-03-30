@@ -90,12 +90,13 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const navigate = useNavigate();
   const [totalAnoDialogOpen, setTotalAnoDialogOpen] = useState(false);
   const competenciaAnterior = getCompetenciaAnterior();
+  const competenciaAtual = getCurrentCompetencia();
   const hasConfirmacao = confirmacoes?.some(c => c.competencia === competenciaAnterior);
   const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior);
   const mesResolvido = hasConfirmacao || hasDistribuicao;
 
   const totalAno = distribuicoes?.reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
-  const totalMes = distribuicoes?.filter(d => d.competencia === competenciaAnterior)
+  const totalMes = distribuicoes?.filter(d => d.competencia === competenciaAtual)
     .reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
 
   const handleNaoHouve = async () => {
