@@ -213,7 +213,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             </DialogTitle>
           </DialogHeader>
           {(() => {
-            const distMes = distribuicoes?.filter(d => d.competencia === competenciaAnterior) || [];
+            const distMes = distribuicoes?.filter(d => d.competencia === competenciaAtual) || [];
             const socioMap = new Map<string, { nome: string; total: number }>();
             for (const dist of distMes) {
               for (const item of dist.itens || []) {
