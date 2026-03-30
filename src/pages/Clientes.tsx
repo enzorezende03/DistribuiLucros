@@ -817,16 +817,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email_copia">{t('clients.emailCopy')}</Label>
-            <Input
-              id="email_copia"
-              type="email"
-              value={formData.email_copia}
-              onChange={(e) => setFormData({ ...formData, email_copia: e.target.value })}
-              disabled={isPending}
-            />
-          </div>
+
+
 
           <div className="space-y-2">
             <Label htmlFor="telefone">{t('clients.phoneLabel')}</Label>
