@@ -771,15 +771,38 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
           <div className="space-y-2">
             <Label htmlFor="cnpj">{t('clients.cnpjLabel')}</Label>
-            <Input
-              id="cnpj"
-              value={formData.cnpj}
-              onChange={(e) => setFormData({ ...formData, cnpj: maskCNPJ(e.target.value) })}
-              placeholder="00.000.000/0000-00"
-              maxLength={18}
-              required
-              disabled={isPending}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="cnpj"
+                value={formData.cnpj}
+                onChange={(e) => setFormData({ ...formData, cnpj: maskCNPJ(e.target.value) })}
+                placeholder="00.000.000/0000-00"
+                maxLength={18}
+                required
+                disabled={isPending || fetchingCnpj}
+                className="flex-1"
+              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleFetchCnpj}
+                      disabled={isPending || fetchingCnpj || unmask(formData.cnpj).length !== 14}
+                    >
+                      {fetchingCnpj ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Consultar CNPJ na Receita Federal</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           <div className="space-y-2">
