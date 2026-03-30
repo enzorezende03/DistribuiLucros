@@ -119,7 +119,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <div>
                 <h3 className="font-semibold">{t('dashboard.actionRequired')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t('dashboard.informDistribution')} {formatCompetencia(competenciaAnterior)}
+                  {t('dashboard.informDistribution')}
                 </p>
               </div>
             </div>
