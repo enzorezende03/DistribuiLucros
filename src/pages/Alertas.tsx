@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useAlertas, useResolverAlerta, type TipoAlerta } from '@/hooks/useAlertas';
-import { formatCompetencia, formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
