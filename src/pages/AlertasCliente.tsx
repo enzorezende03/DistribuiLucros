@@ -162,7 +162,7 @@ export default function AlertasClientePage() {
                         <TableHead>{t('alerts.type')}</TableHead>
                         <TableHead>{t('alerts.partner')}</TableHead>
                         <TableHead>{t('alerts.description')}</TableHead>
-                        <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
+                        
                         <TableHead className="hidden md:table-cell">{t('alerts.date')}</TableHead>
                         <TableHead>{t('alerts.status')}</TableHead>
                       </TableRow>
