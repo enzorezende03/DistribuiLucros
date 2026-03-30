@@ -11,7 +11,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
-import { useCreateDistribuicao } from '@/hooks/useDistribuicoes';
+import { useCreateDistribuicao, useDistribuicoes } from '@/hooks/useDistribuicoes';
 import { formatCurrency, getCurrentCompetencia, formatCPF } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle } from 'lucide-react';
