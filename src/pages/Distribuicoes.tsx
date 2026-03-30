@@ -97,13 +97,11 @@ export default function DistribuicoesPage() {
   const { isAdmin, clienteId, isImpersonating, userRole } = useAuth();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const competenciaParam = searchParams.get('competencia');
   const { t } = useLanguage();
   const { data: clientes } = useClientes();
   const queryClienteId = isAdmin ? null : clienteId;
   const { data: socios } = useSocios(queryClienteId);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
-  const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(competenciaParam);
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
   const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -112,8 +110,7 @@ export default function DistribuicoesPage() {
   
   const filterClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: distribuicoes, isLoading } = useDistribuicoes(
-    filterClienteId,
-    selectedCompetencia || undefined
+    filterClienteId
   );
   const [search, setSearch] = useState('');
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
