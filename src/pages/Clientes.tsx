@@ -607,6 +607,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         email_copia: cliente.email_copia || '',
         telefone: cliente.telefone || '',
         status: cliente.status,
+        tag: cliente.tag || '2M_CONTABILIDADE',
       });
     } else if (open) {
       setFormData({
@@ -616,6 +617,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         email_copia: '',
         telefone: '',
         status: 'ativo',
+        tag: '2M_CONTABILIDADE',
       });
       setSocios([{ nome: '', cpf: '', percentual: '' }]);
     }
