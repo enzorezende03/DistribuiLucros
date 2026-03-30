@@ -1,0 +1,1 @@
+ALTER TABLE public.clientes ALTER COLUMN email_responsavel DROP NOT NULL;

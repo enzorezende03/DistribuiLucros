@@ -67,7 +67,7 @@ export type Database = {
           cnpj: string
           created_at: string
           email_copia: string | null
-          email_responsavel: string
+          email_responsavel: string | null
           id: string
           razao_social: string
           status: Database["public"]["Enums"]["status_cliente"]
@@ -79,7 +79,7 @@ export type Database = {
           cnpj: string
           created_at?: string
           email_copia?: string | null
-          email_responsavel: string
+          email_responsavel?: string | null
           id?: string
           razao_social: string
           status?: Database["public"]["Enums"]["status_cliente"]
@@ -91,7 +91,7 @@ export type Database = {
           cnpj?: string
           created_at?: string
           email_copia?: string | null
-          email_responsavel?: string
+          email_responsavel?: string | null
           id?: string
           razao_social?: string
           status?: Database["public"]["Enums"]["status_cliente"]

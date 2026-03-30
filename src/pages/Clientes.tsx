@@ -626,7 +626,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       if (data.qsa && data.qsa.length > 0) {
         const newSocios = data.qsa.map((s: any) => ({
           nome: s.nome_socio || '',
-          cpf: s.cnpj_cpf_do_socio ? unmask(String(s.cnpj_cpf_do_socio)) : '',
+          cpf: '',
           percentual: '',
         }));
         setSocios(newSocios);
@@ -713,6 +713,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       ...formData,
       cnpj: unmask(formData.cnpj),
       telefone: formData.telefone ? unmask(formData.telefone) : undefined,
+      email_responsavel: formData.email_responsavel || undefined,
       email_copia: formData.email_copia || undefined,
     };
 
@@ -812,7 +813,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               type="email"
               value={formData.email_responsavel}
               onChange={(e) => setFormData({ ...formData, email_responsavel: e.target.value })}
-              required
               disabled={isPending}
             />
           </div>
