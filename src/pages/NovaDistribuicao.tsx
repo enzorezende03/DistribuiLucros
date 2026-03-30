@@ -49,14 +49,6 @@ export default function NovaDistribuicaoPage() {
 
   const currentCompetencia = getCurrentCompetencia();
 
-  const competenciaOptions = Array.from({ length: 7 }, (_, i) => {
-    const now = new Date();
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  });
-
   const [formData, setFormData] = useState({
     competencia: currentCompetencia,
     data_distribuicao: new Date().toISOString().split('T')[0],
