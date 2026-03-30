@@ -713,6 +713,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       ...formData,
       cnpj: unmask(formData.cnpj),
       telefone: formData.telefone ? unmask(formData.telefone) : undefined,
+      email_responsavel: formData.email_responsavel || undefined,
       email_copia: formData.email_copia || undefined,
     };
 
