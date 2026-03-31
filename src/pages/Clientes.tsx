@@ -979,6 +979,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           )}
 
 
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               {t('common.cancel')}
             </Button>
