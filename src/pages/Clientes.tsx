@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { ImportDialog } from '@/components/ImportDialog';
 import { useUserClientes, useUserAllClientes, useLinkUserByEmail, useUnlinkUserFromCliente } from '@/hooks/useUserClientes';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -600,6 +601,10 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     { nome: '', cpf: '', percentual: '' },
   ]);
 
+  const [criarAcesso, setCriarAcesso] = useState(false);
+  const [acessoEmail, setAcessoEmail] = useState('');
+  const [acessoSenha, setAcessoSenha] = useState('');
+
   const handleFetchCnpj = async () => {
     const cnpjClean = unmask(formData.cnpj);
     if (cnpjClean.length !== 14) {
@@ -711,6 +716,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       email_copia: formData.email_copia || undefined,
     };
 
+    let createdCliente: any;
     if (isEditing) {
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
     } else {
@@ -722,7 +728,29 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           percentual: s.percentual ? parseFloat(s.percentual) : undefined,
         }));
 
-      await createCliente.mutateAsync({ ...data, socios: validSocios });
+      createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
+
+      // Create portal access if requested
+      if (criarAcesso && acessoEmail.trim() && acessoSenha.trim() && createdCliente?.id) {
+        try {
+          const { data: fnData, error: fnError } = await supabase.functions.invoke('manage-admin', {
+            body: {
+              action: 'create',
+              email: acessoEmail.trim(),
+              password: acessoSenha.trim(),
+              role: 'cliente',
+              cliente_ids: [createdCliente.id],
+            },
+          });
+          if (fnError || fnData?.error) {
+            toast.error('Cliente criado, mas erro ao criar acesso: ' + (fnData?.error || fnError?.message));
+          } else {
+            toast.success('Acesso ao portal criado com sucesso!');
+          }
+        } catch (err: any) {
+          toast.error('Cliente criado, mas erro ao criar acesso: ' + err.message);
+        }
+      }
     }
 
     onOpenChange(false);
@@ -736,6 +764,9 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       tag: '2M_CONTABILIDADE',
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
+    setCriarAcesso(false);
+    setAcessoEmail('');
+    setAcessoSenha('');
   };
 
   const isPending = createCliente.isPending || updateCliente.isPending;
@@ -900,6 +931,53 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               ))}
             </div>
           )}
+
+          {!isEditing && (
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-accent" />
+                  Acesso ao Portal
+                </Label>
+                <Switch
+                  checked={criarAcesso}
+                  onCheckedChange={setCriarAcesso}
+                  disabled={isPending}
+                />
+              </div>
+
+              {criarAcesso && (
+                <div className="space-y-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="acesso_email">E-mail de acesso</Label>
+                    <Input
+                      id="acesso_email"
+                      type="email"
+                      placeholder="usuario@email.com"
+                      value={acessoEmail}
+                      onChange={(e) => setAcessoEmail(e.target.value)}
+                      required={criarAcesso}
+                      disabled={isPending}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="acesso_senha">Senha</Label>
+                    <Input
+                      id="acesso_senha"
+                      type="password"
+                      placeholder="Mínimo 6 caracteres"
+                      value={acessoSenha}
+                      onChange={(e) => setAcessoSenha(e.target.value)}
+                      required={criarAcesso}
+                      minLength={6}
+                      disabled={isPending}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
