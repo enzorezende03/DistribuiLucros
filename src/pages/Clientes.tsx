@@ -715,6 +715,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       email_copia: formData.email_copia || undefined,
     };
 
+    let createdCliente: any;
     if (isEditing) {
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
     } else {
@@ -726,7 +727,29 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           percentual: s.percentual ? parseFloat(s.percentual) : undefined,
         }));
 
-      await createCliente.mutateAsync({ ...data, socios: validSocios });
+      createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
+
+      // Create portal access if requested
+      if (criarAcesso && acessoEmail.trim() && acessoSenha.trim() && createdCliente?.id) {
+        try {
+          const { data: fnData, error: fnError } = await supabase.functions.invoke('manage-admin', {
+            body: {
+              action: 'create',
+              email: acessoEmail.trim(),
+              password: acessoSenha.trim(),
+              role: 'cliente',
+              cliente_ids: [createdCliente.id],
+            },
+          });
+          if (fnError || fnData?.error) {
+            toast.error('Cliente criado, mas erro ao criar acesso: ' + (fnData?.error || fnError?.message));
+          } else {
+            toast.success('Acesso ao portal criado com sucesso!');
+          }
+        } catch (err: any) {
+          toast.error('Cliente criado, mas erro ao criar acesso: ' + err.message);
+        }
+      }
     }
 
     onOpenChange(false);
