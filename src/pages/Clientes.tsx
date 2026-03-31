@@ -600,6 +600,10 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     { nome: '', cpf: '', percentual: '' },
   ]);
 
+  const [criarAcesso, setCriarAcesso] = useState(false);
+  const [acessoEmail, setAcessoEmail] = useState('');
+  const [acessoSenha, setAcessoSenha] = useState('');
+
   const handleFetchCnpj = async () => {
     const cnpjClean = unmask(formData.cnpj);
     if (cnpjClean.length !== 14) {
