@@ -932,7 +932,53 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             </div>
           )}
 
-          <DialogFooter>
+          {!isEditing && (
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-accent" />
+                  Acesso ao Portal
+                </Label>
+                <Switch
+                  checked={criarAcesso}
+                  onCheckedChange={setCriarAcesso}
+                  disabled={isPending}
+                />
+              </div>
+
+              {criarAcesso && (
+                <div className="space-y-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="acesso_email">E-mail de acesso</Label>
+                    <Input
+                      id="acesso_email"
+                      type="email"
+                      placeholder="usuario@email.com"
+                      value={acessoEmail}
+                      onChange={(e) => setAcessoEmail(e.target.value)}
+                      required={criarAcesso}
+                      disabled={isPending}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="acesso_senha">Senha</Label>
+                    <Input
+                      id="acesso_senha"
+                      type="password"
+                      placeholder="Mínimo 6 caracteres"
+                      value={acessoSenha}
+                      onChange={(e) => setAcessoSenha(e.target.value)}
+                      required={criarAcesso}
+                      minLength={6}
+                      disabled={isPending}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               {t('common.cancel')}
             </Button>
