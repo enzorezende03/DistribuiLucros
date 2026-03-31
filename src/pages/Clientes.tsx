@@ -764,6 +764,9 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       tag: '2M_CONTABILIDADE',
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
+    setCriarAcesso(false);
+    setAcessoEmail('');
+    setAcessoSenha('');
   };
 
   const isPending = createCliente.isPending || updateCliente.isPending;
