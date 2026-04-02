@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X, Building2 } from 'lucide-react';
+import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X, Building2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
