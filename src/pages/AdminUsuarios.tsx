@@ -245,19 +245,34 @@ export default function AdminUsuariosPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <Tabs value={role} onValueChange={(v) => { setRole(v as 'admin' | 'cliente'); setSelectedClienteIds([]); }}>
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="admin" className="gap-1.5">
+                    <Shield className="h-4 w-4" />
+                    {t('admin.tabInternal')}
+                  </TabsTrigger>
+                  <TabsTrigger value="cliente" className="gap-1.5">
+                    <Building2 className="h-4 w-4" />
+                    {t('admin.tabClient')}
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="admin" className="mt-0">
+                  <p className="text-sm text-muted-foreground mb-4 p-3 rounded-lg bg-muted/50 border">
+                    <Shield className="h-4 w-4 inline mr-1.5 -mt-0.5" />
+                    {t('admin.internalDesc')}
+                  </p>
+                </TabsContent>
+
+                <TabsContent value="cliente" className="mt-0">
+                  <p className="text-sm text-muted-foreground mb-4 p-3 rounded-lg bg-muted/50 border">
+                    <Building2 className="h-4 w-4 inline mr-1.5 -mt-0.5" />
+                    {t('admin.clientDesc')}
+                  </p>
+                </TabsContent>
+              </Tabs>
+
               <form onSubmit={handleCreate} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{t('admin.role')}</Label>
-                  <Select value={role} onValueChange={(v) => { setRole(v as 'admin' | 'cliente'); setSelectedClienteIds([]); }}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">{t('admin.roleAdmin')}</SelectItem>
-                      <SelectItem value="cliente">{t('admin.roleCliente')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="admin-nome">{t('admin.name')} *</Label>
@@ -307,7 +322,7 @@ export default function AdminUsuariosPage() {
 
                 <Button type="submit" className="w-full gap-2" disabled={creating}>
                   {creating && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {t('admin.createUser')}
+                  {role === 'admin' ? t('admin.createInternal') : t('admin.createClient')}
                 </Button>
               </form>
             </CardContent>
