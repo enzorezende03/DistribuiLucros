@@ -226,7 +226,7 @@ export default function AdminUsuariosPage() {
 
   return (
     <SidebarLayout>
-      <div className="p-4 md:p-6 space-y-6 max-w-full overflow-hidden">
+      <div className="p-4 md:p-6 space-y-6 max-w-full overflow-x-hidden">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
             <Users className="h-7 w-7 text-primary" />
