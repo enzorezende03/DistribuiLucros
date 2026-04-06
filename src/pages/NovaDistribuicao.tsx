@@ -52,7 +52,6 @@ export default function NovaDistribuicaoPage() {
 
   const [formData, setFormData] = useState({
     data_distribuicao: new Date().toISOString().split('T')[0],
-    forma_pagamento: '',
   });
 
   // Auto-derive competencia from data_distribuicao
@@ -95,7 +94,7 @@ export default function NovaDistribuicaoPage() {
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
-    if (!formData.forma_pagamento) newErrors.push(t('newDist.informPayment'));
+    
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
     const sociosDuplicados = rateio.map((item) => item.socio_id).filter((id, index, arr) => id && arr.indexOf(id) !== index);
@@ -114,7 +113,7 @@ export default function NovaDistribuicaoPage() {
     const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
       cliente_id: clienteId, competencia: getCompetenciaFromDate(formData.data_distribuicao), data_distribuicao: formData.data_distribuicao,
-      valor_total: valorTotal, forma_pagamento: formData.forma_pagamento,
+      valor_total: valorTotal, forma_pagamento: 'N/A',
       solicitante_nome: user?.email || 'Sistema', solicitante_email: user?.email || '', itens,
     });
     navigate('/distribuicoes');
@@ -164,25 +163,9 @@ export default function NovaDistribuicaoPage() {
                 <CardDescription>{t('newDist.distributionDataDesc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
-                    <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="forma_pagamento">{t('newDist.paymentMethod')} *</Label>
-                    <Select value={formData.forma_pagamento} onValueChange={(v) => setFormData({ ...formData, forma_pagamento: v })}>
-                      <SelectTrigger><SelectValue placeholder={t('newDist.select')} /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PIX">PIX</SelectItem>
-                        <SelectItem value="TED">TED</SelectItem>
-                        <SelectItem value="DOC">DOC</SelectItem>
-                        <SelectItem value="Transferência Interna">{t('newDist.internalTransfer')}</SelectItem>
-                        <SelectItem value="Cheque">{t('newDist.check')}</SelectItem>
-                        <SelectItem value="Dinheiro">{t('newDist.cash')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
+                  <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />
                 </div>
               </CardContent>
             </Card>
