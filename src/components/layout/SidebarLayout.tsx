@@ -107,7 +107,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   return (
     <div className="flex h-screen bg-background max-w-[100vw] overflow-hidden">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:shrink-0 bg-sidebar border-r border-sidebar-border">
+      <aside className="hidden md:flex md:w-64 md:flex-col md:shrink-0 bg-sidebar border-r border-sidebar-border h-screen sticky top-0">
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
           <div className="flex items-center gap-2">
             <img src={logo2m} alt="2M" className="h-8 object-contain" />
