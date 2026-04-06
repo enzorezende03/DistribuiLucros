@@ -124,7 +124,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </Button>
         </div>
         
-        <nav className="flex-1 space-y-1 p-4">
+        <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
           {filteredNavItems.map((item) => (
             <NavLink key={item.href} item={item} />
           ))}
