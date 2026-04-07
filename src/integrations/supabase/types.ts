@@ -451,6 +451,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_email_by_cnpj: { Args: { _cnpj: string }; Returns: string }
       find_user_by_email: {
         Args: { _email: string }
         Returns: {
