@@ -310,9 +310,12 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
 function SociosSection({ clienteId }: { clienteId: string }) {
   const { t } = useLanguage();
   const { data: socios, isLoading } = useSocios(clienteId);
+  const updateSocio = useUpdateSocio();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSocio, setEditingSocio] = useState<Socio | null>(null);
   const [deleteSocio, setDeleteSocio] = useState<Socio | null>(null);
+  const [deactivateSocio, setDeactivateSocio] = useState<Socio | null>(null);
+  const [deactivateSocioMotivo, setDeactivateSocioMotivo] = useState('');
 
   return (
     <div className="space-y-3">
