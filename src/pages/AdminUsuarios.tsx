@@ -334,39 +334,33 @@ export default function AdminUsuariosPage() {
                     <Input id="admin-sobrenome" placeholder={t('admin.surname')} value={sobrenome} onChange={(e) => setSobrenome(e.target.value)} required disabled={creating} />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-email">{t('admin.email')} *</Label>
-                  <Input id="admin-email" type="email" placeholder="usuario@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={creating} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-password">{t('admin.password')} *</Label>
-                  <Input id="admin-password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={creating} />
-                </div>
-
-                {role === 'cliente' && (
+                {role === 'admin' ? (
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-1">
-                      <Building2 className="h-4 w-4" />
-                      {t('admin.linkedEmpresas')} *
-                    </Label>
-                    <div className="border rounded-lg max-h-40 overflow-y-auto p-2 space-y-1">
-                      {clientes && clientes.length > 0 ? clientes.map(c => (
-                        <label key={c.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted cursor-pointer text-sm">
-                          <Checkbox
-                            checked={selectedClienteIds.includes(c.id)}
-                            onCheckedChange={() => toggleClienteId(c.id)}
-                            disabled={creating}
-                          />
-                          <span className="truncate">{c.razao_social}</span>
-                        </label>
-                      )) : (
-                        <p className="text-xs text-muted-foreground py-2 text-center">{t('admin.noEmpresas')}</p>
+                    <Label htmlFor="admin-email">{t('admin.email')} *</Label>
+                    <Input id="admin-email" type="email" placeholder="usuario@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={creating} />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-cnpj">CNPJ *</Label>
+                    <div className="relative">
+                      <Input
+                        id="admin-cnpj"
+                        type="text"
+                        placeholder="00.000.000/0000-00"
+                        value={cnpj}
+                        onChange={(e) => handleCnpjChange(e.target.value)}
+                        required
+                        disabled={creating}
+                      />
+                      {lookingUpCnpj && (
+                        <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-muted-foreground" />
                       )}
                     </div>
-                    {selectedClienteIds.length > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        {selectedClienteIds.length} {t('admin.empresasSelected')}
-                      </p>
+                    {cnpjEmpresa && (
+                      <div className="flex items-center gap-2 text-sm text-emerald-600">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>{cnpjEmpresa}</span>
+                      </div>
                     )}
                   </div>
                 )}
