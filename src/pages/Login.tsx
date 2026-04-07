@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import logo2m from '@/assets/logo-2m.png';
 import { toast } from 'sonner';
@@ -23,10 +24,13 @@ const formatCNPJ = (value: string) => {
 export default function LoginPage() {
   const [cnpj, setCnpj] = useState('');
   const [password, setPassword] = useState('');
+  const [primeiroAcesso, setPrimeiroAcesso] = useState(true);
   const [loading, setLoading] = useState(false);
   const { } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const senhaEfetiva = primeiroAcesso ? '2mCliente' : password;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,11 +54,15 @@ export default function LoginPage() {
 
     const { error, data } = await supabase.auth.signInWithPassword({
       email,
-      password,
+      password: senhaEfetiva,
     });
 
     if (error) {
-      toast.error(t('login.error') + ': ' + error.message);
+      if (primeiroAcesso) {
+        toast.error('Senha padrão não reconhecida. Se você já redefiniu sua senha, desmarque "Primeiro acesso".');
+      } else {
+        toast.error(t('login.error') + ': ' + error.message);
+      }
       setLoading(false);
       return;
     }
@@ -95,10 +103,23 @@ export default function LoginPage() {
                 disabled={loading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('login.password')}</Label>
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="primeiro_acesso"
+                checked={primeiroAcesso}
+                onCheckedChange={(checked) => setPrimeiroAcesso(checked === true)}
+                disabled={loading}
+              />
+              <Label htmlFor="primeiro_acesso" className="text-sm font-normal cursor-pointer">
+                Primeiro acesso (senha padrão)
+              </Label>
             </div>
+            {!primeiroAcesso && (
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('login.password')}</Label>
+                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
