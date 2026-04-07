@@ -66,6 +66,8 @@ import {
   ChevronRight,
   Link2,
   X,
+  Ban,
+  Power,
 } from 'lucide-react';
 import {
   DropdownMenu,
