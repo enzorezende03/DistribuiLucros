@@ -1220,29 +1220,21 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               {criarAcesso && (
                 <div className="space-y-2">
                   <div className="space-y-2">
-                    <Label htmlFor="acesso_email">E-mail de acesso</Label>
+                    <Label>CNPJ de acesso</Label>
                     <Input
-                      id="acesso_email"
-                      type="email"
-                      placeholder="usuario@email.com"
-                      value={acessoEmail}
-                      onChange={(e) => setAcessoEmail(e.target.value)}
-                      required={criarAcesso}
-                      disabled={isPending}
+                      value={formData.cnpj}
+                      disabled
+                      className="bg-muted"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="acesso_senha">Senha</Label>
+                    <Label>Senha</Label>
                     <Input
-                      id="acesso_senha"
-                      type="password"
-                      placeholder="Mínimo 6 caracteres"
-                      value={acessoSenha}
-                      onChange={(e) => setAcessoSenha(e.target.value)}
-                      required={criarAcesso}
-                      minLength={6}
-                      disabled={isPending}
+                      value="2mCliente"
+                      disabled
+                      className="bg-muted"
                     />
+                    <p className="text-xs text-muted-foreground">Senha padrão. O usuário deverá alterá-la no primeiro acesso.</p>
                   </div>
                 </div>
               )}
