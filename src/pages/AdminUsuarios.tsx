@@ -128,6 +128,31 @@ export default function AdminUsuariosPage() {
     );
   };
 
+  const handleCnpjChange = async (value: string) => {
+    const formatted = formatCNPJ(value);
+    setCnpj(formatted);
+    setCnpjEmpresa('');
+    setSelectedClienteIds([]);
+
+    const digits = formatted.replace(/\D/g, '');
+    if (digits.length === 14) {
+      setLookingUpCnpj(true);
+      const { data, error: err } = await supabase
+        .from('clientes')
+        .select('id, razao_social')
+        .eq('cnpj', digits)
+        .maybeSingle();
+
+      if (!err && data) {
+        setCnpjEmpresa(data.razao_social);
+        setSelectedClienteIds([data.id]);
+      } else {
+        toast.error(t('register.cnpjNotFound'));
+      }
+      setLookingUpCnpj(false);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !sobrenome.trim()) {
