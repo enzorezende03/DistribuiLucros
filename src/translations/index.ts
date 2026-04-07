@@ -371,6 +371,7 @@ const translations: Record<Language, Record<string, string>> = {
     'register.passwordTooShort': 'A senha deve ter pelo menos 6 caracteres',
     'register.error': 'Erro ao cadastrar',
     'register.success': 'Conta criada com sucesso! Você já pode fazer login.',
+    'register.successPending': 'Cadastro realizado! Aguarde a aprovação do administrador para acessar o sistema.',
 
     // Alterar Senha
     'changePassword.title': 'Alterar Senha',
@@ -813,6 +814,7 @@ const translations: Record<Language, Record<string, string>> = {
     'register.passwordTooShort': 'Password must be at least 6 characters',
     'register.error': 'Registration error',
     'register.success': 'Account created successfully! You can now sign in.',
+    'register.successPending': 'Registration complete! Please wait for admin approval to access the system.',
 
     // Change Password
     'changePassword.title': 'Change Password',
@@ -1255,6 +1257,7 @@ const translations: Record<Language, Record<string, string>> = {
     'register.passwordTooShort': 'La contraseña debe tener al menos 6 caracteres',
     'register.error': 'Error al registrar',
     'register.success': '¡Cuenta creada exitosamente! Ya puede iniciar sesión.',
+    'register.successPending': '¡Registro completado! Espere la aprobación del administrador para acceder al sistema.',
 
     // Cambiar Contraseña
     'changePassword.title': 'Cambiar Contraseña',
