@@ -1223,8 +1223,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     <Label>CNPJ de acesso</Label>
                     <Input
                       value={formData.cnpj}
-                      disabled
-                      className="bg-muted"
+                      readOnly
                     />
                   </div>
                   <div className="space-y-2">
