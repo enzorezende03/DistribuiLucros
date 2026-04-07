@@ -601,6 +601,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
                   key={link.id}
                   link={link}
                   clienteId={clienteId}
+                  onEdit={() => handleEditOpen(link)}
                   onDeactivate={() => setDeactivateLink({ id: link.id, nome: link.nome || link.email })}
                   onDelete={() => setDeleteLink({ id: link.id, nome: link.nome || link.email })}
                 />
