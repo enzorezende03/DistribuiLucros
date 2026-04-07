@@ -48,7 +48,10 @@ export default function LoginPage() {
       return;
     }
 
-    const { error } = await signIn(email, password);
+    const { error, data } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (error) {
       toast.error(t('login.error') + ': ' + error.message);
@@ -57,7 +60,14 @@ export default function LoginPage() {
     }
 
     toast.success(t('login.success'));
-    navigate('/dashboard');
+
+    // Check if user must change password on first login
+    const mustChange = data?.user?.user_metadata?.must_change_password;
+    if (mustChange) {
+      navigate('/alterar-senha');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
