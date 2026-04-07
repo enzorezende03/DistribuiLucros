@@ -387,18 +387,21 @@ export type Database = {
       }
       user_clientes: {
         Row: {
+          aprovado: boolean
           cliente_id: string
           created_at: string
           id: string
           user_id: string
         }
         Insert: {
+          aprovado?: boolean
           cliente_id: string
           created_at?: string
           id?: string
           user_id: string
         }
         Update: {
+          aprovado?: boolean
           cliente_id?: string
           created_at?: string
           id?: string
@@ -472,6 +475,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_cliente_owner: { Args: { _cliente_id: string }; Returns: boolean }
+      solicitar_acesso_cnpj: { Args: { _cnpj: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "cliente"
