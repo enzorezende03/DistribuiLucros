@@ -458,6 +458,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      gerar_alertas_pendente_mes: { Args: never; Returns: undefined }
       gerar_numero_recibo: { Args: never; Returns: string }
       get_user_cliente_id: { Args: { _user_id: string }; Returns: string }
       get_user_email: { Args: { _user_id: string }; Returns: string }
