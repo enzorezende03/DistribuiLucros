@@ -137,3 +137,25 @@ export function useUnlinkUserFromCliente() {
     },
   });
 }
+
+export function useApproveUserCliente() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, clienteId }: { id: string; clienteId: string }) => {
+      const { error } = await supabase
+        .from('user_clientes')
+        .update({ aprovado: true })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['user_clientes', vars.clienteId] });
+      toast.success('Usuário aprovado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao aprovar usuário: ' + error.message);
+    },
+  });
+}
