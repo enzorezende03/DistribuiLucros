@@ -430,6 +430,46 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Deactivate Socio Dialog */}
+      <Dialog open={!!deactivateSocio} onOpenChange={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Desativar Sócio</DialogTitle>
+            <DialogDescription>
+              Deseja desativar o sócio <strong>{deactivateSocio?.nome}</strong>?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="motivo-desativacao-socio">Justificativa *</Label>
+            <Textarea
+              id="motivo-desativacao-socio"
+              placeholder="Informe o motivo da desativação..."
+              value={deactivateSocioMotivo}
+              onChange={(e) => setDeactivateSocioMotivo(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); }}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!deactivateSocio || !deactivateSocioMotivo.trim()) return;
+                await updateSocio.mutateAsync({ id: deactivateSocio.id, ativo: false });
+                setDeactivateSocio(null);
+                setDeactivateSocioMotivo('');
+              }}
+              disabled={!deactivateSocioMotivo.trim() || updateSocio.isPending}
+            >
+              {updateSocio.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Desativar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
