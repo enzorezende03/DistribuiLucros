@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
           nome: nome || "",
           sobrenome: sobrenome || "",
           full_name: [nome, sobrenome].filter(Boolean).join(" "),
+          must_change_password: userRole === "cliente",
         },
       });
 
