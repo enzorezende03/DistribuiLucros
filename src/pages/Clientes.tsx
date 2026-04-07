@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ImportDialog } from '@/components/ImportDialog';
-import { useUserClientes, useUserAllClientes, useLinkUserByEmail, useUnlinkUserFromCliente } from '@/hooks/useUserClientes';
+import { useUserClientes, useUserAllClientes, useLinkUserByEmail, useUnlinkUserFromCliente, useApproveUserCliente } from '@/hooks/useUserClientes';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

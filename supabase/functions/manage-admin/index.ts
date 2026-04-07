@@ -85,11 +85,12 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "Usuário criado mas erro ao atribuir perfil: " + roleError.message }, 500);
       }
 
-      // If cliente role, link to empresas
+      // If cliente role, link to empresas (approved directly by admin)
       if (userRole === "cliente" && cliente_ids && cliente_ids.length > 0) {
         const links = cliente_ids.map((cid: string) => ({
           user_id: newUser.user.id,
           cliente_id: cid,
+          aprovado: true,
         }));
         const { error: linkError } = await supabaseAdmin
           .from("user_clientes")
