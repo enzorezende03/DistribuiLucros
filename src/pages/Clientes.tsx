@@ -370,6 +370,23 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                           <Pencil className="mr-2 h-4 w-4" />
                           {t('common.edit')}
                         </DropdownMenuItem>
+                        {socio.ativo ? (
+                          <DropdownMenuItem
+                            className="text-amber-600"
+                            onClick={() => setDeactivateSocio(socio)}
+                          >
+                            <Ban className="mr-2 h-4 w-4" />
+                            Desativar
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            className="text-green-600"
+                            onClick={() => updateSocio.mutate({ id: socio.id, ativo: true })}
+                          >
+                            <Power className="mr-2 h-4 w-4" />
+                            Reativar
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => setDeleteSocio(socio)}
