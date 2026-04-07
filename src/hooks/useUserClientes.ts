@@ -24,12 +24,15 @@ export function useUserClientes(clienteId: string | null) {
 
       if (error) throw error;
       
-      // Fetch emails for each user
+      // Fetch name and email for each user
       const links = data as UserClienteLink[];
       const withDetails = await Promise.all(
         links.map(async (link) => {
-          const { data: email } = await supabase.rpc('get_user_email', { _user_id: link.user_id });
-          return { ...link, email: email || link.user_id };
+          const [{ data: displayName }, { data: email }] = await Promise.all([
+            supabase.rpc('get_user_display_name', { _user_id: link.user_id }),
+            supabase.rpc('get_user_email', { _user_id: link.user_id }),
+          ]);
+          return { ...link, nome: displayName || undefined, email: email || link.user_id };
         })
       );
       
