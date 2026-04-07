@@ -754,6 +754,10 @@ function UserLinkedRow({ link, clienteId, onEdit, onDeactivate, onDelete }: {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Editar
+            </DropdownMenuItem>
             {isInactive ? (
               <DropdownMenuItem
                 onClick={() => reactivateUser.mutate({ id: link.id, clienteId })}
