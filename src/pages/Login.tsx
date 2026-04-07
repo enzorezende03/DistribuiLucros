@@ -9,9 +9,19 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2 } from 'lucide-react';
 import logo2m from '@/assets/logo-2m.png';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+const formatCNPJ = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 14);
+  return digits
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+};
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [cnpj, setCnpj] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
@@ -21,6 +31,22 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    const cnpjDigits = cnpj.replace(/\D/g, '');
+    if (cnpjDigits.length !== 14) {
+      toast.error(t('login.invalidCnpj'));
+      setLoading(false);
+      return;
+    }
+
+    // Look up email by CNPJ
+    const { data: email, error: lookupError } = await supabase.rpc('find_email_by_cnpj', { _cnpj: cnpjDigits });
+
+    if (lookupError || !email) {
+      toast.error(t('login.cnpjNotFound'));
+      setLoading(false);
+      return;
+    }
 
     const { error } = await signIn(email, password);
 
@@ -48,8 +74,16 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t('login.email')}</Label>
-              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
+              <Label htmlFor="cnpj">CNPJ</Label>
+              <Input
+                id="cnpj"
+                type="text"
+                placeholder="00.000.000/0000-00"
+                value={cnpj}
+                onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
+                required
+                disabled={loading}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">{t('login.password')}</Label>

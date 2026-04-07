@@ -346,6 +346,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Login
     'login.title': 'Entrar',
     'login.email': 'E-mail',
+    'login.invalidCnpj': 'CNPJ inválido. Informe os 14 dígitos.',
+    'login.cnpjNotFound': 'CNPJ não encontrado no sistema.',
+    'register.cnpjNotFound': 'CNPJ não encontrado. A empresa precisa estar cadastrada.',
     'login.password': 'Senha',
     'login.submit': 'Entrar',
     'login.noAccount': 'Não tem uma conta?',
@@ -773,6 +776,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Login
     'login.title': 'Sign In',
     'login.email': 'Email',
+    'login.invalidCnpj': 'Invalid CNPJ. Enter all 14 digits.',
+    'login.cnpjNotFound': 'CNPJ not found in the system.',
+    'register.cnpjNotFound': 'CNPJ not found. The company must be registered first.',
     'login.password': 'Password',
     'login.submit': 'Sign In',
     'login.noAccount': "Don't have an account?",
@@ -1200,6 +1206,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Login
     'login.title': 'Iniciar Sesión',
     'login.email': 'Correo',
+    'login.invalidCnpj': 'CNPJ inválido. Ingrese los 14 dígitos.',
+    'login.cnpjNotFound': 'CNPJ no encontrado en el sistema.',
+    'register.cnpjNotFound': 'CNPJ no encontrado. La empresa debe estar registrada.',
     'login.password': 'Contraseña',
     'login.submit': 'Iniciar Sesión',
     'login.noAccount': '¿No tienes cuenta?',
