@@ -24,7 +24,7 @@ export default function LoginPage() {
   const [cnpj, setCnpj] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
