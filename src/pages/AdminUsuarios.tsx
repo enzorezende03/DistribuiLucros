@@ -9,7 +9,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X, Building2, Shield } from 'lucide-react';
+import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X, Building2, Shield, CheckCircle2 } from 'lucide-react';
+
+const formatCNPJ = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 14);
+  return digits
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+};
 import { toast } from 'sonner';
 import {
   AlertDialog,
