@@ -159,25 +159,37 @@ export default function AdminUsuariosPage() {
       toast.error(t('admin.fillNameSurname'));
       return;
     }
-    if (!email || !password) {
-      toast.error(t('admin.fillEmailPassword'));
-      return;
+    if (role === 'admin') {
+      if (!email || !password) {
+        toast.error(t('admin.fillEmailPassword'));
+        return;
+      }
+    } else {
+      const cnpjDigits = cnpj.replace(/\D/g, '');
+      if (cnpjDigits.length !== 14 || selectedClienteIds.length === 0) {
+        toast.error(t('register.cnpjNotFound'));
+        return;
+      }
+      if (!password) {
+        toast.error(t('admin.fillEmailPassword'));
+        return;
+      }
     }
     if (password.length < 6) {
       toast.error(t('admin.passwordMinLength'));
       return;
     }
-    if (role === 'cliente' && selectedClienteIds.length === 0) {
-      toast.error(t('admin.selectEmpresa'));
-      return;
-    }
+
+    const finalEmail = role === 'cliente'
+      ? `cnpj_${cnpj.replace(/\D/g, '')}@distribuilucros.app`
+      : email;
 
     setCreating(true);
     try {
       const res = await supabase.functions.invoke('manage-admin', {
         body: {
           action: 'create',
-          email,
+          email: finalEmail,
           password,
           nome: nome.trim(),
           sobrenome: sobrenome.trim(),
@@ -192,6 +204,8 @@ export default function AdminUsuariosPage() {
       setNome('');
       setSobrenome('');
       setEmail('');
+      setCnpj('');
+      setCnpjEmpresa('');
       setPassword('');
       setRole('cliente');
       setSelectedClienteIds([]);
