@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ImportDialog } from '@/components/ImportDialog';
@@ -310,9 +311,12 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
 function SociosSection({ clienteId }: { clienteId: string }) {
   const { t } = useLanguage();
   const { data: socios, isLoading } = useSocios(clienteId);
+  const updateSocio = useUpdateSocio();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSocio, setEditingSocio] = useState<Socio | null>(null);
   const [deleteSocio, setDeleteSocio] = useState<Socio | null>(null);
+  const [deactivateSocio, setDeactivateSocio] = useState<Socio | null>(null);
+  const [deactivateSocioMotivo, setDeactivateSocioMotivo] = useState('');
 
   return (
     <div className="space-y-3">
@@ -370,6 +374,23 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                           <Pencil className="mr-2 h-4 w-4" />
                           {t('common.edit')}
                         </DropdownMenuItem>
+                        {socio.ativo ? (
+                          <DropdownMenuItem
+                            className="text-amber-600"
+                            onClick={() => setDeactivateSocio(socio)}
+                          >
+                            <Ban className="mr-2 h-4 w-4" />
+                            Desativar
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            className="text-green-600"
+                            onClick={() => updateSocio.mutate({ id: socio.id, ativo: true })}
+                          >
+                            <Power className="mr-2 h-4 w-4" />
+                            Reativar
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => setDeleteSocio(socio)}
@@ -410,6 +431,46 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Deactivate Socio Dialog */}
+      <Dialog open={!!deactivateSocio} onOpenChange={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Desativar Sócio</DialogTitle>
+            <DialogDescription>
+              Deseja desativar o sócio <strong>{deactivateSocio?.nome}</strong>?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="motivo-desativacao-socio">Justificativa *</Label>
+            <Textarea
+              id="motivo-desativacao-socio"
+              placeholder="Informe o motivo da desativação..."
+              value={deactivateSocioMotivo}
+              onChange={(e) => setDeactivateSocioMotivo(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); }}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!deactivateSocio || !deactivateSocioMotivo.trim()) return;
+                await updateSocio.mutateAsync({ id: deactivateSocio.id, ativo: false });
+                setDeactivateSocio(null);
+                setDeactivateSocioMotivo('');
+              }}
+              disabled={!deactivateSocioMotivo.trim() || updateSocio.isPending}
+            >
+              {updateSocio.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Desativar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -422,10 +483,15 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
   const approveUser = useApproveUserCliente();
   const unlinkUser = useUnlinkUserFromCliente();
   const deactivateUser = useDeactivateUserCliente();
+  const queryClient = useQueryClient();
 
   const [deactivateLink, setDeactivateLink] = useState<{ id: string; nome?: string } | null>(null);
   const [deleteLink, setDeleteLink] = useState<{ id: string; nome?: string } | null>(null);
+  const [editLink, setEditLink] = useState<{ user_id: string; nome?: string; email?: string } | null>(null);
   const [deactivateMotivo, setDeactivateMotivo] = useState('');
+  const [editNome, setEditNome] = useState('');
+  const [editSobrenome, setEditSobrenome] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   const pendingLinks = links?.filter(l => !l.aprovado) || [];
   const approvedLinks = links?.filter(l => l.aprovado) || [];
@@ -441,6 +507,32 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
     if (!deleteLink) return;
     await unlinkUser.mutateAsync({ id: deleteLink.id, clienteId });
     setDeleteLink(null);
+  };
+
+  const handleEditOpen = (link: { user_id: string; nome?: string; email?: string }) => {
+    const parts = (link.nome || '').split(' ');
+    setEditNome(parts[0] || '');
+    setEditSobrenome(parts.slice(1).join(' ') || '');
+    setEditLink(link);
+  };
+
+  const handleEditSave = async () => {
+    if (!editLink || !editNome.trim()) return;
+    setEditSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke('manage-admin', {
+        body: { action: 'update', user_id: editLink.user_id, nome: editNome.trim(), sobrenome: editSobrenome.trim() },
+      });
+      if (res.error) throw res.error;
+      queryClient.invalidateQueries({ queryKey: ['user_clientes', clienteId] });
+      toast.success('Usuário atualizado com sucesso!');
+      setEditLink(null);
+    } catch (err: any) {
+      toast.error('Erro ao atualizar: ' + (err.message || 'Erro desconhecido'));
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   return (
@@ -509,6 +601,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
                   key={link.id}
                   link={link}
                   clienteId={clienteId}
+                  onEdit={() => handleEditOpen(link)}
                   onDeactivate={() => setDeactivateLink({ id: link.id, nome: link.nome || link.email })}
                   onDelete={() => setDeleteLink({ id: link.id, nome: link.nome || link.email })}
                 />
@@ -577,15 +670,45 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editLink} onOpenChange={() => setEditLink(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Atualize os dados do usuário vinculado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="edit-nome">Nome *</Label>
+              <Input id="edit-nome" value={editNome} onChange={(e) => setEditNome(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-sobrenome">Sobrenome</Label>
+              <Input id="edit-sobrenome" value={editSobrenome} onChange={(e) => setEditSobrenome(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditLink(null)}>Cancelar</Button>
+            <Button onClick={handleEditSave} disabled={!editNome.trim() || editSaving}>
+              {editSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 // ─── User Linked Row with companies ─────────────────────────────────────
 
-function UserLinkedRow({ link, clienteId, onDeactivate, onDelete }: {
+function UserLinkedRow({ link, clienteId, onEdit, onDeactivate, onDelete }: {
   link: { id: string; user_id: string; email?: string; nome?: string; ativo?: boolean; motivo_desativacao?: string | null };
   clienteId: string;
+  onEdit: () => void;
   onDeactivate: () => void;
   onDelete: () => void;
 }) {
@@ -631,6 +754,10 @@ function UserLinkedRow({ link, clienteId, onDeactivate, onDelete }: {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Editar
+            </DropdownMenuItem>
             {isInactive ? (
               <DropdownMenuItem
                 onClick={() => reactivateUser.mutate({ id: link.id, clienteId })}
