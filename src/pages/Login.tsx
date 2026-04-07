@@ -23,10 +23,13 @@ const formatCNPJ = (value: string) => {
 export default function LoginPage() {
   const [cnpj, setCnpj] = useState('');
   const [password, setPassword] = useState('');
+  const [primeiroAcesso, setPrimeiroAcesso] = useState(true);
   const [loading, setLoading] = useState(false);
   const { } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const senhaEfetiva = primeiroAcesso ? '2mCliente' : password;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,11 +53,15 @@ export default function LoginPage() {
 
     const { error, data } = await supabase.auth.signInWithPassword({
       email,
-      password,
+      password: senhaEfetiva,
     });
 
     if (error) {
-      toast.error(t('login.error') + ': ' + error.message);
+      if (primeiroAcesso) {
+        toast.error('Senha padrão não reconhecida. Se você já redefiniu sua senha, desmarque "Primeiro acesso".');
+      } else {
+        toast.error(t('login.error') + ': ' + error.message);
+      }
       setLoading(false);
       return;
     }
