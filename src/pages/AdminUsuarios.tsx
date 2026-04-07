@@ -64,7 +64,7 @@ export default function AdminUsuariosPage() {
   const [cnpj, setCnpj] = useState('');
   const [cnpjEmpresa, setCnpjEmpresa] = useState('');
   const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('2mCliente');
   const [role, setRole] = useState<'admin' | 'cliente'>('cliente');
   const [selectedClienteIds, setSelectedClienteIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
@@ -296,7 +296,7 @@ export default function AdminUsuariosPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs value={role} onValueChange={(v) => { setRole(v as 'admin' | 'cliente'); setSelectedClienteIds([]); }}>
+              <Tabs value={role} onValueChange={(v) => { setRole(v as 'admin' | 'cliente'); setSelectedClienteIds([]); setPassword(v === 'cliente' ? '2mCliente' : ''); }}>
                 <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger value="admin" className="gap-1.5">
                     <Shield className="h-4 w-4" />
@@ -364,6 +364,23 @@ export default function AdminUsuariosPage() {
                     )}
                   </div>
                 )}
+                <div className="space-y-2">
+                  <Label htmlFor="admin-password">{t('admin.password')} *</Label>
+                  <Input
+                    id="admin-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={creating}
+                  />
+                  {role === 'cliente' && (
+                    <p className="text-xs text-muted-foreground">
+                      Senha padrão: 2mCliente (o cliente deverá alterar no primeiro acesso)
+                    </p>
+                  )}
+                </div>
 
                 <Button type="submit" className="w-full gap-2" disabled={creating}>
                   {creating && <Loader2 className="h-4 w-4 animate-spin" />}

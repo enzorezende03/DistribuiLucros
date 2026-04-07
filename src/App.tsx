@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 // Pages
 import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/Register";
+import AlterarSenhaPage from "@/pages/AlterarSenha";
 import DashboardPage from "@/pages/Dashboard";
 import ClientesPage from "@/pages/Clientes";
 import SelecionarEmpresaPage from "@/pages/SelecionarEmpresa";
@@ -57,6 +58,7 @@ function AppRoutes() {
       {/* Public routes */}
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
+      <Route path="/alterar-senha" element={<ProtectedRoute><AlterarSenhaPage /></ProtectedRoute>} />
 
       {/* Company selection */}
       <Route path="/selecionar-empresa" element={<ProtectedRoute><SelecionarEmpresaPage /></ProtectedRoute>} />
