@@ -388,23 +388,29 @@ export type Database = {
       user_clientes: {
         Row: {
           aprovado: boolean
+          ativo: boolean
           cliente_id: string
           created_at: string
           id: string
+          motivo_desativacao: string | null
           user_id: string
         }
         Insert: {
           aprovado?: boolean
+          ativo?: boolean
           cliente_id: string
           created_at?: string
           id?: string
+          motivo_desativacao?: string | null
           user_id: string
         }
         Update: {
           aprovado?: boolean
+          ativo?: boolean
           cliente_id?: string
           created_at?: string
           id?: string
+          motivo_desativacao?: string | null
           user_id?: string
         }
         Relationships: [

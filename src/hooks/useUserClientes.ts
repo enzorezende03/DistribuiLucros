@@ -8,6 +8,8 @@ export interface UserClienteLink {
   cliente_id: string;
   created_at: string;
   aprovado: boolean;
+  ativo: boolean;
+  motivo_desativacao?: string | null;
   email?: string;
   nome?: string;
 }
@@ -159,6 +161,50 @@ export function useApproveUserCliente() {
     },
     onError: (error) => {
       toast.error('Erro ao aprovar usuário: ' + error.message);
+    },
+  });
+}
+
+export function useDeactivateUserCliente() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, clienteId, motivo }: { id: string; clienteId: string; motivo: string }) => {
+      const { error } = await supabase
+        .from('user_clientes')
+        .update({ ativo: false, motivo_desativacao: motivo })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['user_clientes', vars.clienteId] });
+      toast.success('Usuário desativado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao desativar usuário: ' + error.message);
+    },
+  });
+}
+
+export function useReactivateUserCliente() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, clienteId }: { id: string; clienteId: string }) => {
+      const { error } = await supabase
+        .from('user_clientes')
+        .update({ ativo: true, motivo_desativacao: null })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['user_clientes', vars.clienteId] });
+      toast.success('Usuário reativado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao reativar usuário: ' + error.message);
     },
   });
 }
