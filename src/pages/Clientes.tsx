@@ -705,9 +705,10 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
 
 // ─── User Linked Row with companies ─────────────────────────────────────
 
-function UserLinkedRow({ link, clienteId, onDeactivate, onDelete }: {
+function UserLinkedRow({ link, clienteId, onEdit, onDeactivate, onDelete }: {
   link: { id: string; user_id: string; email?: string; nome?: string; ativo?: boolean; motivo_desativacao?: string | null };
   clienteId: string;
+  onEdit: () => void;
   onDeactivate: () => void;
   onDelete: () => void;
 }) {
