@@ -61,6 +61,9 @@ export default function AdminUsuariosPage() {
   const [nome, setNome] = useState('');
   const [sobrenome, setSobrenome] = useState('');
   const [email, setEmail] = useState('');
+  const [cnpj, setCnpj] = useState('');
+  const [cnpjEmpresa, setCnpjEmpresa] = useState('');
+  const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'cliente'>('cliente');
   const [selectedClienteIds, setSelectedClienteIds] = useState<string[]>([]);
