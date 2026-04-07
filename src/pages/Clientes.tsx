@@ -1000,13 +1000,15 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
 
       // Create portal access if requested
-      if (criarAcesso && acessoEmail.trim() && acessoSenha.trim() && createdCliente?.id) {
+      if (criarAcesso && createdCliente?.id) {
         try {
+          const cnpjDigits = unmask(formData.cnpj);
+          const internalEmail = `cnpj_${cnpjDigits}@distribuilucros.app`;
           const { data: fnData, error: fnError } = await supabase.functions.invoke('manage-admin', {
             body: {
               action: 'create',
-              email: acessoEmail.trim(),
-              password: acessoSenha.trim(),
+              email: internalEmail,
+              password: '2mCliente',
               role: 'cliente',
               cliente_ids: [createdCliente.id],
             },
