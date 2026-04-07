@@ -369,7 +369,16 @@ const translations: Record<Language, Record<string, string>> = {
     'register.error': 'Erro ao cadastrar',
     'register.success': 'Conta criada com sucesso! Você já pode fazer login.',
 
-    // Selecionar Empresa
+    // Alterar Senha
+    'changePassword.title': 'Alterar Senha',
+    'changePassword.subtitle': 'Por segurança, você precisa definir uma nova senha no primeiro acesso.',
+    'changePassword.newPassword': 'Nova Senha',
+    'changePassword.confirmPassword': 'Confirmar Nova Senha',
+    'changePassword.submit': 'Salvar Nova Senha',
+    'changePassword.success': 'Senha alterada com sucesso!',
+    'changePassword.error': 'Erro ao alterar senha',
+    'changePassword.sameAsDefault': 'A nova senha não pode ser igual à senha padrão.',
+
     'selectCompany.title': 'Selecione a Empresa',
     'selectCompany.greeting': 'Olá',
     'selectCompany.chooseCompany': 'Escolha qual empresa deseja acessar.',
@@ -799,7 +808,16 @@ const translations: Record<Language, Record<string, string>> = {
     'register.error': 'Registration error',
     'register.success': 'Account created successfully! You can now sign in.',
 
-    // Selecionar Empresa
+    // Change Password
+    'changePassword.title': 'Change Password',
+    'changePassword.subtitle': 'For security, you must set a new password on your first login.',
+    'changePassword.newPassword': 'New Password',
+    'changePassword.confirmPassword': 'Confirm New Password',
+    'changePassword.submit': 'Save New Password',
+    'changePassword.success': 'Password changed successfully!',
+    'changePassword.error': 'Error changing password',
+    'changePassword.sameAsDefault': 'New password cannot be the same as the default.',
+
     'selectCompany.title': 'Select Company',
     'selectCompany.greeting': 'Hello',
     'selectCompany.chooseCompany': 'Choose which company you want to access.',
@@ -1229,7 +1247,16 @@ const translations: Record<Language, Record<string, string>> = {
     'register.error': 'Error al registrar',
     'register.success': '¡Cuenta creada exitosamente! Ya puede iniciar sesión.',
 
-    // Selecionar Empresa
+    // Cambiar Contraseña
+    'changePassword.title': 'Cambiar Contraseña',
+    'changePassword.subtitle': 'Por seguridad, debe definir una nueva contraseña en su primer acceso.',
+    'changePassword.newPassword': 'Nueva Contraseña',
+    'changePassword.confirmPassword': 'Confirmar Nueva Contraseña',
+    'changePassword.submit': 'Guardar Nueva Contraseña',
+    'changePassword.success': '¡Contraseña cambiada exitosamente!',
+    'changePassword.error': 'Error al cambiar contraseña',
+    'changePassword.sameAsDefault': 'La nueva contraseña no puede ser igual a la predeterminada.',
+
     'selectCompany.title': 'Seleccionar Empresa',
     'selectCompany.greeting': 'Hola',
     'selectCompany.chooseCompany': 'Elija a qué empresa desea acceder.',
