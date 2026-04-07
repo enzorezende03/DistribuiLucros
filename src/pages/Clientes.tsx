@@ -670,6 +670,35 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editLink} onOpenChange={() => setEditLink(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Atualize os dados do usuário vinculado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="edit-nome">Nome *</Label>
+              <Input id="edit-nome" value={editNome} onChange={(e) => setEditNome(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-sobrenome">Sobrenome</Label>
+              <Input id="edit-sobrenome" value={editSobrenome} onChange={(e) => setEditSobrenome(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditLink(null)}>Cancelar</Button>
+            <Button onClick={handleEditSave} disabled={!editNome.trim() || editSaving}>
+              {editSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
