@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ImportDialog } from '@/components/ImportDialog';
-import { useUserClientes, useUserAllClientes, useLinkUserByEmail, useUnlinkUserFromCliente } from '@/hooks/useUserClientes';
+import { useUserClientes, useUserAllClientes, useLinkUserByEmail, useUnlinkUserFromCliente, useApproveUserCliente } from '@/hooks/useUserClientes';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -416,16 +416,11 @@ function SociosSection({ clienteId }: { clienteId: string }) {
 function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
   const { t } = useLanguage();
   const { data: links, isLoading } = useUserClientes(clienteId);
-  const linkUser = useLinkUserByEmail();
+  const approveUser = useApproveUserCliente();
   const unlinkUser = useUnlinkUserFromCliente();
-  const [email, setEmail] = useState('');
 
-  const handleLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-    await linkUser.mutateAsync({ email: email.trim(), clienteId });
-    setEmail('');
-  };
+  const pendingLinks = links?.filter(l => !l.aprovado) || [];
+  const approvedLinks = links?.filter(l => l.aprovado) || [];
 
   return (
     <div className="space-y-3">
@@ -436,43 +431,66 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
         </h4>
       </div>
 
-      <form onSubmit={handleLink} className="flex gap-2">
-        <Input
-          type="email"
-          placeholder={t('clients.linkUserEmail')}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="flex-1 h-8 text-sm"
-          disabled={linkUser.isPending}
-        />
-        <Button
-          type="submit"
-          size="sm"
-          variant="outline"
-          className="gap-1 h-8 text-xs"
-          disabled={linkUser.isPending || !email.trim()}
-        >
-          {linkUser.isPending ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <Plus className="h-3 w-3" />
-          )}
-          {t('clients.link')}
-        </Button>
-      </form>
-
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
-      ) : links && links.length > 0 ? (
-        <div className="space-y-2">
-          {links.map((link) => (
-            <UserLinkedRow key={link.id} link={link} clienteId={clienteId} />
-          ))}
-        </div>
       ) : (
-        <p className="text-sm text-muted-foreground py-2">{t('clients.noLinkedUsers')}</p>
+        <div className="space-y-3">
+          {/* Pending approvals */}
+          {pendingLinks.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-amber-600 flex items-center gap-1">
+                <Loader2 className="h-3 w-3" />
+                {t('clients.pendingApproval')} ({pendingLinks.length})
+              </p>
+              {pendingLinks.map((link) => (
+                <div key={link.id} className="rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 text-sm">
+                  <div className="flex items-center justify-between p-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Badge variant="outline" className="text-xs border-amber-500 text-amber-700 dark:text-amber-400">
+                        {t('clients.pending')}
+                      </Badge>
+                      <span className="truncate">{link.email || link.user_id}</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        onClick={() => approveUser.mutate({ id: link.id, clienteId })}
+                        disabled={approveUser.isPending}
+                      >
+                        {approveUser.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                        {t('clients.approve')}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-destructive hover:text-destructive shrink-0"
+                        onClick={() => unlinkUser.mutate({ id: link.id, clienteId })}
+                        disabled={unlinkUser.isPending}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Approved users */}
+          {approvedLinks.length > 0 ? (
+            <div className="space-y-2">
+              {approvedLinks.map((link) => (
+                <UserLinkedRow key={link.id} link={link} clienteId={clienteId} />
+              ))}
+            </div>
+          ) : pendingLinks.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-2">{t('clients.noLinkedUsers')}</p>
+          ) : null}
+        </div>
       )}
     </div>
   );

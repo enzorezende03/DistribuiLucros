@@ -95,7 +95,18 @@ export default function RegisterPage() {
       return;
     }
 
-    toast.success(t('register.success'));
+    // After signup, sign in to call the access request function
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: internalEmail,
+      password,
+    });
+
+    if (!signInError) {
+      await supabase.rpc('solicitar_acesso_cnpj', { _cnpj: cnpjDigits });
+      await supabase.auth.signOut();
+    }
+
+    toast.success(t('register.successPending'));
     navigate('/login');
   };
 

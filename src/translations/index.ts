@@ -213,6 +213,9 @@ const translations: Record<Language, Record<string, string>> = {
     'clients.linkUserEmail': 'E-mail do usuário para vincular...',
     'clients.link': 'Vincular',
     'clients.noLinkedUsers': 'Nenhum usuário vinculado.',
+    'clients.pendingApproval': 'Aguardando aprovação',
+    'clients.pending': 'Pendente',
+    'clients.approve': 'Aprovar',
     'clients.noPartners': 'Nenhum sócio cadastrado.',
     'clients.editClient': 'Editar Cliente',
     'clients.newClient': 'Novo Cliente',
@@ -368,6 +371,7 @@ const translations: Record<Language, Record<string, string>> = {
     'register.passwordTooShort': 'A senha deve ter pelo menos 6 caracteres',
     'register.error': 'Erro ao cadastrar',
     'register.success': 'Conta criada com sucesso! Você já pode fazer login.',
+    'register.successPending': 'Cadastro realizado! Aguarde a aprovação do administrador para acessar o sistema.',
 
     // Alterar Senha
     'changePassword.title': 'Alterar Senha',
@@ -651,6 +655,9 @@ const translations: Record<Language, Record<string, string>> = {
     'clients.linkUserEmail': 'User email to link...',
     'clients.link': 'Link',
     'clients.noLinkedUsers': 'No linked users.',
+    'clients.pendingApproval': 'Pending approval',
+    'clients.pending': 'Pending',
+    'clients.approve': 'Approve',
     'clients.noPartners': 'No partners registered.',
     'clients.editClient': 'Edit Client',
     'clients.newClient': 'New Client',
@@ -807,6 +814,7 @@ const translations: Record<Language, Record<string, string>> = {
     'register.passwordTooShort': 'Password must be at least 6 characters',
     'register.error': 'Registration error',
     'register.success': 'Account created successfully! You can now sign in.',
+    'register.successPending': 'Registration complete! Please wait for admin approval to access the system.',
 
     // Change Password
     'changePassword.title': 'Change Password',
@@ -1090,6 +1098,9 @@ const translations: Record<Language, Record<string, string>> = {
     'clients.linkUserEmail': 'Correo del usuario para vincular...',
     'clients.link': 'Vincular',
     'clients.noLinkedUsers': 'Ningún usuario vinculado.',
+    'clients.pendingApproval': 'Pendiente de aprobación',
+    'clients.pending': 'Pendiente',
+    'clients.approve': 'Aprobar',
     'clients.noPartners': 'Ningún socio registrado.',
     'clients.editClient': 'Editar Cliente',
     'clients.newClient': 'Nuevo Cliente',
@@ -1246,6 +1257,7 @@ const translations: Record<Language, Record<string, string>> = {
     'register.passwordTooShort': 'La contraseña debe tener al menos 6 caracteres',
     'register.error': 'Error al registrar',
     'register.success': '¡Cuenta creada exitosamente! Ya puede iniciar sesión.',
+    'register.successPending': '¡Registro completado! Espere la aprobación del administrador para acceder al sistema.',
 
     // Cambiar Contraseña
     'changePassword.title': 'Cambiar Contraseña',
