@@ -421,9 +421,27 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
   const { data: links, isLoading } = useUserClientes(clienteId);
   const approveUser = useApproveUserCliente();
   const unlinkUser = useUnlinkUserFromCliente();
+  const deactivateUser = useDeactivateUserCliente();
+
+  const [deactivateLink, setDeactivateLink] = useState<{ id: string; nome?: string } | null>(null);
+  const [deleteLink, setDeleteLink] = useState<{ id: string; nome?: string } | null>(null);
+  const [deactivateMotivo, setDeactivateMotivo] = useState('');
 
   const pendingLinks = links?.filter(l => !l.aprovado) || [];
   const approvedLinks = links?.filter(l => l.aprovado) || [];
+
+  const handleDeactivate = async () => {
+    if (!deactivateLink || !deactivateMotivo.trim()) return;
+    await deactivateUser.mutateAsync({ id: deactivateLink.id, clienteId, motivo: deactivateMotivo.trim() });
+    setDeactivateLink(null);
+    setDeactivateMotivo('');
+  };
+
+  const handleDelete = async () => {
+    if (!deleteLink) return;
+    await unlinkUser.mutateAsync({ id: deleteLink.id, clienteId });
+    setDeleteLink(null);
+  };
 
   return (
     <div className="space-y-3">
@@ -487,7 +505,13 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
           {approvedLinks.length > 0 ? (
             <div className="space-y-2">
               {approvedLinks.map((link) => (
-                <UserLinkedRow key={link.id} link={link} clienteId={clienteId} />
+                <UserLinkedRow
+                  key={link.id}
+                  link={link}
+                  clienteId={clienteId}
+                  onDeactivate={() => setDeactivateLink({ id: link.id, nome: link.nome || link.email })}
+                  onDelete={() => setDeleteLink({ id: link.id, nome: link.nome || link.email })}
+                />
               ))}
             </div>
           ) : pendingLinks.length === 0 ? (
@@ -495,25 +519,104 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
           ) : null}
         </div>
       )}
+
+      {/* Deactivate Dialog */}
+      <Dialog open={!!deactivateLink} onOpenChange={() => { setDeactivateLink(null); setDeactivateMotivo(''); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Desativar Usuário</DialogTitle>
+            <DialogDescription>
+              Deseja desativar o acesso de <strong>{deactivateLink?.nome}</strong>? O usuário não poderá acessar os dados da empresa enquanto estiver desativado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="motivo-desativacao">Justificativa *</Label>
+            <Textarea
+              id="motivo-desativacao"
+              placeholder="Informe o motivo da desativação..."
+              value={deactivateMotivo}
+              onChange={(e) => setDeactivateMotivo(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeactivateLink(null); setDeactivateMotivo(''); }}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeactivate}
+              disabled={!deactivateMotivo.trim() || deactivateUser.isPending}
+            >
+              {deactivateUser.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Desativar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteLink} onOpenChange={() => setDeleteLink(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Vínculo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o vínculo de <strong>{deleteLink?.nome}</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={unlinkUser.isPending}
+            >
+              {unlinkUser.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
 // ─── User Linked Row with companies ─────────────────────────────────────
 
-function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: string; email?: string; nome?: string }; clienteId: string }) {
+function UserLinkedRow({ link, clienteId, onDeactivate, onDelete }: {
+  link: { id: string; user_id: string; email?: string; nome?: string; ativo?: boolean; motivo_desativacao?: string | null };
+  clienteId: string;
+  onDeactivate: () => void;
+  onDelete: () => void;
+}) {
   const { t } = useLanguage();
-  const unlinkUser = useUnlinkUserFromCliente();
   const { data: allClientes } = useUserAllClientes(link.user_id);
+  const reactivateUser = useReactivateUserCliente();
   const [expanded, setExpanded] = useState(false);
   
   const otherClientes = allClientes?.filter((c) => c.cliente_id !== clienteId) || [];
+  const isInactive = link.ativo === false;
 
   return (
-    <div className="rounded-md border text-sm">
+    <div className={`rounded-md border text-sm ${isInactive ? 'opacity-60 border-dashed' : ''}`}>
       <div className="flex items-center justify-between p-2">
         <div className="flex items-center gap-2 min-w-0">
           <span className="truncate font-medium">{link.nome || link.email || link.user_id}</span>
+          {isInactive && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant="outline" className="text-xs border-destructive text-destructive">
+                    <Ban className="h-3 w-3 mr-1" />
+                    Desativado
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Motivo: {link.motivo_desativacao || 'Não informado'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           {otherClientes.length > 0 && (
             <Badge variant="outline" className="text-xs shrink-0 cursor-pointer" onClick={() => setExpanded(!expanded)}>
               <Building2 className="h-3 w-3 mr-1" />
@@ -521,15 +624,33 @@ function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: strin
             </Badge>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-destructive hover:text-destructive shrink-0"
-          onClick={() => unlinkUser.mutate({ id: link.id, clienteId })}
-          disabled={unlinkUser.isPending}
-        >
-          <X className="h-3.5 w-3.5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {isInactive ? (
+              <DropdownMenuItem
+                onClick={() => reactivateUser.mutate({ id: link.id, clienteId })}
+                className="text-green-600"
+              >
+                <Power className="h-4 w-4 mr-2" />
+                Reativar
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={onDeactivate} className="text-amber-600">
+                <Ban className="h-4 w-4 mr-2" />
+                Desativar
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={onDelete} className="text-destructive">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Excluir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       {expanded && otherClientes.length > 0 && (
         <div className="border-t px-3 py-2 space-y-1 bg-muted/30">
