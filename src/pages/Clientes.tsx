@@ -451,7 +451,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
                       <Badge variant="outline" className="text-xs border-amber-500 text-amber-700 dark:text-amber-400">
                         {t('clients.pending')}
                       </Badge>
-                      <span className="truncate">{link.email || link.user_id}</span>
+                      <span className="truncate font-medium">{link.nome || link.email || link.user_id}</span>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <Button
@@ -498,7 +498,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
 
 // ─── User Linked Row with companies ─────────────────────────────────────
 
-function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: string; email?: string }; clienteId: string }) {
+function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: string; email?: string; nome?: string }; clienteId: string }) {
   const { t } = useLanguage();
   const unlinkUser = useUnlinkUserFromCliente();
   const { data: allClientes } = useUserAllClientes(link.user_id);
@@ -510,7 +510,7 @@ function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: strin
     <div className="rounded-md border text-sm">
       <div className="flex items-center justify-between p-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="truncate">{link.email || link.user_id}</span>
+          <span className="truncate font-medium">{link.nome || link.email || link.user_id}</span>
           {otherClientes.length > 0 && (
             <Badge variant="outline" className="text-xs shrink-0 cursor-pointer" onClick={() => setExpanded(!expanded)}>
               <Building2 className="h-3 w-3 mr-1" />
