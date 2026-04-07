@@ -498,7 +498,7 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
 
 // ─── User Linked Row with companies ─────────────────────────────────────
 
-function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: string; email?: string }; clienteId: string }) {
+function UserLinkedRow({ link, clienteId }: { link: { id: string; user_id: string; email?: string; nome?: string }; clienteId: string }) {
   const { t } = useLanguage();
   const unlinkUser = useUnlinkUserFromCliente();
   const { data: allClientes } = useUserAllClientes(link.user_id);
