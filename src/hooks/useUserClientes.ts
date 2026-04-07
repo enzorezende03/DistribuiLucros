@@ -7,7 +7,9 @@ export interface UserClienteLink {
   user_id: string;
   cliente_id: string;
   created_at: string;
+  aprovado: boolean;
   email?: string;
+  nome?: string;
 }
 
 export function useUserClientes(clienteId: string | null) {
@@ -24,14 +26,14 @@ export function useUserClientes(clienteId: string | null) {
       
       // Fetch emails for each user
       const links = data as UserClienteLink[];
-      const withEmails = await Promise.all(
+      const withDetails = await Promise.all(
         links.map(async (link) => {
           const { data: email } = await supabase.rpc('get_user_email', { _user_id: link.user_id });
           return { ...link, email: email || link.user_id };
         })
       );
       
-      return withEmails;
+      return withDetails;
     },
     enabled: !!clienteId,
   });
