@@ -9,7 +9,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X, Building2, Shield } from 'lucide-react';
+import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X, Building2, Shield, CheckCircle2 } from 'lucide-react';
+
+const formatCNPJ = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 14);
+  return digits
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+};
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -52,6 +61,9 @@ export default function AdminUsuariosPage() {
   const [nome, setNome] = useState('');
   const [sobrenome, setSobrenome] = useState('');
   const [email, setEmail] = useState('');
+  const [cnpj, setCnpj] = useState('');
+  const [cnpjEmpresa, setCnpjEmpresa] = useState('');
+  const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'cliente'>('cliente');
   const [selectedClienteIds, setSelectedClienteIds] = useState<string[]>([]);
@@ -116,31 +128,68 @@ export default function AdminUsuariosPage() {
     );
   };
 
+  const handleCnpjChange = async (value: string) => {
+    const formatted = formatCNPJ(value);
+    setCnpj(formatted);
+    setCnpjEmpresa('');
+    setSelectedClienteIds([]);
+
+    const digits = formatted.replace(/\D/g, '');
+    if (digits.length === 14) {
+      setLookingUpCnpj(true);
+      const { data, error: err } = await supabase
+        .from('clientes')
+        .select('id, razao_social')
+        .eq('cnpj', digits)
+        .maybeSingle();
+
+      if (!err && data) {
+        setCnpjEmpresa(data.razao_social);
+        setSelectedClienteIds([data.id]);
+      } else {
+        toast.error(t('register.cnpjNotFound'));
+      }
+      setLookingUpCnpj(false);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !sobrenome.trim()) {
       toast.error(t('admin.fillNameSurname'));
       return;
     }
-    if (!email || !password) {
-      toast.error(t('admin.fillEmailPassword'));
-      return;
+    if (role === 'admin') {
+      if (!email || !password) {
+        toast.error(t('admin.fillEmailPassword'));
+        return;
+      }
+    } else {
+      const cnpjDigits = cnpj.replace(/\D/g, '');
+      if (cnpjDigits.length !== 14 || selectedClienteIds.length === 0) {
+        toast.error(t('register.cnpjNotFound'));
+        return;
+      }
+      if (!password) {
+        toast.error(t('admin.fillEmailPassword'));
+        return;
+      }
     }
     if (password.length < 6) {
       toast.error(t('admin.passwordMinLength'));
       return;
     }
-    if (role === 'cliente' && selectedClienteIds.length === 0) {
-      toast.error(t('admin.selectEmpresa'));
-      return;
-    }
+
+    const finalEmail = role === 'cliente'
+      ? `cnpj_${cnpj.replace(/\D/g, '')}@distribuilucros.app`
+      : email;
 
     setCreating(true);
     try {
       const res = await supabase.functions.invoke('manage-admin', {
         body: {
           action: 'create',
-          email,
+          email: finalEmail,
           password,
           nome: nome.trim(),
           sobrenome: sobrenome.trim(),
@@ -155,6 +204,8 @@ export default function AdminUsuariosPage() {
       setNome('');
       setSobrenome('');
       setEmail('');
+      setCnpj('');
+      setCnpjEmpresa('');
       setPassword('');
       setRole('cliente');
       setSelectedClienteIds([]);
@@ -283,39 +334,33 @@ export default function AdminUsuariosPage() {
                     <Input id="admin-sobrenome" placeholder={t('admin.surname')} value={sobrenome} onChange={(e) => setSobrenome(e.target.value)} required disabled={creating} />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-email">{t('admin.email')} *</Label>
-                  <Input id="admin-email" type="email" placeholder="usuario@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={creating} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-password">{t('admin.password')} *</Label>
-                  <Input id="admin-password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={creating} />
-                </div>
-
-                {role === 'cliente' && (
+                {role === 'admin' ? (
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-1">
-                      <Building2 className="h-4 w-4" />
-                      {t('admin.linkedEmpresas')} *
-                    </Label>
-                    <div className="border rounded-lg max-h-40 overflow-y-auto p-2 space-y-1">
-                      {clientes && clientes.length > 0 ? clientes.map(c => (
-                        <label key={c.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted cursor-pointer text-sm">
-                          <Checkbox
-                            checked={selectedClienteIds.includes(c.id)}
-                            onCheckedChange={() => toggleClienteId(c.id)}
-                            disabled={creating}
-                          />
-                          <span className="truncate">{c.razao_social}</span>
-                        </label>
-                      )) : (
-                        <p className="text-xs text-muted-foreground py-2 text-center">{t('admin.noEmpresas')}</p>
+                    <Label htmlFor="admin-email">{t('admin.email')} *</Label>
+                    <Input id="admin-email" type="email" placeholder="usuario@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={creating} />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-cnpj">CNPJ *</Label>
+                    <div className="relative">
+                      <Input
+                        id="admin-cnpj"
+                        type="text"
+                        placeholder="00.000.000/0000-00"
+                        value={cnpj}
+                        onChange={(e) => handleCnpjChange(e.target.value)}
+                        required
+                        disabled={creating}
+                      />
+                      {lookingUpCnpj && (
+                        <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-muted-foreground" />
                       )}
                     </div>
-                    {selectedClienteIds.length > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        {selectedClienteIds.length} {t('admin.empresasSelected')}
-                      </p>
+                    {cnpjEmpresa && (
+                      <div className="flex items-center gap-2 text-sm text-emerald-600">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>{cnpjEmpresa}</span>
+                      </div>
                     )}
                   </div>
                 )}
