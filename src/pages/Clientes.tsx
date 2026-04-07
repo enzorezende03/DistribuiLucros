@@ -482,10 +482,15 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
   const approveUser = useApproveUserCliente();
   const unlinkUser = useUnlinkUserFromCliente();
   const deactivateUser = useDeactivateUserCliente();
+  const queryClient = useQueryClient();
 
   const [deactivateLink, setDeactivateLink] = useState<{ id: string; nome?: string } | null>(null);
   const [deleteLink, setDeleteLink] = useState<{ id: string; nome?: string } | null>(null);
+  const [editLink, setEditLink] = useState<{ user_id: string; nome?: string; email?: string } | null>(null);
   const [deactivateMotivo, setDeactivateMotivo] = useState('');
+  const [editNome, setEditNome] = useState('');
+  const [editSobrenome, setEditSobrenome] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   const pendingLinks = links?.filter(l => !l.aprovado) || [];
   const approvedLinks = links?.filter(l => l.aprovado) || [];
@@ -501,6 +506,32 @@ function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
     if (!deleteLink) return;
     await unlinkUser.mutateAsync({ id: deleteLink.id, clienteId });
     setDeleteLink(null);
+  };
+
+  const handleEditOpen = (link: { user_id: string; nome?: string; email?: string }) => {
+    const parts = (link.nome || '').split(' ');
+    setEditNome(parts[0] || '');
+    setEditSobrenome(parts.slice(1).join(' ') || '');
+    setEditLink(link);
+  };
+
+  const handleEditSave = async () => {
+    if (!editLink || !editNome.trim()) return;
+    setEditSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke('manage-admin', {
+        body: { action: 'update', user_id: editLink.user_id, nome: editNome.trim(), sobrenome: editSobrenome.trim() },
+      });
+      if (res.error) throw res.error;
+      queryClient.invalidateQueries({ queryKey: ['user_clientes', clienteId] });
+      toast.success('Usuário atualizado com sucesso!');
+      setEditLink(null);
+    } catch (err: any) {
+      toast.error('Erro ao atualizar: ' + (err.message || 'Erro desconhecido'));
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   return (
