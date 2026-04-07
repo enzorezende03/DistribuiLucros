@@ -103,10 +103,23 @@ export default function LoginPage() {
                 disabled={loading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('login.password')}</Label>
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="primeiro_acesso"
+                checked={primeiroAcesso}
+                onCheckedChange={(checked) => setPrimeiroAcesso(checked === true)}
+                disabled={loading}
+              />
+              <Label htmlFor="primeiro_acesso" className="text-sm font-normal cursor-pointer">
+                Primeiro acesso (senha padrão)
+              </Label>
             </div>
+            {!primeiroAcesso && (
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('login.password')}</Label>
+                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
