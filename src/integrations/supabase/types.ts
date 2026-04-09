@@ -71,6 +71,7 @@ export type Database = {
           email_copia: string | null
           email_responsavel: string | null
           id: string
+          motivo_arquivamento: string | null
           razao_social: string
           saldo_lucros_acumulados: number
           status: Database["public"]["Enums"]["status_cliente"]
@@ -86,6 +87,7 @@ export type Database = {
           email_copia?: string | null
           email_responsavel?: string | null
           id?: string
+          motivo_arquivamento?: string | null
           razao_social: string
           saldo_lucros_acumulados?: number
           status?: Database["public"]["Enums"]["status_cliente"]
@@ -101,6 +103,7 @@ export type Database = {
           email_copia?: string | null
           email_responsavel?: string | null
           id?: string
+          motivo_arquivamento?: string | null
           razao_social?: string
           saldo_lucros_acumulados?: number
           status?: Database["public"]["Enums"]["status_cliente"]
@@ -550,7 +553,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "cliente"
       resposta_confirmacao: "NAO_HOUVE" | "HOUVE"
-      status_cliente: "ativo" | "suspenso"
+      status_cliente: "ativo" | "suspenso" | "arquivado"
       status_distribuicao:
         | "ENVIADA_AO_CONTADOR"
         | "APROVADA"
@@ -687,7 +690,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "cliente"],
       resposta_confirmacao: ["NAO_HOUVE", "HOUVE"],
-      status_cliente: ["ativo", "suspenso"],
+      status_cliente: ["ativo", "suspenso", "arquivado"],
       status_distribuicao: [
         "ENVIADA_AO_CONTADOR",
         "APROVADA",

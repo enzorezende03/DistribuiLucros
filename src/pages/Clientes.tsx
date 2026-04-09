@@ -75,6 +75,7 @@ import {
   Upload,
   FileText,
   ExternalLink,
+  Archive,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -108,8 +109,11 @@ export default function ClientesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
+  const [archiveCliente, setArchiveCliente] = useState<Cliente | null>(null);
+  const [archiveMotivo, setArchiveMotivo] = useState('');
   const [expandedCliente, setExpandedCliente] = useState<string | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const updateCliente = useUpdateCliente();
 
   const filteredClientes = clientes?.filter(
     (cliente) =>
@@ -182,6 +186,7 @@ export default function ClientesPage() {
                       setIsFormOpen(true);
                     }}
                     onDelete={() => setDeleteCliente(cliente)}
+                    onArchive={() => setArchiveCliente(cliente)}
                   />
                 ))}
               </div>
@@ -228,6 +233,50 @@ export default function ClientesPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Archive Dialog */}
+      <Dialog open={!!archiveCliente} onOpenChange={() => { setArchiveCliente(null); setArchiveMotivo(''); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Arquivar Cliente</DialogTitle>
+            <DialogDescription>
+              Deseja arquivar o cliente <strong>{archiveCliente?.razao_social}</strong>? Informe o motivo do arquivamento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="motivo-arquivamento">Motivo *</Label>
+            <Textarea
+              id="motivo-arquivamento"
+              placeholder="Informe o motivo do arquivamento..."
+              value={archiveMotivo}
+              onChange={(e) => setArchiveMotivo(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setArchiveCliente(null); setArchiveMotivo(''); }}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!archiveCliente || !archiveMotivo.trim()) return;
+                await updateCliente.mutateAsync({
+                  id: archiveCliente.id,
+                  status: 'arquivado' as StatusCliente,
+                  motivo_arquivamento: archiveMotivo.trim(),
+                });
+                setArchiveCliente(null);
+                setArchiveMotivo('');
+              }}
+              disabled={!archiveMotivo.trim() || updateCliente.isPending}
+            >
+              {updateCliente.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Arquivar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <ImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
     </SidebarLayout>
   );
@@ -241,10 +290,12 @@ interface ClienteRowProps {
   onToggleExpand: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onArchive: () => void;
 }
 
-function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: ClienteRowProps) {
+function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive }: ClienteRowProps) {
   const { t } = useLanguage();
+  const updateCliente = useUpdateCliente();
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
       <div className="rounded-lg border">
@@ -280,12 +331,33 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
             </button>
           </CollapsibleTrigger>
           <div className="flex items-center gap-3 shrink-0">
-            <Badge
-              variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
-              className={cliente.status === 'ativo' ? 'bg-success text-success-foreground' : ''}
-            >
-              {cliente.status === 'ativo' ? t('clients.active') : t('clients.suspended')}
-            </Badge>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
+                    className={
+                      cliente.status === 'ativo'
+                        ? 'bg-success text-success-foreground'
+                        : cliente.status === 'arquivado'
+                        ? 'bg-muted text-muted-foreground'
+                        : ''
+                    }
+                  >
+                    {cliente.status === 'ativo'
+                      ? t('clients.active')
+                      : cliente.status === 'arquivado'
+                      ? 'Arquivado'
+                      : t('clients.suspended')}
+                  </Badge>
+                </TooltipTrigger>
+                {cliente.status === 'arquivado' && cliente.motivo_arquivamento && (
+                  <TooltipContent>
+                    <p className="max-w-xs">Motivo: {cliente.motivo_arquivamento}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -297,6 +369,20 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
                   <Pencil className="mr-2 h-4 w-4" />
                   {t('common.edit')}
                 </DropdownMenuItem>
+                {cliente.status !== 'arquivado' ? (
+                  <DropdownMenuItem className="text-amber-600" onClick={onArchive}>
+                    <Archive className="mr-2 h-4 w-4" />
+                    Arquivar
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    className="text-green-600"
+                    onClick={() => updateCliente.mutate({ id: cliente.id, status: 'ativo' as StatusCliente, motivo_arquivamento: '' })}
+                  >
+                    <Power className="mr-2 h-4 w-4" />
+                    Desarquivar
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem className="text-destructive" onClick={onDelete}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t('common.delete')}

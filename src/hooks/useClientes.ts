@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type StatusCliente = 'ativo' | 'suspenso';
+export type StatusCliente = 'ativo' | 'suspenso' | 'arquivado';
 export type TagCliente = '2M_SAUDE' | '2M_CONTABILIDADE';
 
 export interface Cliente {
@@ -17,6 +17,7 @@ export interface Cliente {
   ata_registrada: boolean;
   ata_url: string | null;
   saldo_lucros_acumulados: number;
+  motivo_arquivamento: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +32,7 @@ export interface CreateClienteData {
   tag?: TagCliente;
   ata_registrada?: boolean;
   saldo_lucros_acumulados?: number;
+  motivo_arquivamento?: string;
   socios?: { nome: string; cpf: string; percentual?: number }[];
 }
 
