@@ -11,8 +11,6 @@ import { cn } from '@/lib/utils';
 
 const statusMap: Record<string, string> = {
   'Enviada ao Contador': 'ENVIADA_AO_CONTADOR',
-  'Recebida': 'RECEBIDA',
-  'Em validação': 'EM_VALIDACAO',
   'Aprovada': 'APROVADA',
   'Ajuste Solicitado': 'AJUSTE_SOLICITADO',
   'Cancelada': 'CANCELADA',

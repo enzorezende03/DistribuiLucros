@@ -827,8 +827,6 @@ function StatusBadge({ status }: { status: string }) {
   const { t } = useLanguage();
   const statusConfig: Record<string, { className: string }> = {
     ENVIADA_AO_CONTADOR: { className: 'status-recebida' },
-    RECEBIDA: { className: 'status-recebida' },
-    EM_VALIDACAO: { className: 'status-em-validacao' },
     APROVADA: { className: 'status-aprovada' },
     AJUSTE_SOLICITADO: { className: 'status-ajuste-solicitado' },
     CANCELADA: { className: 'status-cancelada' },
