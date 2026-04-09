@@ -374,71 +374,71 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
         </DialogContent>
       </Dialog>
 
-      <NotificacoesPendenciasSection
-        clienteId={clienteId}
-        notificacoes={notificacoes}
-        markLida={markLida}
-        markAllLidas={markAllLidas}
-      />
-
       <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
-        {/* Pending months (information not provided) */}
-        <Card className={cn(olderPendingMonths.length > 0 && 'border-warning/30')}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5 text-warning" />
-              Pendências de Informação
+        {/* Unified Pendências card: older pending months + adjustment requests */}
+        <PendenciasUnificadasCard
+          clienteId={clienteId}
+          olderPendingMonths={olderPendingMonths}
+          declarandoCompetencia={declarandoCompetencia}
+          handleNaoHouve={handleNaoHouve}
+          notificacoes={notificacoes}
+          markLida={markLida}
+          markAllLidas={markAllLidas}
+        />
+
+        {/* Notifications */}
+        <Card className="border-info/50 bg-info/5">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 gap-2">
+            <CardTitle className="text-base md:text-lg flex items-center gap-2 shrink-0">
+              <Bell className="h-5 w-5 text-info" />
+              Notificações ({notificacoes?.filter(n => !n.lida).length || 0})
             </CardTitle>
-            {olderPendingMonths.length > 0 && (
-              <Badge variant="secondary">{olderPendingMonths.length}</Badge>
+            {notificacoes && notificacoes.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs shrink-0"
+                onClick={() => clienteId && markAllLidas.mutate(clienteId)}
+                disabled={markAllLidas.isPending}
+              >
+                {t('dashboard.markAllRead')}
+              </Button>
             )}
           </CardHeader>
           <CardContent>
-            {olderPendingMonths.length > 0 ? (
+            {notificacoes && notificacoes.length > 0 ? (
               <div className="space-y-2">
-                {olderPendingMonths.slice(0, 6).map((comp) => (
-                  <div key={comp} className="flex items-center justify-between p-3 rounded-lg border bg-warning/5">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-warning" />
-                      <span className="text-sm font-medium">{formatCompetencia(comp)}</span>
+                {notificacoes.slice(0, 5).map((n) => (
+                  <div key={n.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
+                    <div>
+                      <p className="font-medium text-sm">{n.titulo}</p>
+                      <p className="text-xs text-muted-foreground">{n.mensagem}</p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1 text-xs"
-                      onClick={() => handleNaoHouve(comp)}
-                      disabled={declarandoCompetencia === comp}
-                    >
-                      {declarandoCompetencia === comp ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <XCircle className="h-3 w-3" />
-                      )}
-                      Não houve
+                    <Button variant="ghost" size="icon" className="shrink-0" onClick={() => markLida.mutate(n.id)}>
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                {olderPendingMonths.length > 6 && (
-                  <p className="text-xs text-muted-foreground text-center pt-1">
-                    + {olderPendingMonths.length - 6} meses pendentes
-                  </p>
+                {notificacoes.length > 5 && (
+                  <Button variant="link" size="sm" className="w-full" onClick={() => navigate('/notificacoes')}>
+                    {t('dashboard.viewAll2')} ({notificacoes.length})
+                  </Button>
                 )}
               </div>
             ) : (
-              <div className="empty-state py-8">
-                <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
-                <p className="text-muted-foreground">Nenhuma pendência de informação</p>
-              </div>
+              <p className="text-sm text-muted-foreground text-center py-4">{t('dashboard.noNotificationsPending')}</p>
             )}
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
         {/* Active 50k alerts */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-warning" />
-              {t('dashboard.activeAlerts')}
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Alertas de Excedente (R$ 50k)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -468,7 +468,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             ) : (
               <div className="empty-state py-8">
                 <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
-                <p className="text-muted-foreground">{t('dashboard.noAlerts')}</p>
+                <p className="text-muted-foreground">Nenhum alerta de excedente</p>
               </div>
             )}
           </CardContent>
