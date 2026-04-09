@@ -169,7 +169,7 @@ export default function DistribuicoesPage() {
                     }}
                   >
                     {batchUpdate.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckSquare className="h-4 w-4" />}
-                    {t('distributions.batchApprove') || 'Aprovar selecionadas'} ({selectedIds.size})
+                    {t('distributions.confirmReceipt')} ({selectedIds.size})
                   </Button>
                 )}
               </>
