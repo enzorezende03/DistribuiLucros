@@ -17,7 +17,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
-import { formatCurrency, breakableCurrency, getCompetenciaAnterior, getCurrentCompetencia, formatDate } from '@/lib/format';
+import { formatCurrency, breakableCurrency, getCompetenciaAnterior, getCurrentCompetencia, formatDate, formatCompetencia, getCompetenciasSince } from '@/lib/format';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import {
@@ -32,6 +32,7 @@ import {
   Bell,
   X,
   AlertCircle,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -89,29 +90,48 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const [totalMesDialogOpen, setTotalMesDialogOpen] = useState(false);
   const navigate = useNavigate();
   const [totalAnoDialogOpen, setTotalAnoDialogOpen] = useState(false);
+  const [declarandoCompetencia, setDeclarandoCompetencia] = useState<string | null>(null);
   const competenciaAnterior = getCompetenciaAnterior();
   const competenciaAtual = getCurrentCompetencia();
-  const hasConfirmacao = confirmacoes?.some(c => c.competencia === competenciaAnterior);
-  const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior && d.status !== 'CANCELADA');
-  const mesResolvido = hasConfirmacao || hasDistribuicao;
+
+  // Calculate all pending months since client registration
+  const pendingMonths = (() => {
+    if (!cliente?.created_at) return [];
+    const allMonths = getCompetenciasSince(cliente.created_at);
+    return allMonths.filter(comp => {
+      const hasConf = confirmacoes?.some(c => c.competencia === comp);
+      const hasDist = distribuicoes?.some(d => d.competencia === comp && d.status !== 'CANCELADA');
+      return !hasConf && !hasDist;
+    });
+  })();
+
+  // Most recent pending month goes at the top as the primary alert
+  const mostRecentPending = pendingMonths.length > 0 ? pendingMonths[pendingMonths.length - 1] : null;
+  // Older pending months shown as pendencies list
+  const olderPendingMonths = pendingMonths.length > 1 ? pendingMonths.slice(0, -1).reverse() : [];
 
   const distribuicoesAtivas = distribuicoes?.filter(d => d.status !== 'CANCELADA');
   const totalAno = distribuicoesAtivas?.reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
   const totalMes = distribuicoesAtivas?.filter(d => d.competencia === competenciaAtual)
     .reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
 
-  const handleNaoHouve = async () => {
+  const handleNaoHouve = async (competencia: string) => {
     if (!clienteId) return;
-    await createConfirmacao.mutateAsync({
-      cliente_id: clienteId,
-      competencia: competenciaAnterior,
-      resposta: 'NAO_HOUVE',
-    });
+    setDeclarandoCompetencia(competencia);
+    try {
+      await createConfirmacao.mutateAsync({
+        cliente_id: clienteId,
+        competencia,
+        resposta: 'NAO_HOUVE',
+      });
+    } finally {
+      setDeclarandoCompetencia(null);
+    }
   };
 
   return (
     <>
-      {!mesResolvido && (
+      {mostRecentPending && (
         <Card className="border-warning/50 bg-warning/5">
           <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6">
             <div className="flex items-start gap-3">
@@ -121,7 +141,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <div>
                 <h3 className="font-semibold">{t('dashboard.actionRequired')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t('dashboard.informDistribution')}
+                  Informe se houve distribuição de lucros em <strong>{formatCompetencia(mostRecentPending)}</strong>.
                 </p>
               </div>
             </div>
@@ -135,10 +155,10 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <Button
                 variant="outline"
                 className="flex-1 sm:flex-none gap-2"
-                onClick={handleNaoHouve}
-                disabled={createConfirmacao.isPending}
+                onClick={() => handleNaoHouve(mostRecentPending)}
+                disabled={declarandoCompetencia === mostRecentPending}
               >
-                {createConfirmacao.isPending ? (
+                {declarandoCompetencia === mostRecentPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <XCircle className="h-4 w-4" />
@@ -362,6 +382,58 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
       />
 
       <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
+        {/* Pending months (information not provided) */}
+        <Card className={cn(olderPendingMonths.length > 0 && 'border-warning/30')}>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Clock className="h-5 w-5 text-warning" />
+              Pendências de Informação
+            </CardTitle>
+            {olderPendingMonths.length > 0 && (
+              <Badge variant="secondary">{olderPendingMonths.length}</Badge>
+            )}
+          </CardHeader>
+          <CardContent>
+            {olderPendingMonths.length > 0 ? (
+              <div className="space-y-2">
+                {olderPendingMonths.slice(0, 6).map((comp) => (
+                  <div key={comp} className="flex items-center justify-between p-3 rounded-lg border bg-warning/5">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-warning" />
+                      <span className="text-sm font-medium">{formatCompetencia(comp)}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 text-xs"
+                      onClick={() => handleNaoHouve(comp)}
+                      disabled={declarandoCompetencia === comp}
+                    >
+                      {declarandoCompetencia === comp ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <XCircle className="h-3 w-3" />
+                      )}
+                      Não houve
+                    </Button>
+                  </div>
+                ))}
+                {olderPendingMonths.length > 6 && (
+                  <p className="text-xs text-muted-foreground text-center pt-1">
+                    + {olderPendingMonths.length - 6} meses pendentes
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="empty-state py-8">
+                <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
+                <p className="text-muted-foreground">Nenhuma pendência de informação</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Active 50k alerts */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -374,33 +446,24 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : alertas && alertas.length > 0 ? (
+            ) : alertas && alertas.filter(a => a.tipo === 'ALERTA_50K').length > 0 ? (
               <div className="space-y-3">
-                {alertas.slice(0, 5).map((alerta) => {
-                  const totalMatch = alerta.descricao.match(/Total:\s*R\$\s*([\d.,]+)/);
-                  const totalValor = totalMatch ? parseFloat(totalMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
-                  const imposto = alerta.tipo === 'ALERTA_50K' && totalValor > 0 ? totalValor * 0.10 : 0;
-
-                  return (
+                {alertas.filter(a => a.tipo === 'ALERTA_50K').slice(0, 5).map((alerta) => (
                     <div
                       key={alerta.id}
-                      className={cn(
-                        'p-4 rounded-lg border',
-                        alerta.tipo === 'ALERTA_50K' ? 'alert-50k' : 'alert-pendente'
-                      )}
+                      className={cn('p-4 rounded-lg border', 'alert-50k')}
                     >
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="font-medium">{alerta.socio?.nome || cliente?.razao_social}</p>
                           <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                         </div>
-                        <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                          {alerta.tipo === 'ALERTA_50K' ? t('alerts.value50k') : t('common.pending')}
+                        <Badge variant="destructive">
+                          {t('alerts.value50k')}
                         </Badge>
                       </div>
                     </div>
-                  );
-                })}
+                ))}
               </div>
             ) : (
               <div className="empty-state py-8">
