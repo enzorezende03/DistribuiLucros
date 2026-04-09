@@ -204,7 +204,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
         </Card>
 
         {cliente?.ata_registrada && (
-          <Card className="stat-card">
+          <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/lucros-acumulados')}>
             <div className="stat-card-accent bg-emerald-500" />
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -213,7 +213,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             </CardHeader>
             <CardContent>
               <p className="money-value-lg">{breakableCurrency(cliente.saldo_lucros_acumulados)}</p>
-              <p className="text-xs text-muted-foreground mt-1">Ata Registrada</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('dashboard.clickDetails')}</p>
             </CardContent>
           </Card>
         )}

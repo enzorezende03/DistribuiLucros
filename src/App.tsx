@@ -21,6 +21,7 @@ import NotificacoesPage from "@/pages/Notificacoes";
 import PendenciasPage from "@/pages/Pendencias";
 import SimulacaoPage from "@/pages/Simulacao";
 import AdminUsuariosPage from "@/pages/AdminUsuarios";
+import LucrosAcumuladosPage from "@/pages/LucrosAcumulados";
 import NotFound from "@/pages/NotFound";
 
 // Components
