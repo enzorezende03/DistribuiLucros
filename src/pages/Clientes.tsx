@@ -1331,21 +1331,64 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               />
             </div>
             {formData.ata_registrada && (
-              <div className="space-y-2">
-                <Label htmlFor="saldo_lucros">Saldo de Lucros Acumulados (R$)</Label>
-                <Input
-                  id="saldo_lucros"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.saldo_lucros_acumulados || 0}
-                  onChange={(e) => setFormData({ ...formData, saldo_lucros_acumulados: parseFloat(e.target.value) || 0 })}
-                  disabled={isPending}
-                  placeholder="0,00"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Saldo disponível para distribuição sem incidência de IR. Este valor será controlado a cada distribuição registrada.
-                </p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="saldo_lucros">Saldo de Lucros Acumulados (R$)</Label>
+                  <Input
+                    id="saldo_lucros"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.saldo_lucros_acumulados || 0}
+                    onChange={(e) => setFormData({ ...formData, saldo_lucros_acumulados: parseFloat(e.target.value) || 0 })}
+                    disabled={isPending}
+                    placeholder="0,00"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Saldo disponível para distribuição sem incidência de IR. Este valor será controlado a cada distribuição registrada.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Anexar Ata</Label>
+                  {isEditing && (cliente as any).ata_url && !ataFile && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      <FileText className="h-4 w-4 text-emerald-600" />
+                      <a
+                        href={(cliente as any).ata_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1"
+                      >
+                        Ver ata anexada <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="ata-file"
+                      className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background text-sm cursor-pointer hover:bg-muted transition-colors"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {ataFile ? ataFile.name : (isEditing && (cliente as any).ata_url ? 'Substituir arquivo' : 'Selecionar arquivo')}
+                    </label>
+                    <input
+                      id="ata-file"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      className="hidden"
+                      onChange={(e) => setAtaFile(e.target.files?.[0] || null)}
+                      disabled={isPending}
+                    />
+                    {ataFile && (
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAtaFile(null)}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Formatos aceitos: PDF, JPG, PNG, DOC, DOCX
+                  </p>
+                </div>
               </div>
             )}
           </div>
