@@ -92,7 +92,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const competenciaAnterior = getCompetenciaAnterior();
   const competenciaAtual = getCurrentCompetencia();
   const hasConfirmacao = confirmacoes?.some(c => c.competencia === competenciaAnterior);
-  const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior);
+  const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior && d.status !== 'CANCELADA');
   const mesResolvido = hasConfirmacao || hasDistribuicao;
 
   const distribuicoesAtivas = distribuicoes?.filter(d => d.status !== 'CANCELADA');
@@ -229,7 +229,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             </DialogTitle>
           </DialogHeader>
           {(() => {
-            const distMes = distribuicoes?.filter(d => d.competencia === competenciaAtual) || [];
+            const distMes = distribuicoesAtivas?.filter(d => d.competencia === competenciaAtual) || [];
             const socioMap = new Map<string, { nome: string; total: number }>();
             for (const dist of distMes) {
               for (const item of dist.itens || []) {
@@ -285,7 +285,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </DialogHeader>
           {(() => {
             const anoAtual = String(new Date().getFullYear());
-            const distAno = distribuicoes?.filter(d => d.competencia.startsWith(anoAtual)) || [];
+            const distAno = distribuicoesAtivas?.filter(d => d.competencia.startsWith(anoAtual)) || [];
             
             const socioMap = new Map<string, { nome: string; meses: Map<string, number>; total: number }>();
             const allMonths = new Set<string>();
