@@ -65,6 +65,7 @@ export type Database = {
       clientes: {
         Row: {
           ata_registrada: boolean
+          ata_url: string | null
           cnpj: string
           created_at: string
           email_copia: string | null
@@ -79,6 +80,7 @@ export type Database = {
         }
         Insert: {
           ata_registrada?: boolean
+          ata_url?: string | null
           cnpj: string
           created_at?: string
           email_copia?: string | null
@@ -93,6 +95,7 @@ export type Database = {
         }
         Update: {
           ata_registrada?: boolean
+          ata_url?: string | null
           cnpj?: string
           created_at?: string
           email_copia?: string | null

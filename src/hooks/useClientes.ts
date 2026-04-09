@@ -15,6 +15,7 @@ export interface Cliente {
   status: StatusCliente;
   tag: TagCliente;
   ata_registrada: boolean;
+  ata_url: string | null;
   saldo_lucros_acumulados: number;
   created_at: string;
   updated_at: string;

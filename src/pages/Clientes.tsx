@@ -72,6 +72,9 @@ import {
   Ban,
   Power,
   TrendingUp,
+  Upload,
+  FileText,
+  ExternalLink,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -268,7 +271,7 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
                 }>
                   {cliente.tag === '2M_SAUDE' ? '2M Saúde' : '2M Contabilidade'}
                 </Badge>
-                {(cliente as any).ata_registrada && (
+                {cliente.ata_registrada && (
                   <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400">
                     Ata Registrada
                   </Badge>
@@ -998,6 +1001,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
   const updateCliente = useUpdateCliente();
   const isEditing = !!cliente;
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
+  const [ataFile, setAtaFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState<CreateClienteData>({
     razao_social: '',
@@ -1065,8 +1069,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         telefone: cliente.telefone || '',
         status: cliente.status,
         tag: cliente.tag || '2M_CONTABILIDADE',
-        ata_registrada: (cliente as any).ata_registrada || false,
-        saldo_lucros_acumulados: (cliente as any).saldo_lucros_acumulados || 0,
+        ata_registrada: cliente.ata_registrada || false,
+        saldo_lucros_acumulados: cliente.saldo_lucros_acumulados || 0,
       });
     } else if (open) {
       setFormData({
@@ -1093,8 +1097,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       telefone: cliente.telefone || '',
       status: cliente.status,
       tag: cliente.tag || '2M_CONTABILIDADE',
-      ata_registrada: (cliente as any).ata_registrada || false,
-      saldo_lucros_acumulados: (cliente as any).saldo_lucros_acumulados || 0,
+      ata_registrada: cliente.ata_registrada || false,
+      saldo_lucros_acumulados: cliente.saldo_lucros_acumulados || 0,
     });
   }
 
@@ -1134,7 +1138,20 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
     let createdCliente: any;
     if (isEditing) {
-      const oldSaldo = Number((cliente as any).saldo_lucros_acumulados) || 0;
+      // Upload ata file if provided
+      if (ataFile) {
+        const ext = ataFile.name.split('.').pop();
+        const filePath = `${cliente.id}/ata.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('atas').upload(filePath, ataFile, { upsert: true });
+        if (uploadErr) {
+          toast.error('Erro ao enviar ata: ' + uploadErr.message);
+          return;
+        }
+        const { data: urlData } = supabase.storage.from('atas').getPublicUrl(filePath);
+        (data as any).ata_url = urlData.publicUrl;
+      }
+
+      const oldSaldo = Number(cliente.saldo_lucros_acumulados) || 0;
       const newSaldo = Number(data.saldo_lucros_acumulados) || 0;
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
 
@@ -1164,6 +1181,17 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         }));
 
       createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
+
+      // Upload ata file for new client
+      if (ataFile && createdCliente?.id) {
+        const ext = ataFile.name.split('.').pop();
+        const filePath = `${createdCliente.id}/ata.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('atas').upload(filePath, ataFile, { upsert: true });
+        if (!uploadErr) {
+          const { data: urlData } = supabase.storage.from('atas').getPublicUrl(filePath);
+          await supabase.from('clientes').update({ ata_url: urlData.publicUrl } as any).eq('id', createdCliente.id);
+        }
+      }
 
       // Always create portal access automatically
       if (createdCliente?.id) {
@@ -1203,6 +1231,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       saldo_lucros_acumulados: 0,
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
+    setAtaFile(null);
   };
 
   const isPending = createCliente.isPending || updateCliente.isPending;
@@ -1327,21 +1356,64 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               />
             </div>
             {formData.ata_registrada && (
-              <div className="space-y-2">
-                <Label htmlFor="saldo_lucros">Saldo de Lucros Acumulados (R$)</Label>
-                <Input
-                  id="saldo_lucros"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.saldo_lucros_acumulados || 0}
-                  onChange={(e) => setFormData({ ...formData, saldo_lucros_acumulados: parseFloat(e.target.value) || 0 })}
-                  disabled={isPending}
-                  placeholder="0,00"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Saldo disponível para distribuição sem incidência de IR. Este valor será controlado a cada distribuição registrada.
-                </p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="saldo_lucros">Saldo de Lucros Acumulados (R$)</Label>
+                  <Input
+                    id="saldo_lucros"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.saldo_lucros_acumulados || 0}
+                    onChange={(e) => setFormData({ ...formData, saldo_lucros_acumulados: parseFloat(e.target.value) || 0 })}
+                    disabled={isPending}
+                    placeholder="0,00"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Saldo disponível para distribuição sem incidência de IR. Este valor será controlado a cada distribuição registrada.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Anexar Ata</Label>
+                  {isEditing && cliente.ata_url && !ataFile && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      <FileText className="h-4 w-4 text-emerald-600" />
+                      <a
+                        href={cliente.ata_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1"
+                      >
+                        Ver ata anexada <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="ata-file"
+                      className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background text-sm cursor-pointer hover:bg-muted transition-colors"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {ataFile ? ataFile.name : (isEditing && cliente.ata_url ? 'Substituir arquivo' : 'Selecionar arquivo')}
+                    </label>
+                    <input
+                      id="ata-file"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      className="hidden"
+                      onChange={(e) => setAtaFile(e.target.files?.[0] || null)}
+                      disabled={isPending}
+                    />
+                    {ataFile && (
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAtaFile(null)}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Formatos aceitos: PDF, JPG, PNG, DOC, DOCX
+                  </p>
+                </div>
               </div>
             )}
           </div>
