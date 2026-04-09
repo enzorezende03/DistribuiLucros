@@ -64,36 +64,42 @@ export type Database = {
       }
       clientes: {
         Row: {
+          ata_registrada: boolean
           cnpj: string
           created_at: string
           email_copia: string | null
           email_responsavel: string | null
           id: string
           razao_social: string
+          saldo_lucros_acumulados: number
           status: Database["public"]["Enums"]["status_cliente"]
           tag: Database["public"]["Enums"]["tag_cliente"]
           telefone: string | null
           updated_at: string
         }
         Insert: {
+          ata_registrada?: boolean
           cnpj: string
           created_at?: string
           email_copia?: string | null
           email_responsavel?: string | null
           id?: string
           razao_social: string
+          saldo_lucros_acumulados?: number
           status?: Database["public"]["Enums"]["status_cliente"]
           tag?: Database["public"]["Enums"]["tag_cliente"]
           telefone?: string | null
           updated_at?: string
         }
         Update: {
+          ata_registrada?: boolean
           cnpj?: string
           created_at?: string
           email_copia?: string | null
           email_responsavel?: string | null
           id?: string
           razao_social?: string
+          saldo_lucros_acumulados?: number
           status?: Database["public"]["Enums"]["status_cliente"]
           tag?: Database["public"]["Enums"]["tag_cliente"]
           telefone?: string | null

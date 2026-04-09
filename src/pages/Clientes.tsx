@@ -265,6 +265,11 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
                 }>
                   {cliente.tag === '2M_SAUDE' ? '2M Saúde' : '2M Contabilidade'}
                 </Badge>
+                {(cliente as any).ata_registrada && (
+                  <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400">
+                    Ata Registrada
+                  </Badge>
+                )}
               </div>
             </button>
           </CollapsibleTrigger>
@@ -864,6 +869,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     telefone: '',
     status: 'ativo',
     tag: '2M_CONTABILIDADE',
+    ata_registrada: false,
+    saldo_lucros_acumulados: 0,
   });
 
   const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string }[]>([
@@ -924,6 +931,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         telefone: cliente.telefone || '',
         status: cliente.status,
         tag: cliente.tag || '2M_CONTABILIDADE',
+        ata_registrada: (cliente as any).ata_registrada || false,
+        saldo_lucros_acumulados: (cliente as any).saldo_lucros_acumulados || 0,
       });
     } else if (open) {
       setFormData({
@@ -934,6 +943,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         telefone: '',
         status: 'ativo',
         tag: '2M_CONTABILIDADE',
+        ata_registrada: false,
+        saldo_lucros_acumulados: 0,
       });
       setSocios([{ nome: '', cpf: '', percentual: '' }]);
     }
@@ -948,6 +959,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       telefone: cliente.telefone || '',
       status: cliente.status,
       tag: cliente.tag || '2M_CONTABILIDADE',
+      ata_registrada: (cliente as any).ata_registrada || false,
+      saldo_lucros_acumulados: (cliente as any).saldo_lucros_acumulados || 0,
     });
   }
 
@@ -1033,6 +1046,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       telefone: '',
       status: 'ativo',
       tag: '2M_CONTABILIDADE',
+      ata_registrada: false,
+      saldo_lucros_acumulados: 0,
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
     setCriarAcesso(false);
@@ -1161,6 +1176,36 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-3 pt-2 border-t">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">Ata Registrada</Label>
+              <Switch
+                checked={formData.ata_registrada || false}
+                onCheckedChange={(v) => setFormData({ ...formData, ata_registrada: v })}
+                disabled={isPending}
+              />
+            </div>
+            {formData.ata_registrada && (
+              <div className="space-y-2">
+                <Label htmlFor="saldo_lucros">Saldo de Lucros Acumulados (R$)</Label>
+                <Input
+                  id="saldo_lucros"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.saldo_lucros_acumulados || 0}
+                  onChange={(e) => setFormData({ ...formData, saldo_lucros_acumulados: parseFloat(e.target.value) || 0 })}
+                  disabled={isPending}
+                  placeholder="0,00"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Saldo disponível para distribuição sem incidência de IR. Este valor será controlado a cada distribuição registrada.
+                </p>
+              </div>
+            )}
+          </div>
+
 
           {!isEditing && (
             <div className="space-y-3 pt-2 border-t">
