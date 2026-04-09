@@ -72,6 +72,9 @@ import {
   Ban,
   Power,
   TrendingUp,
+  Upload,
+  FileText,
+  ExternalLink,
 } from 'lucide-react';
 import {
   DropdownMenu,
