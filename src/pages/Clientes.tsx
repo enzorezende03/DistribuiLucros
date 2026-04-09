@@ -1182,6 +1182,17 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
       createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
 
+      // Upload ata file for new client
+      if (ataFile && createdCliente?.id) {
+        const ext = ataFile.name.split('.').pop();
+        const filePath = `${createdCliente.id}/ata.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('atas').upload(filePath, ataFile, { upsert: true });
+        if (!uploadErr) {
+          const { data: urlData } = supabase.storage.from('atas').getPublicUrl(filePath);
+          await supabase.from('clientes').update({ ata_url: urlData.publicUrl } as any).eq('id', createdCliente.id);
+        }
+      }
+
       // Always create portal access automatically
       if (createdCliente?.id) {
         try {
