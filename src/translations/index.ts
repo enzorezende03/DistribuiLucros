@@ -183,8 +183,6 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Status labels
     'status.ENVIADA_AO_CONTADOR': 'Enviada ao Contador',
-    'status.RECEBIDA': 'Recebida',
-    'status.EM_VALIDACAO': 'Em validação',
     'status.APROVADA': 'Aprovada',
     'status.AJUSTE_SOLICITADO': 'Ajuste solicitado',
     'status.CANCELADA': 'Cancelada',
@@ -625,8 +623,6 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Status labels
     'status.ENVIADA_AO_CONTADOR': 'Sent to Accountant',
-    'status.RECEBIDA': 'Received',
-    'status.EM_VALIDACAO': 'Under Review',
     'status.APROVADA': 'Approved',
     'status.AJUSTE_SOLICITADO': 'Adjustment Requested',
     'status.CANCELADA': 'Cancelled',
@@ -1068,8 +1064,6 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Status labels
     'status.ENVIADA_AO_CONTADOR': 'Enviada al Contador',
-    'status.RECEBIDA': 'Recibida',
-    'status.EM_VALIDACAO': 'En validación',
     'status.APROVADA': 'Aprobada',
     'status.AJUSTE_SOLICITADO': 'Ajuste solicitado',
     'status.CANCELADA': 'Cancelada',

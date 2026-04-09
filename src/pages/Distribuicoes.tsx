@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ExportDistribuicoesDialog } from '@/components/ExportDistribuicoesDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -78,8 +78,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 const statusKeys: Record<StatusDistribuicao, string> = {
   ENVIADA_AO_CONTADOR: 'status.ENVIADA_AO_CONTADOR',
-  RECEBIDA: 'status.RECEBIDA',
-  EM_VALIDACAO: 'status.EM_VALIDACAO',
   APROVADA: 'status.APROVADA',
   AJUSTE_SOLICITADO: 'status.AJUSTE_SOLICITADO',
   CANCELADA: 'status.CANCELADA',
@@ -87,8 +85,6 @@ const statusKeys: Record<StatusDistribuicao, string> = {
 
 const statusClassNames: Record<StatusDistribuicao, string> = {
   ENVIADA_AO_CONTADOR: 'status-recebida',
-  RECEBIDA: 'status-recebida',
-  EM_VALIDACAO: 'status-em-validacao',
   APROVADA: 'status-aprovada',
   AJUSTE_SOLICITADO: 'status-ajuste-solicitado',
   CANCELADA: 'status-cancelada',
@@ -167,13 +163,13 @@ export default function DistribuicoesPage() {
                         return;
                       }
                       batchUpdate.mutate(
-                        { ids: enviadasIds, status: 'RECEBIDA', userId: user.id },
+                        { ids: enviadasIds, status: 'APROVADA', userId: user.id },
                         { onSuccess: () => setSelectedIds(new Set()) }
                       );
                     }}
                   >
                     {batchUpdate.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckSquare className="h-4 w-4" />}
-                    {t('distributions.confirmReceipt')} ({selectedIds.size})
+                    {t('distributions.batchApprove') || 'Aprovar selecionadas'} ({selectedIds.size})
                   </Button>
                 )}
               </>
@@ -551,6 +547,7 @@ interface DistribuicaoActionsProps {
 
 function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActionsProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { t, language } = useLanguage();
   const updateStatus = useUpdateDistribuicaoStatus();
   const deleteDistribuicao = useDeleteDistribuicao();
@@ -651,15 +648,14 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
                 ))}
               </>
             )}
-            {!isAdmin && distribuicao.status === 'RECEBIDA' && (
+            {!isAdmin && distribuicao.status === 'ENVIADA_AO_CONTADOR' && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => openStatusDialog('AJUSTE_SOLICITADO')}
-                  disabled={updateStatus.isPending}
+                  onClick={() => navigate(`/distribuicoes/editar/${distribuicao.id}`)}
                 >
-                  <AlertTriangle className="mr-2 h-4 w-4" />
-                  {t('distributions.requestAdjustment') || 'Solicitar Ajuste'}
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t('distributions.edit') || 'Editar'}
                 </DropdownMenuItem>
               </>
             )}

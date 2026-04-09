@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type StatusDistribuicao = 'ENVIADA_AO_CONTADOR' | 'RECEBIDA' | 'EM_VALIDACAO' | 'APROVADA' | 'AJUSTE_SOLICITADO' | 'CANCELADA';
+export type StatusDistribuicao = 'ENVIADA_AO_CONTADOR' | 'APROVADA' | 'AJUSTE_SOLICITADO' | 'CANCELADA';
 
 export interface DistribuicaoItem {
   id: string;
@@ -237,8 +237,6 @@ export function useUpdateDistribuicaoStatus() {
       // Create notification for client
       const statusLabels: Record<string, string> = {
         ENVIADA_AO_CONTADOR: 'Enviada ao Contador',
-        RECEBIDA: 'Recebida',
-        EM_VALIDACAO: 'Em Validação',
         APROVADA: 'Aprovada',
         AJUSTE_SOLICITADO: 'Ajuste Solicitado',
         CANCELADA: 'Cancelada',
@@ -271,6 +269,12 @@ export function useBatchUpdateStatus() {
 
   return useMutation({
     mutationFn: async ({ ids, status, userId }: { ids: string[]; status: StatusDistribuicao; userId: string }) => {
+      const statusLabels: Record<string, string> = {
+        ENVIADA_AO_CONTADOR: 'Enviada ao Contador',
+        APROVADA: 'Aprovada',
+        AJUSTE_SOLICITADO: 'Ajuste Solicitado',
+        CANCELADA: 'Cancelada',
+      };
       for (const id of ids) {
         const { data: current } = await supabase
           .from('distribuicoes')
@@ -287,7 +291,7 @@ export function useBatchUpdateStatus() {
 
         await supabase.from('distribuicao_historico').insert({
           distribuicao_id: id,
-          status_anterior: current.status,
+          status_anterior: current.status as StatusDistribuicao,
           status_novo: status,
           observacao: 'Aprovação em lote',
           usuario_id: userId,
@@ -296,8 +300,8 @@ export function useBatchUpdateStatus() {
         await supabase.from('notificacoes').insert({
           cliente_id: current.cliente_id,
           distribuicao_id: id,
-          titulo: 'Status atualizado: Recebida',
-          mensagem: 'Sua distribuição foi recebida pelo contador.',
+          titulo: `Status atualizado: ${statusLabels[status] || status}`,
+          mensagem: `Sua distribuição teve o status alterado para "${statusLabels[status] || status}".`,
         });
       }
     },

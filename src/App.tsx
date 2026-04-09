@@ -15,6 +15,7 @@ import ClientesPage from "@/pages/Clientes";
 import SelecionarEmpresaPage from "@/pages/SelecionarEmpresa";
 import DistribuicoesPage from "@/pages/Distribuicoes";
 import NovaDistribuicaoPage from "@/pages/NovaDistribuicao";
+import EditarDistribuicaoPage from "@/pages/EditarDistribuicao";
 import AlertasPage from "@/pages/Alertas";
 import AlertasClientePage from "@/pages/AlertasCliente";
 import NotificacoesPage from "@/pages/Notificacoes";
@@ -71,6 +72,7 @@ function AppRoutes() {
       <Route path="/socios" element={<Navigate to="/clientes" replace />} />
       <Route path="/distribuicoes" element={<ProtectedRoute><DistribuicoesPage /></ProtectedRoute>} />
       <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
+      <Route path="/distribuicoes/editar/:id" element={<ProtectedRoute><EditarDistribuicaoPage /></ProtectedRoute>} />
       <Route path="/alertas" element={<ProtectedRoute><AlertasRoute /></ProtectedRoute>} />
       <Route path="/notificacoes" element={<ProtectedRoute><NotificacoesPage /></ProtectedRoute>} />
       <Route path="/pendencias" element={<ProtectedRoute><PendenciasPage /></ProtectedRoute>} />

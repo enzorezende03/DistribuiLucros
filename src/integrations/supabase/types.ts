@@ -550,8 +550,6 @@ export type Database = {
       status_cliente: "ativo" | "suspenso"
       status_distribuicao:
         | "ENVIADA_AO_CONTADOR"
-        | "RECEBIDA"
-        | "EM_VALIDACAO"
         | "APROVADA"
         | "AJUSTE_SOLICITADO"
         | "CANCELADA"
@@ -689,8 +687,6 @@ export const Constants = {
       status_cliente: ["ativo", "suspenso"],
       status_distribuicao: [
         "ENVIADA_AO_CONTADOR",
-        "RECEBIDA",
-        "EM_VALIDACAO",
         "APROVADA",
         "AJUSTE_SOLICITADO",
         "CANCELADA",
