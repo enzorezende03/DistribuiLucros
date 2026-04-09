@@ -202,6 +202,21 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             )}
           </CardContent>
         </Card>
+
+        {cliente?.ata_registrada && (
+          <Card className="stat-card">
+            <div className="stat-card-accent bg-emerald-500" />
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Saldo Lucros Acumulados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="money-value-lg">{breakableCurrency(cliente.saldo_lucros_acumulados)}</p>
+              <p className="text-xs text-muted-foreground mt-1">Ata Registrada</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Dialog open={totalMesDialogOpen} onOpenChange={setTotalMesDialogOpen}>

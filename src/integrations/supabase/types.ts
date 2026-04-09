@@ -284,6 +284,60 @@ export type Database = {
           },
         ]
       }
+      movimentacoes_lucros: {
+        Row: {
+          cliente_id: string
+          competencia: string | null
+          created_at: string
+          descricao: string
+          distribuicao_id: string | null
+          id: string
+          saldo_anterior: number
+          saldo_posterior: number
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          cliente_id: string
+          competencia?: string | null
+          created_at?: string
+          descricao: string
+          distribuicao_id?: string | null
+          id?: string
+          saldo_anterior: number
+          saldo_posterior: number
+          tipo: string
+          valor: number
+        }
+        Update: {
+          cliente_id?: string
+          competencia?: string | null
+          created_at?: string
+          descricao?: string
+          distribuicao_id?: string | null
+          id?: string
+          saldo_anterior?: number
+          saldo_posterior?: number
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacoes_lucros_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_lucros_distribuicao_id_fkey"
+            columns: ["distribuicao_id"]
+            isOneToOne: false
+            referencedRelation: "distribuicoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes: {
         Row: {
           cliente_id: string
