@@ -5,10 +5,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Building2, ShieldCheck, ArrowLeft } from 'lucide-react';
 import logo2m from '@/assets/logo-2m.png';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,8 +21,10 @@ const formatCNPJ = (value: string) => {
     .replace(/(\d{4})(\d)/, '$1-$2');
 };
 
+type LoginMode = 'select' | 'cliente' | 'admin';
+
 export default function LoginPage() {
-  const [tab, setTab] = useState<string>('cliente');
+  const [mode, setMode] = useState<LoginMode>('select');
   // Cliente fields
   const [cnpj, setCnpj] = useState('');
   const [primeiroAcesso, setPrimeiroAcesso] = useState(true);
@@ -103,23 +104,69 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-primary p-4">
-      <Card className="w-full max-w-md animate-fade-in-up">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <img src={logo2m} alt="2M Contabilidade" className="h-20 object-contain" />
+      <div className="w-full max-w-md animate-fade-in-up">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img src={logo2m} alt="2M Contabilidade" className="h-20 object-contain" />
+        </div>
+
+        {mode === 'select' && (
+          <div className="space-y-4">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-primary-foreground">{t('login.title')}</h1>
+              <p className="text-primary-foreground/70 mt-1">Selecione o tipo de acesso</p>
+            </div>
+
+            {/* Client access - prominent */}
+            <Card
+              className="cursor-pointer border-2 border-transparent hover:border-accent transition-all hover:shadow-lg"
+              onClick={() => setMode('cliente')}
+            >
+              <CardContent className="flex items-center gap-4 p-6">
+                <div className="h-14 w-14 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                  <Building2 className="h-7 w-7 text-accent" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold">Acesso Cliente</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Entre com o CNPJ da sua empresa
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Admin access - subtle */}
+            <button
+              className="w-full text-center text-sm text-primary-foreground/60 hover:text-primary-foreground/90 transition-colors py-2"
+              onClick={() => setMode('admin')}
+            >
+              <ShieldCheck className="h-4 w-4 inline mr-1.5 -mt-0.5" />
+              Acesso Administrativo
+            </button>
           </div>
-          <CardTitle className="text-2xl">{t('login.title')}</CardTitle>
-          <CardDescription>{t('login.subtitle')}</CardDescription>
-        </CardHeader>
+        )}
 
-        <CardContent>
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="cliente">Cliente</TabsTrigger>
-              <TabsTrigger value="admin">Administrador</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="cliente">
+        {mode === 'cliente' && (
+          <Card>
+            <CardHeader>
+              <button
+                onClick={() => setMode('select')}
+                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2 -ml-1"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                  <Building2 className="h-5 w-5 text-accent" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Acesso Cliente</CardTitle>
+                  <CardDescription>Entre com o CNPJ da sua empresa</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
               <form onSubmit={handleClienteSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="cnpj">CNPJ</Label>
@@ -131,6 +178,7 @@ export default function LoginPage() {
                     onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
                     required
                     disabled={loading}
+                    autoFocus
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -155,9 +203,31 @@ export default function LoginPage() {
                   {t('login.submit')}
                 </Button>
               </form>
-            </TabsContent>
+            </CardContent>
+          </Card>
+        )}
 
-            <TabsContent value="admin">
+        {mode === 'admin' && (
+          <Card>
+            <CardHeader>
+              <button
+                onClick={() => setMode('select')}
+                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2 -ml-1"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Acesso Administrativo</CardTitle>
+                  <CardDescription>Restrito à equipe interna</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
               <form onSubmit={handleAdminSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="admin-email">E-mail</Label>
@@ -169,6 +239,7 @@ export default function LoginPage() {
                     onChange={(e) => setAdminEmail(e.target.value)}
                     required
                     disabled={loading}
+                    autoFocus
                   />
                 </div>
                 <div className="space-y-2">
@@ -188,17 +259,10 @@ export default function LoginPage() {
                   {t('login.submit')}
                 </Button>
               </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-
-        <CardFooter className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground text-center">
-            {t('login.noAccount')}{' '}
-            <Link to="/register" className="text-primary hover:underline">{t('login.register')}</Link>
-          </p>
-        </CardFooter>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
