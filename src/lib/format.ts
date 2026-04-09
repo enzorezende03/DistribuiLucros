@@ -56,7 +56,7 @@ export function getCurrentCompetencia(): string {
 }
 
 /**
- * Returns all competencias (YYYY-MM) from startDate up to (but not including) the current month.
+ * Returns all competencias (YYYY-MM) from startDate up to AND INCLUDING the current month.
  * Used to determine which months a client should have declared distributions.
  */
 export function getCompetenciasSince(startDate: string): string[] {
@@ -68,11 +68,11 @@ export function getCompetenciasSince(startDate: string): string[] {
   let year = start.getFullYear();
   let month = start.getMonth(); // 0-indexed
   
-  // Current month should NOT be included (only past months need declaration)
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
   
-  while (year < currentYear || (year === currentYear && month < currentMonth)) {
+  // Include current month as well
+  while (year < currentYear || (year === currentYear && month <= currentMonth)) {
     competencias.push(`${year}-${String(month + 1).padStart(2, '0')}`);
     month++;
     if (month > 11) {
