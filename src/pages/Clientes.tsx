@@ -233,6 +233,50 @@ export default function ClientesPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Archive Dialog */}
+      <Dialog open={!!archiveCliente} onOpenChange={() => { setArchiveCliente(null); setArchiveMotivo(''); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Arquivar Cliente</DialogTitle>
+            <DialogDescription>
+              Deseja arquivar o cliente <strong>{archiveCliente?.razao_social}</strong>? Informe o motivo do arquivamento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="motivo-arquivamento">Motivo *</Label>
+            <Textarea
+              id="motivo-arquivamento"
+              placeholder="Informe o motivo do arquivamento..."
+              value={archiveMotivo}
+              onChange={(e) => setArchiveMotivo(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setArchiveCliente(null); setArchiveMotivo(''); }}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!archiveCliente || !archiveMotivo.trim()) return;
+                await updateCliente.mutateAsync({
+                  id: archiveCliente.id,
+                  status: 'arquivado' as StatusCliente,
+                  motivo_arquivamento: archiveMotivo.trim(),
+                });
+                setArchiveCliente(null);
+                setArchiveMotivo('');
+              }}
+              disabled={!archiveMotivo.trim() || updateCliente.isPending}
+            >
+              {updateCliente.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Arquivar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <ImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
     </SidebarLayout>
   );
