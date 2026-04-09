@@ -32,6 +32,7 @@ export interface CreateClienteData {
   tag?: TagCliente;
   ata_registrada?: boolean;
   saldo_lucros_acumulados?: number;
+  motivo_arquivamento?: string;
   socios?: { nome: string; cpf: string; percentual?: number }[];
 }
 
