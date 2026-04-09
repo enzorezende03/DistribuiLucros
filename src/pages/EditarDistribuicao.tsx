@@ -172,7 +172,7 @@ export default function EditarDistribuicaoPage() {
     }
   };
 
-  if (loadingDist) {
+  if (loadingDist || shouldRedirect) {
     return (
       <SidebarLayout>
         <div className="flex items-center justify-center py-20">
