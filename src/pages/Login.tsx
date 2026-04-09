@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Building2, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import logo2m from '@/assets/logo-2m.png';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,7 +86,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex">
       {/* Left branding panel */}
       <div className="hidden lg:flex lg:w-[55%] bg-gradient-primary relative overflow-hidden flex-col items-center justify-center p-12">
-        {/* Decorative shapes */}
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-white/5" />
           <div className="absolute bottom-[-15%] left-[-5%] w-[400px] h-[400px] rounded-full bg-white/5" />
@@ -119,19 +118,7 @@ export default function LoginPage() {
           {mode === 'cliente' && (
             <div className="space-y-6">
               <div>
-                <button
-                  onClick={() => setMode('select')}
-                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Voltar
-                </button>
-                <div className="flex items-center gap-3 mb-1">
-                  <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                    <Building2 className="h-5 w-5 text-accent" />
-                  </div>
-                  <h2 className="text-xl font-bold text-foreground">Acesso Cliente</h2>
-                </div>
+                <h2 className="text-2xl font-bold text-foreground">Acesso Cliente</h2>
                 <p className="text-muted-foreground text-sm mt-1">Entre com o CNPJ da sua empresa</p>
               </div>
 
@@ -172,6 +159,15 @@ export default function LoginPage() {
                   {t('login.submit')}
                 </Button>
               </form>
+
+              <div className="text-center pt-2">
+                <button
+                  onClick={() => setMode('admin')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Acesso administrativo
+                </button>
+              </div>
             </div>
           )}
 
@@ -179,18 +175,13 @@ export default function LoginPage() {
             <div className="space-y-6">
               <div>
                 <button
-                  onClick={() => setMode('select')}
+                  onClick={() => setMode('cliente')}
                   className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Voltar
                 </button>
-                <div className="flex items-center gap-3 mb-1">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="h-5 w-5 text-primary" />
-                  </div>
-                  <h2 className="text-xl font-bold text-foreground">Acesso Administrativo</h2>
-                </div>
+                <h2 className="text-xl font-bold text-foreground">Acesso Administrativo</h2>
                 <p className="text-muted-foreground text-sm mt-1">Restrito à equipe interna</p>
               </div>
 
