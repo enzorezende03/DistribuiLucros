@@ -1046,6 +1046,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       telefone: '',
       status: 'ativo',
       tag: '2M_CONTABILIDADE',
+      ata_registrada: false,
+      saldo_lucros_acumulados: 0,
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
     setCriarAcesso(false);
