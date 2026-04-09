@@ -55,6 +55,35 @@ export function getCurrentCompetencia(): string {
   return `${year}-${month}`;
 }
 
+/**
+ * Returns all competencias (YYYY-MM) from startDate up to (but not including) the current month.
+ * Used to determine which months a client should have declared distributions.
+ */
+export function getCompetenciasSince(startDate: string): string[] {
+  const start = new Date(startDate);
+  const now = new Date();
+  const competencias: string[] = [];
+  
+  // Start from the month of registration
+  let year = start.getFullYear();
+  let month = start.getMonth(); // 0-indexed
+  
+  // Current month should NOT be included (only past months need declaration)
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  
+  while (year < currentYear || (year === currentYear && month < currentMonth)) {
+    competencias.push(`${year}-${String(month + 1).padStart(2, '0')}`);
+    month++;
+    if (month > 11) {
+      month = 0;
+      year++;
+    }
+  }
+  
+  return competencias;
+}
+
 export function maskCPF(value: string): string {
   return value
     .replace(/\D/g, '')
