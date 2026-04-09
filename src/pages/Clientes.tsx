@@ -1138,6 +1138,19 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
     let createdCliente: any;
     if (isEditing) {
+      // Upload ata file if provided
+      if (ataFile) {
+        const ext = ataFile.name.split('.').pop();
+        const filePath = `${cliente.id}/ata.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('atas').upload(filePath, ataFile, { upsert: true });
+        if (uploadErr) {
+          toast.error('Erro ao enviar ata: ' + uploadErr.message);
+          return;
+        }
+        const { data: urlData } = supabase.storage.from('atas').getPublicUrl(filePath);
+        (data as any).ata_url = urlData.publicUrl;
+      }
+
       const oldSaldo = Number((cliente as any).saldo_lucros_acumulados) || 0;
       const newSaldo = Number(data.saldo_lucros_acumulados) || 0;
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
