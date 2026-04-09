@@ -1001,6 +1001,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
   const updateCliente = useUpdateCliente();
   const isEditing = !!cliente;
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
+  const [ataFile, setAtaFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState<CreateClienteData>({
     razao_social: '',
