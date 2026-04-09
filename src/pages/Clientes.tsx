@@ -271,7 +271,7 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
                 }>
                   {cliente.tag === '2M_SAUDE' ? '2M Saúde' : '2M Contabilidade'}
                 </Badge>
-                {(cliente as any).ata_registrada && (
+                {cliente.ata_registrada && (
                   <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400">
                     Ata Registrada
                   </Badge>
@@ -1069,8 +1069,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         telefone: cliente.telefone || '',
         status: cliente.status,
         tag: cliente.tag || '2M_CONTABILIDADE',
-        ata_registrada: (cliente as any).ata_registrada || false,
-        saldo_lucros_acumulados: (cliente as any).saldo_lucros_acumulados || 0,
+        ata_registrada: cliente.ata_registrada || false,
+        saldo_lucros_acumulados: cliente.saldo_lucros_acumulados || 0,
       });
     } else if (open) {
       setFormData({
@@ -1097,8 +1097,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       telefone: cliente.telefone || '',
       status: cliente.status,
       tag: cliente.tag || '2M_CONTABILIDADE',
-      ata_registrada: (cliente as any).ata_registrada || false,
-      saldo_lucros_acumulados: (cliente as any).saldo_lucros_acumulados || 0,
+      ata_registrada: cliente.ata_registrada || false,
+      saldo_lucros_acumulados: cliente.saldo_lucros_acumulados || 0,
     });
   }
 
@@ -1151,7 +1151,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         (data as any).ata_url = urlData.publicUrl;
       }
 
-      const oldSaldo = Number((cliente as any).saldo_lucros_acumulados) || 0;
+      const oldSaldo = Number(cliente.saldo_lucros_acumulados) || 0;
       const newSaldo = Number(data.saldo_lucros_acumulados) || 0;
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
 
@@ -1375,11 +1375,11 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                 </div>
                 <div className="space-y-2">
                   <Label>Anexar Ata</Label>
-                  {isEditing && (cliente as any).ata_url && !ataFile && (
+                  {isEditing && cliente.ata_url && !ataFile && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                       <FileText className="h-4 w-4 text-emerald-600" />
                       <a
-                        href={(cliente as any).ata_url}
+                        href={cliente.ata_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:underline flex items-center gap-1"
@@ -1394,7 +1394,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                       className="flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background text-sm cursor-pointer hover:bg-muted transition-colors"
                     >
                       <Upload className="h-4 w-4" />
-                      {ataFile ? ataFile.name : (isEditing && (cliente as any).ata_url ? 'Substituir arquivo' : 'Selecionar arquivo')}
+                      {ataFile ? ataFile.name : (isEditing && cliente.ata_url ? 'Substituir arquivo' : 'Selecionar arquivo')}
                     </label>
                     <input
                       id="ata-file"
