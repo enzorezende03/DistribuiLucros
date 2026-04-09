@@ -20,10 +20,10 @@ const formatCNPJ = (value: string) => {
     .replace(/(\d{4})(\d)/, '$1-$2');
 };
 
-type LoginMode = 'select' | 'cliente' | 'admin';
+type LoginMode = 'cliente' | 'admin';
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<LoginMode>('select');
+  const [mode, setMode] = useState<LoginMode>('cliente');
   const [cnpj, setCnpj] = useState('');
   const [primeiroAcesso, setPrimeiroAcesso] = useState(true);
   const [clientePassword, setClientePassword] = useState('');
