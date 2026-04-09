@@ -17,6 +17,7 @@ export interface Cliente {
   ata_registrada: boolean;
   ata_url: string | null;
   saldo_lucros_acumulados: number;
+  motivo_arquivamento: string | null;
   created_at: string;
   updated_at: string;
 }
