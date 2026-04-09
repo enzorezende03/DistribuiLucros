@@ -381,6 +381,58 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
       />
 
       <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
+        {/* Pending months (information not provided) */}
+        <Card className={cn(olderPendingMonths.length > 0 && 'border-warning/30')}>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Clock className="h-5 w-5 text-warning" />
+              Pendências de Informação
+            </CardTitle>
+            {olderPendingMonths.length > 0 && (
+              <Badge variant="secondary">{olderPendingMonths.length}</Badge>
+            )}
+          </CardHeader>
+          <CardContent>
+            {olderPendingMonths.length > 0 ? (
+              <div className="space-y-2">
+                {olderPendingMonths.slice(0, 6).map((comp) => (
+                  <div key={comp} className="flex items-center justify-between p-3 rounded-lg border bg-warning/5">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-warning" />
+                      <span className="text-sm font-medium">{formatCompetencia(comp)}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 text-xs"
+                      onClick={() => handleNaoHouve(comp)}
+                      disabled={declarandoCompetencia === comp}
+                    >
+                      {declarandoCompetencia === comp ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <XCircle className="h-3 w-3" />
+                      )}
+                      Não houve
+                    </Button>
+                  </div>
+                ))}
+                {olderPendingMonths.length > 6 && (
+                  <p className="text-xs text-muted-foreground text-center pt-1">
+                    + {olderPendingMonths.length - 6} meses pendentes
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="empty-state py-8">
+                <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
+                <p className="text-muted-foreground">Nenhuma pendência de informação</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Active 50k alerts */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -393,33 +445,24 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : alertas && alertas.length > 0 ? (
+            ) : alertas && alertas.filter(a => a.tipo === 'ALERTA_50K').length > 0 ? (
               <div className="space-y-3">
-                {alertas.slice(0, 5).map((alerta) => {
-                  const totalMatch = alerta.descricao.match(/Total:\s*R\$\s*([\d.,]+)/);
-                  const totalValor = totalMatch ? parseFloat(totalMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
-                  const imposto = alerta.tipo === 'ALERTA_50K' && totalValor > 0 ? totalValor * 0.10 : 0;
-
-                  return (
+                {alertas.filter(a => a.tipo === 'ALERTA_50K').slice(0, 5).map((alerta) => (
                     <div
                       key={alerta.id}
-                      className={cn(
-                        'p-4 rounded-lg border',
-                        alerta.tipo === 'ALERTA_50K' ? 'alert-50k' : 'alert-pendente'
-                      )}
+                      className={cn('p-4 rounded-lg border', 'alert-50k')}
                     >
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="font-medium">{alerta.socio?.nome || cliente?.razao_social}</p>
                           <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
                         </div>
-                        <Badge variant={alerta.tipo === 'ALERTA_50K' ? 'destructive' : 'secondary'}>
-                          {alerta.tipo === 'ALERTA_50K' ? t('alerts.value50k') : t('common.pending')}
+                        <Badge variant="destructive">
+                          {t('alerts.value50k')}
                         </Badge>
                       </div>
                     </div>
-                  );
-                })}
+                ))}
               </div>
             ) : (
               <div className="empty-state py-8">
