@@ -1138,7 +1138,26 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
     let createdCliente: any;
     if (isEditing) {
+      const oldSaldo = Number((cliente as any).saldo_lucros_acumulados) || 0;
+      const newSaldo = Number(data.saldo_lucros_acumulados) || 0;
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
+
+      // Register movement if saldo changed
+      if (data.ata_registrada && newSaldo !== oldSaldo) {
+        const diff = newSaldo - oldSaldo;
+        try {
+          await supabase.from('movimentacoes_lucros').insert({
+            cliente_id: cliente.id,
+            tipo: diff > 0 ? 'ENTRADA' : 'SAIDA',
+            valor: Math.abs(diff),
+            saldo_anterior: oldSaldo,
+            saldo_posterior: newSaldo,
+            descricao: diff > 0 ? 'Ajuste de saldo - Entrada manual' : 'Ajuste de saldo - Saída manual',
+          });
+        } catch (e) {
+          console.error('Erro ao registrar movimentação:', e);
+        }
+      }
     } else {
       const validSocios = socios
         .filter((s) => s.nome.trim())
