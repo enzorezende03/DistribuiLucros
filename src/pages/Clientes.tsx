@@ -71,6 +71,7 @@ import {
   X,
   Ban,
   Power,
+  TrendingUp,
 } from 'lucide-react';
 import {
   DropdownMenu,
