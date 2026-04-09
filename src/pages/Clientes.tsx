@@ -265,6 +265,11 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
                 }>
                   {cliente.tag === '2M_SAUDE' ? '2M Saúde' : '2M Contabilidade'}
                 </Badge>
+                {(cliente as any).ata_registrada && (
+                  <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400">
+                    Ata Registrada
+                  </Badge>
+                )}
               </div>
             </button>
           </CollapsibleTrigger>
