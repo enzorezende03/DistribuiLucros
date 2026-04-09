@@ -1231,6 +1231,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       saldo_lucros_acumulados: 0,
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
+    setAtaFile(null);
   };
 
   const isPending = createCliente.isPending || updateCliente.isPending;
