@@ -109,8 +109,11 @@ export default function ClientesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
+  const [archiveCliente, setArchiveCliente] = useState<Cliente | null>(null);
+  const [archiveMotivo, setArchiveMotivo] = useState('');
   const [expandedCliente, setExpandedCliente] = useState<string | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const updateCliente = useUpdateCliente();
 
   const filteredClientes = clientes?.filter(
     (cliente) =>
