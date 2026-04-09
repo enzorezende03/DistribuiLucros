@@ -303,6 +303,9 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: C
         <CollapsibleContent>
           <div className="border-t px-4 pb-4 pt-3 space-y-6">
             <SociosSection clienteId={cliente.id} />
+            {cliente.ata_registrada && (
+              <LucrosAcumuladosSection clienteId={cliente.id} saldoAtual={cliente.saldo_lucros_acumulados} />
+            )}
             <UsuariosVinculadosSection clienteId={cliente.id} />
           </div>
         </CollapsibleContent>
