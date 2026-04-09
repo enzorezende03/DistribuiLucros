@@ -14,6 +14,8 @@ export interface Cliente {
   telefone: string | null;
   status: StatusCliente;
   tag: TagCliente;
+  ata_registrada: boolean;
+  saldo_lucros_acumulados: number;
   created_at: string;
   updated_at: string;
 }
