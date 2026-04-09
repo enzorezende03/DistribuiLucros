@@ -77,11 +77,11 @@ export default function EditarDistribuicaoPage() {
     }
   }, [distribuicao, initialized]);
 
-  // Guard: only allow editing ENVIADA_AO_CONTADOR
-  if (distribuicao && distribuicao.status !== 'ENVIADA_AO_CONTADOR') {
-    navigate('/distribuicoes');
-    return null;
-  }
+  const shouldRedirect = distribuicao && distribuicao.status !== 'ENVIADA_AO_CONTADOR';
+
+  useEffect(() => {
+    if (shouldRedirect) navigate('/distribuicoes');
+  }, [shouldRedirect, navigate]);
 
   const getCompetenciaFromDate = (dateStr: string) => {
     const date = new Date(dateStr + 'T00:00:00');
