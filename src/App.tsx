@@ -21,6 +21,7 @@ import NotificacoesPage from "@/pages/Notificacoes";
 import PendenciasPage from "@/pages/Pendencias";
 import SimulacaoPage from "@/pages/Simulacao";
 import AdminUsuariosPage from "@/pages/AdminUsuarios";
+import LucrosAcumuladosPage from "@/pages/LucrosAcumulados";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -74,6 +75,7 @@ function AppRoutes() {
       <Route path="/notificacoes" element={<ProtectedRoute><NotificacoesPage /></ProtectedRoute>} />
       <Route path="/pendencias" element={<ProtectedRoute><PendenciasPage /></ProtectedRoute>} />
       <Route path="/simulacao" element={<ProtectedRoute><SimulacaoPage /></ProtectedRoute>} />
+      <Route path="/lucros-acumulados" element={<ProtectedRoute><LucrosAcumuladosPage /></ProtectedRoute>} />
 
       {/* Redirect root */}
       <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
