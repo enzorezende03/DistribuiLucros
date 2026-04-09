@@ -1170,7 +1170,36 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             </Select>
           </div>
 
-          {!isEditing && (
+          <div className="space-y-3 pt-2 border-t">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">Ata Registrada</Label>
+              <Switch
+                checked={formData.ata_registrada || false}
+                onCheckedChange={(v) => setFormData({ ...formData, ata_registrada: v })}
+                disabled={isPending}
+              />
+            </div>
+            {formData.ata_registrada && (
+              <div className="space-y-2">
+                <Label htmlFor="saldo_lucros">Saldo de Lucros Acumulados (R$)</Label>
+                <Input
+                  id="saldo_lucros"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.saldo_lucros_acumulados || 0}
+                  onChange={(e) => setFormData({ ...formData, saldo_lucros_acumulados: parseFloat(e.target.value) || 0 })}
+                  disabled={isPending}
+                  placeholder="0,00"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Saldo disponível para distribuição sem incidência de IR. Este valor será controlado a cada distribuição registrada.
+                </p>
+              </div>
+            )}
+          </div>
+
+
             <div className="space-y-3 pt-2 border-t">
               <div className="flex items-center justify-between">
                 <Label className="text-base font-semibold flex items-center gap-2">
