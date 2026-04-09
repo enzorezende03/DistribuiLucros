@@ -116,43 +116,6 @@ export default function LoginPage() {
             <img src={logo2m} alt="2M Contabilidade" className="h-16 object-contain" />
           </div>
 
-          {mode === 'select' && (
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-foreground">Bem-vindo</h2>
-                <p className="text-muted-foreground">Selecione o tipo de acesso para continuar</p>
-              </div>
-
-              <div className="space-y-3">
-                <button
-                  onClick={() => setMode('cliente')}
-                  className="w-full flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card hover:border-accent hover:shadow-md transition-all text-left group"
-                >
-                  <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 group-hover:bg-accent/20 transition-colors">
-                    <Building2 className="h-6 w-6 text-accent" />
-                  </div>
-                  <div>
-                    <span className="text-base font-semibold text-foreground block">Acesso Cliente</span>
-                    <span className="text-sm text-muted-foreground">Entre com o CNPJ da sua empresa</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setMode('admin')}
-                  className="w-full flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card hover:border-primary/40 hover:shadow-md transition-all text-left group"
-                >
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                    <ShieldCheck className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <span className="text-base font-semibold text-foreground block">Acesso Administrativo</span>
-                    <span className="text-sm text-muted-foreground">Restrito à equipe interna</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
-
           {mode === 'cliente' && (
             <div className="space-y-6">
               <div>
