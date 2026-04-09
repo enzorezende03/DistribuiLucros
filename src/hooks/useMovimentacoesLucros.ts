@@ -27,7 +27,7 @@ export function useMovimentacoesLucros(clienteId: string | null) {
         .from('movimentacoes_lucros')
         .select('*, distribuicao:distribuicoes(status)')
         .eq('cliente_id', clienteId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       return (data as MovimentacaoLucro[]).filter(

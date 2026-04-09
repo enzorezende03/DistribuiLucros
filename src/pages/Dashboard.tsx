@@ -95,8 +95,9 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior);
   const mesResolvido = hasConfirmacao || hasDistribuicao;
 
-  const totalAno = distribuicoes?.reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
-  const totalMes = distribuicoes?.filter(d => d.competencia === competenciaAtual)
+  const distribuicoesAtivas = distribuicoes?.filter(d => d.status !== 'CANCELADA');
+  const totalAno = distribuicoesAtivas?.reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
+  const totalMes = distribuicoesAtivas?.filter(d => d.competencia === competenciaAtual)
     .reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
 
   const handleNaoHouve = async () => {
