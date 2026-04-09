@@ -569,18 +569,18 @@ function usePendenciasDashboard(clienteId?: string | null) {
   });
 }
 
-function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, markAllLidas }: {
+function PendenciasUnificadasCard({ clienteId, olderPendingMonths, declarandoCompetencia, handleNaoHouve, notificacoes, markLida, markAllLidas }: {
   clienteId: string | null;
+  olderPendingMonths: string[];
+  declarandoCompetencia: string | null;
+  handleNaoHouve: (comp: string) => void;
   notificacoes: any[] | undefined;
   markLida: any;
   markAllLidas: any;
 }) {
   const { t } = useLanguage();
-  const { data: pendencias } = usePendenciasDashboard(clienteId);
-  const navigate = useNavigate();
+  const { data: pendenciasAjuste } = usePendenciasDashboard(clienteId);
   const queryClient = useQueryClient();
-  const hasNotificacoes = notificacoes && notificacoes.length > 0;
-  const hasPendencias = pendencias && pendencias.length > 0;
 
   const markPendenciaLida = useMutation({
     mutationFn: async (id: string) => {
@@ -596,120 +596,82 @@ function NotificacoesPendenciasSection({ clienteId, notificacoes, markLida, mark
     },
   });
 
-  const markAllPendenciasLidas = useMutation({
-    mutationFn: async () => {
-      if (!pendencias) return;
-      const ids = pendencias.map((p: any) => p.id);
-      const { error } = await supabase
-        .from('distribuicao_historico')
-        .update({ lida: true })
-        .in('id', ids);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pendencias-dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['pendencias'] });
-    },
-  });
+  const totalPendencias = olderPendingMonths.length + (pendenciasAjuste?.length || 0);
 
   return (
-    <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
-      <Card className="border-info/50 bg-info/5">
-        <CardHeader className="flex flex-row items-center justify-between pb-3 gap-2">
-          <CardTitle className="text-base md:text-lg flex items-center gap-2 shrink-0">
-            <Bell className="h-5 w-5 text-info" />
-            <span className="hidden sm:inline">{t('dashboard.notifications')}</span>
-            <span className="sm:hidden">{t('dashboard.notif')}</span>
-            ({notificacoes?.length || 0})
-          </CardTitle>
-          {hasNotificacoes && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs shrink-0"
-              onClick={() => clienteId && markAllLidas.mutate(clienteId)}
-              disabled={markAllLidas.isPending}
-            >
-              <span className="hidden sm:inline">{t('dashboard.markAllRead')}</span>
-              <span className="sm:hidden">{t('dashboard.markRead')}</span>
-            </Button>
+    <Card className={cn(totalPendencias > 0 && 'border-warning/30 bg-warning/5')}>
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base md:text-lg flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-warning" />
+          Pendências
+          {totalPendencias > 0 && (
+            <Badge variant="secondary">{totalPendencias}</Badge>
           )}
-        </CardHeader>
-        <CardContent>
-          {hasNotificacoes ? (
-            <div className="space-y-2">
-              {notificacoes!.slice(0, 5).map((n) => (
-                <div key={n.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {totalPendencias > 0 ? (
+          <div className="space-y-2">
+            {/* Meses sem declaração */}
+            {olderPendingMonths.slice(0, 6).map((comp) => (
+              <div key={comp} className="flex items-center justify-between p-3 rounded-lg border bg-background">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-warning" />
                   <div>
-                    <p className="font-medium text-sm">{n.titulo}</p>
-                    <p className="text-xs text-muted-foreground">{n.mensagem}</p>
+                    <p className="font-medium text-sm">{formatCompetencia(comp)}</p>
+                    <p className="text-xs text-muted-foreground">Sem informação de distribuição</p>
                   </div>
-                  <Button variant="ghost" size="icon" className="shrink-0" onClick={() => markLida.mutate(n.id)}>
-                    <X className="h-4 w-4" />
-                  </Button>
                 </div>
-              ))}
-              {notificacoes!.length > 5 && (
-                <Button variant="link" size="sm" className="w-full" onClick={() => navigate('/notificacoes')}>
-                  {t('dashboard.viewAll2')} ({notificacoes!.length})
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 text-xs shrink-0"
+                  onClick={() => handleNaoHouve(comp)}
+                  disabled={declarandoCompetencia === comp}
+                >
+                  {declarandoCompetencia === comp ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <XCircle className="h-3 w-3" />
+                  )}
+                  Não houve
                 </Button>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">{t('dashboard.noNotificationsPending')}</p>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+            {olderPendingMonths.length > 6 && (
+              <p className="text-xs text-muted-foreground text-center">
+                + {olderPendingMonths.length - 6} meses pendentes
+              </p>
+            )}
 
-      <Card className="border-warning/30 bg-warning/5">
-        <CardHeader className="flex flex-row items-center justify-between pb-3 gap-2">
-          <CardTitle className="text-base md:text-lg flex items-center gap-2 shrink-0">
-            <AlertCircle className="h-5 w-5 text-warning" />
-            <span className="hidden sm:inline">{t('dashboard.pendencias')}</span>
-            <span className="sm:hidden">{t('dashboard.pend')}</span>
-            ({pendencias?.length || 0})
-          </CardTitle>
-          {hasPendencias && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs shrink-0"
-              onClick={() => markAllPendenciasLidas.mutate()}
-              disabled={markAllPendenciasLidas.isPending}
-            >
-              <span className="hidden sm:inline">{t('dashboard.markAllRead')}</span>
-              <span className="sm:hidden">{t('dashboard.markRead')}</span>
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          {hasPendencias ? (
-            <div className="space-y-2">
-              {pendencias!.slice(0, 5).map((p: any) => (
-                <div key={p.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm">{t('dashboard.adjustRequested')}</p>
-                      {p.distribuicao?.recibo_numero && (
-                        <Badge variant="outline" className="text-xs">{p.distribuicao.recibo_numero}</Badge>
-                      )}
-                    </div>
-                    {p.observacao && (
-                      <p className="text-xs text-muted-foreground mt-1 italic">{p.observacao}</p>
+            {/* Ajustes solicitados */}
+            {pendenciasAjuste?.map((p: any) => (
+              <div key={p.id} className="flex items-start justify-between p-3 rounded-lg border bg-background">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">{t('dashboard.adjustRequested')}</p>
+                    {p.distribuicao?.recibo_numero && (
+                      <Badge variant="outline" className="text-xs">{p.distribuicao.recibo_numero}</Badge>
                     )}
                   </div>
-                  <Button variant="ghost" size="icon" className="shrink-0" onClick={() => markPendenciaLida.mutate(p.id)}>
-                    <X className="h-4 w-4" />
-                  </Button>
+                  {p.observacao && (
+                    <p className="text-xs text-muted-foreground mt-1 italic">{p.observacao}</p>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">{t('dashboard.noPendencias')}</p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                <Button variant="ghost" size="icon" className="shrink-0" onClick={() => markPendenciaLida.mutate(p.id)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state py-8">
+            <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
+            <p className="text-muted-foreground">Nenhuma pendência</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
