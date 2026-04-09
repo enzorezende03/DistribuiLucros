@@ -13,6 +13,9 @@ export interface MovimentacaoLucro {
   distribuicao_id: string | null;
   competencia: string | null;
   created_at: string;
+  distribuicao?: {
+    status: string;
+  } | null;
 }
 
 export function useMovimentacoesLucros(clienteId: string | null) {
@@ -22,12 +25,14 @@ export function useMovimentacoesLucros(clienteId: string | null) {
       if (!clienteId) return [];
       const { data, error } = await supabase
         .from('movimentacoes_lucros')
-        .select('*')
+        .select('*, distribuicao:distribuicoes(status)')
         .eq('cliente_id', clienteId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as MovimentacaoLucro[];
+      return (data as MovimentacaoLucro[]).filter(
+        (mov) => !mov.distribuicao || mov.distribuicao.status !== 'CANCELADA'
+      );
     },
     enabled: !!clienteId,
   });
