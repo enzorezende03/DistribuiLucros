@@ -28,6 +28,8 @@ export interface CreateClienteData {
   telefone?: string;
   status?: StatusCliente;
   tag?: TagCliente;
+  ata_registrada?: boolean;
+  saldo_lucros_acumulados?: number;
   socios?: { nome: string; cpf: string; percentual?: number }[];
 }
 
