@@ -331,12 +331,33 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
             </button>
           </CollapsibleTrigger>
           <div className="flex items-center gap-3 shrink-0">
-            <Badge
-              variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
-              className={cliente.status === 'ativo' ? 'bg-success text-success-foreground' : ''}
-            >
-              {cliente.status === 'ativo' ? t('clients.active') : t('clients.suspended')}
-            </Badge>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
+                    className={
+                      cliente.status === 'ativo'
+                        ? 'bg-success text-success-foreground'
+                        : cliente.status === 'arquivado'
+                        ? 'bg-muted text-muted-foreground'
+                        : ''
+                    }
+                  >
+                    {cliente.status === 'ativo'
+                      ? t('clients.active')
+                      : cliente.status === 'arquivado'
+                      ? 'Arquivado'
+                      : t('clients.suspended')}
+                  </Badge>
+                </TooltipTrigger>
+                {cliente.status === 'arquivado' && cliente.motivo_arquivamento && (
+                  <TooltipContent>
+                    <p className="max-w-xs">Motivo: {cliente.motivo_arquivamento}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -348,6 +369,20 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
                   <Pencil className="mr-2 h-4 w-4" />
                   {t('common.edit')}
                 </DropdownMenuItem>
+                {cliente.status !== 'arquivado' ? (
+                  <DropdownMenuItem className="text-amber-600" onClick={onArchive}>
+                    <Archive className="mr-2 h-4 w-4" />
+                    Arquivar
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    className="text-green-600"
+                    onClick={() => updateCliente.mutate({ id: cliente.id, status: 'ativo' as StatusCliente, motivo_arquivamento: '' })}
+                  >
+                    <Power className="mr-2 h-4 w-4" />
+                    Desarquivar
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem className="text-destructive" onClick={onDelete}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t('common.delete')}
