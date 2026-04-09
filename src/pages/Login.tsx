@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Building2, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import logo2m from '@/assets/logo-2m.png';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,10 +20,10 @@ const formatCNPJ = (value: string) => {
     .replace(/(\d{4})(\d)/, '$1-$2');
 };
 
-type LoginMode = 'select' | 'cliente' | 'admin';
+type LoginMode = 'cliente' | 'admin';
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<LoginMode>('select');
+  const [mode, setMode] = useState<LoginMode>('cliente');
   const [cnpj, setCnpj] = useState('');
   const [primeiroAcesso, setPrimeiroAcesso] = useState(true);
   const [clientePassword, setClientePassword] = useState('');
@@ -86,7 +86,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex">
       {/* Left branding panel */}
       <div className="hidden lg:flex lg:w-[55%] bg-gradient-primary relative overflow-hidden flex-col items-center justify-center p-12">
-        {/* Decorative shapes */}
         <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-white/5" />
           <div className="absolute bottom-[-15%] left-[-5%] w-[400px] h-[400px] rounded-full bg-white/5" />
@@ -116,59 +115,10 @@ export default function LoginPage() {
             <img src={logo2m} alt="2M Contabilidade" className="h-16 object-contain" />
           </div>
 
-          {mode === 'select' && (
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-foreground">Bem-vindo</h2>
-                <p className="text-muted-foreground">Selecione o tipo de acesso para continuar</p>
-              </div>
-
-              <div className="space-y-3">
-                <button
-                  onClick={() => setMode('cliente')}
-                  className="w-full flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card hover:border-accent hover:shadow-md transition-all text-left group"
-                >
-                  <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 group-hover:bg-accent/20 transition-colors">
-                    <Building2 className="h-6 w-6 text-accent" />
-                  </div>
-                  <div>
-                    <span className="text-base font-semibold text-foreground block">Acesso Cliente</span>
-                    <span className="text-sm text-muted-foreground">Entre com o CNPJ da sua empresa</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setMode('admin')}
-                  className="w-full flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card hover:border-primary/40 hover:shadow-md transition-all text-left group"
-                >
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                    <ShieldCheck className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <span className="text-base font-semibold text-foreground block">Acesso Administrativo</span>
-                    <span className="text-sm text-muted-foreground">Restrito à equipe interna</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
-
           {mode === 'cliente' && (
             <div className="space-y-6">
               <div>
-                <button
-                  onClick={() => setMode('select')}
-                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Voltar
-                </button>
-                <div className="flex items-center gap-3 mb-1">
-                  <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                    <Building2 className="h-5 w-5 text-accent" />
-                  </div>
-                  <h2 className="text-xl font-bold text-foreground">Acesso Cliente</h2>
-                </div>
+                <h2 className="text-2xl font-bold text-foreground">Acesso Cliente</h2>
                 <p className="text-muted-foreground text-sm mt-1">Entre com o CNPJ da sua empresa</p>
               </div>
 
@@ -209,6 +159,15 @@ export default function LoginPage() {
                   {t('login.submit')}
                 </Button>
               </form>
+
+              <div className="text-center pt-2">
+                <button
+                  onClick={() => setMode('admin')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Acesso administrativo
+                </button>
+              </div>
             </div>
           )}
 
@@ -216,18 +175,13 @@ export default function LoginPage() {
             <div className="space-y-6">
               <div>
                 <button
-                  onClick={() => setMode('select')}
+                  onClick={() => setMode('cliente')}
                   className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Voltar
                 </button>
-                <div className="flex items-center gap-3 mb-1">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="h-5 w-5 text-primary" />
-                  </div>
-                  <h2 className="text-xl font-bold text-foreground">Acesso Administrativo</h2>
-                </div>
+                <h2 className="text-xl font-bold text-foreground">Acesso Administrativo</h2>
                 <p className="text-muted-foreground text-sm mt-1">Restrito à equipe interna</p>
               </div>
 
