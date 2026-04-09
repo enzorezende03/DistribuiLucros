@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useMovimentacoesLucros, useCreateMovimentacao } from '@/hooks/useMovimentacoesLucros';
+import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -479,6 +481,138 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// ─── Lucros Acumulados Section ───────────────────────────────────────────
+
+function LucrosAcumuladosSection({ clienteId, saldoAtual }: { clienteId: string; saldoAtual: number }) {
+  const { data: movimentacoes, isLoading } = useMovimentacoesLucros(clienteId);
+  const createMovimentacao = useCreateMovimentacao();
+  const [showForm, setShowForm] = useState(false);
+  const [tipo, setTipo] = useState<'ENTRADA' | 'SAIDA'>('ENTRADA');
+  const [valor, setValor] = useState('');
+  const [descricao, setDescricao] = useState('');
+
+  const handleSubmit = async () => {
+    if (!valor || !descricao.trim()) return;
+    await createMovimentacao.mutateAsync({
+      cliente_id: clienteId,
+      tipo,
+      valor: Number(valor),
+      descricao: descricao.trim(),
+    });
+    setShowForm(false);
+    setValor('');
+    setDescricao('');
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-semibold flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-emerald-600" />
+          Lucros Acumulados (Ata Registrada)
+        </h4>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-emerald-600">
+            Saldo: {formatCurrency(saldoAtual)}
+          </span>
+          <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            Movimentação
+          </Button>
+        </div>
+      </div>
+
+      {showForm && (
+        <div className="rounded-lg border p-4 space-y-3 bg-muted/30">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <Label>Tipo</Label>
+              <Select value={tipo} onValueChange={(v) => setTipo(v as 'ENTRADA' | 'SAIDA')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ENTRADA">Entrada (Crédito)</SelectItem>
+                  <SelectItem value="SAIDA">Saída (Débito)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Valor (R$)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                placeholder="0,00"
+              />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Input
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                placeholder="Ex: Ajuste de saldo inicial"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancelar</Button>
+            <Button
+              size="sm"
+              onClick={handleSubmit}
+              disabled={!valor || !descricao.trim() || createMovimentacao.isPending}
+            >
+              {createMovimentacao.isPending && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />}
+              Registrar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : movimentacoes && movimentacoes.length > 0 ? (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Saldo</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {movimentacoes.map((mov) => (
+                <TableRow key={mov.id}>
+                  <TableCell className="text-sm">{formatDate(mov.created_at)}</TableCell>
+                  <TableCell>
+                    <Badge variant={mov.tipo === 'ENTRADA' ? 'default' : 'secondary'}
+                      className={mov.tipo === 'ENTRADA' ? 'bg-emerald-600 text-white' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}
+                    >
+                      {mov.tipo === 'ENTRADA' ? '+ Entrada' : '- Saída'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">{mov.descricao}</TableCell>
+                  <TableCell className="text-right font-mono text-sm">{formatCurrency(mov.valor)}</TableCell>
+                  <TableCell className="text-right font-mono text-sm font-semibold">{formatCurrency(mov.saldo_posterior)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground py-2">Nenhuma movimentação registrada.</p>
+      )}
     </div>
   );
 }
