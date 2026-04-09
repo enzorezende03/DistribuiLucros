@@ -89,29 +89,48 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
   const [totalMesDialogOpen, setTotalMesDialogOpen] = useState(false);
   const navigate = useNavigate();
   const [totalAnoDialogOpen, setTotalAnoDialogOpen] = useState(false);
+  const [declarandoCompetencia, setDeclarandoCompetencia] = useState<string | null>(null);
   const competenciaAnterior = getCompetenciaAnterior();
   const competenciaAtual = getCurrentCompetencia();
-  const hasConfirmacao = confirmacoes?.some(c => c.competencia === competenciaAnterior);
-  const hasDistribuicao = distribuicoes?.some(d => d.competencia === competenciaAnterior && d.status !== 'CANCELADA');
-  const mesResolvido = hasConfirmacao || hasDistribuicao;
+
+  // Calculate all pending months since client registration
+  const pendingMonths = (() => {
+    if (!cliente?.created_at) return [];
+    const allMonths = getCompetenciasSince(cliente.created_at);
+    return allMonths.filter(comp => {
+      const hasConf = confirmacoes?.some(c => c.competencia === comp);
+      const hasDist = distribuicoes?.some(d => d.competencia === comp && d.status !== 'CANCELADA');
+      return !hasConf && !hasDist;
+    });
+  })();
+
+  // Most recent pending month goes at the top as the primary alert
+  const mostRecentPending = pendingMonths.length > 0 ? pendingMonths[pendingMonths.length - 1] : null;
+  // Older pending months shown as pendencies list
+  const olderPendingMonths = pendingMonths.length > 1 ? pendingMonths.slice(0, -1).reverse() : [];
 
   const distribuicoesAtivas = distribuicoes?.filter(d => d.status !== 'CANCELADA');
   const totalAno = distribuicoesAtivas?.reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
   const totalMes = distribuicoesAtivas?.filter(d => d.competencia === competenciaAtual)
     .reduce((sum, d) => sum + Number(d.valor_total), 0) || 0;
 
-  const handleNaoHouve = async () => {
+  const handleNaoHouve = async (competencia: string) => {
     if (!clienteId) return;
-    await createConfirmacao.mutateAsync({
-      cliente_id: clienteId,
-      competencia: competenciaAnterior,
-      resposta: 'NAO_HOUVE',
-    });
+    setDeclarandoCompetencia(competencia);
+    try {
+      await createConfirmacao.mutateAsync({
+        cliente_id: clienteId,
+        competencia,
+        resposta: 'NAO_HOUVE',
+      });
+    } finally {
+      setDeclarandoCompetencia(null);
+    }
   };
 
   return (
     <>
-      {!mesResolvido && (
+      {mostRecentPending && (
         <Card className="border-warning/50 bg-warning/5">
           <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6">
             <div className="flex items-start gap-3">
@@ -121,7 +140,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <div>
                 <h3 className="font-semibold">{t('dashboard.actionRequired')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t('dashboard.informDistribution')}
+                  Informe se houve distribuição de lucros em <strong>{formatCompetencia(mostRecentPending)}</strong>.
                 </p>
               </div>
             </div>
@@ -135,10 +154,10 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               <Button
                 variant="outline"
                 className="flex-1 sm:flex-none gap-2"
-                onClick={handleNaoHouve}
-                disabled={createConfirmacao.isPending}
+                onClick={() => handleNaoHouve(mostRecentPending)}
+                disabled={declarandoCompetencia === mostRecentPending}
               >
-                {createConfirmacao.isPending ? (
+                {declarandoCompetencia === mostRecentPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <XCircle className="h-4 w-4" />
