@@ -95,8 +95,8 @@ export default function LoginPage() {
 
         <div className="relative z-10 flex flex-col items-center text-center max-w-md">
           <img src={logo2m} alt="2M Contabilidade" className="h-28 object-contain mb-8 drop-shadow-lg" />
-          <h1 className="text-3xl font-bold text-primary-foreground mb-4">
-            Controle de Distribuição de Lucros
+          <h1 className="text-3xl font-bold text-primary-foreground mb-2">
+            DistribuiLucros
           </h1>
           <p className="text-primary-foreground/70 text-lg leading-relaxed">
             Gerencie distribuições, acompanhe saldos e mantenha sua empresa em conformidade com segurança e praticidade.
