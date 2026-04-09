@@ -186,6 +186,7 @@ export default function ClientesPage() {
                       setIsFormOpen(true);
                     }}
                     onDelete={() => setDeleteCliente(cliente)}
+                    onArchive={() => setArchiveCliente(cliente)}
                   />
                 ))}
               </div>
