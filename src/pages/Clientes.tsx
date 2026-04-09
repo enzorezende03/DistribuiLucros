@@ -954,6 +954,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       telefone: cliente.telefone || '',
       status: cliente.status,
       tag: cliente.tag || '2M_CONTABILIDADE',
+      ata_registrada: (cliente as any).ata_registrada || false,
+      saldo_lucros_acumulados: (cliente as any).saldo_lucros_acumulados || 0,
     });
   }
 
