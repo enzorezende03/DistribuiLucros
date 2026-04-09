@@ -1169,8 +1169,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
       createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
 
-      // Create portal access if requested
-      if (criarAcesso && createdCliente?.id) {
+      // Always create portal access automatically
+      if (createdCliente?.id) {
         try {
           const cnpjDigits = unmask(formData.cnpj);
           const internalEmail = `cnpj_${cnpjDigits}@distribuilucros.app`;
@@ -1274,16 +1274,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email_responsavel">{t('clients.emailResponsible')}</Label>
-            <Input
-              id="email_responsavel"
-              type="email"
-              value={formData.email_responsavel}
-              onChange={(e) => setFormData({ ...formData, email_responsavel: e.target.value })}
-              disabled={isPending}
-            />
-          </div>
 
 
 
@@ -1406,39 +1396,14 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           )}
 
           {!isEditing && (
-            <div className="space-y-3 pt-2 border-t">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold flex items-center gap-2">
-                  <Link2 className="h-4 w-4 text-accent" />
-                  Acesso ao Portal
-                </Label>
-                <Switch
-                  checked={criarAcesso}
-                  onCheckedChange={setCriarAcesso}
-                  disabled={isPending}
-                />
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-accent" />
+                <Label className="text-base font-semibold">Acesso ao Portal</Label>
               </div>
-
-              {criarAcesso && (
-                <div className="space-y-2">
-                  <div className="space-y-2">
-                    <Label>CNPJ de acesso</Label>
-                    <Input
-                      value={formData.cnpj}
-                      readOnly
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Senha</Label>
-                    <Input
-                      value="2mCliente"
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground">Senha padrão. O usuário deverá alterá-la no primeiro acesso.</p>
-                  </div>
-                </div>
-              )}
+              <p className="text-xs text-muted-foreground">
+                Ao cadastrar, será criado automaticamente o acesso ao portal com o CNPJ como login e senha padrão "2mCliente". O usuário deverá alterá-la no primeiro acesso.
+              </p>
             </div>
           )}
 
