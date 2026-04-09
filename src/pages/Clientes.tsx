@@ -293,8 +293,9 @@ interface ClienteRowProps {
   onArchive: () => void;
 }
 
-function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete }: ClienteRowProps) {
+function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive }: ClienteRowProps) {
   const { t } = useLanguage();
+  const updateCliente = useUpdateCliente();
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
       <div className="rounded-lg border">
