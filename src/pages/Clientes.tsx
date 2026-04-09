@@ -75,6 +75,7 @@ import {
   Upload,
   FileText,
   ExternalLink,
+  Archive,
 } from 'lucide-react';
 import {
   DropdownMenu,
