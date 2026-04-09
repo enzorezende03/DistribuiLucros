@@ -1015,10 +1015,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     { nome: '', cpf: '', percentual: '' },
   ]);
 
-  const [criarAcesso, setCriarAcesso] = useState(false);
-  const [acessoEmail, setAcessoEmail] = useState('');
-  const [acessoSenha, setAcessoSenha] = useState('');
-
   const handleFetchCnpj = async () => {
     const cnpjClean = unmask(formData.cnpj);
     if (cnpjClean.length !== 14) {
@@ -1207,9 +1203,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       saldo_lucros_acumulados: 0,
     });
     setSocios([{ nome: '', cpf: '', percentual: '' }]);
-    setCriarAcesso(false);
-    setAcessoEmail('');
-    setAcessoSenha('');
   };
 
   const isPending = createCliente.isPending || updateCliente.isPending;
