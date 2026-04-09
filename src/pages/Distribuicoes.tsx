@@ -547,6 +547,7 @@ interface DistribuicaoActionsProps {
 
 function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActionsProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { t, language } = useLanguage();
   const updateStatus = useUpdateDistribuicaoStatus();
   const deleteDistribuicao = useDeleteDistribuicao();
