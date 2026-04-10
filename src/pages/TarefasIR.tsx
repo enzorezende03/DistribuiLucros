@@ -42,7 +42,7 @@ export default function TarefasIRPage() {
   const [observacao, setObservacao] = useState('');
 
   const activeFilter = filterStatus === 'all' ? undefined : filterStatus;
-  const { data: tarefas, isLoading } = useTarefasIR(activeFilter);
+  const { data: tarefas, isLoading, isError, error } = useTarefasIR(activeFilter);
   const atualizarTarefa = useAtualizarTarefaIR();
 
   const pendentes = tarefas?.filter(t => t.status === 'PENDENTE').length || 0;
@@ -141,6 +141,10 @@ export default function TarefasIRPage() {
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : isError ? (
+              <div className="py-12 text-center text-sm text-destructive">
+                Erro ao carregar tarefas: {error instanceof Error ? error.message : 'Falha desconhecida'}
               </div>
             ) : tarefas && tarefas.length > 0 ? (
               <>

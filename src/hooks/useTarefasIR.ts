@@ -25,11 +25,7 @@ export function useTarefasIR(status?: StatusTarefa) {
     queryFn: async () => {
       let query = supabase
         .from('tarefas_ir')
-        .select(`
-          *,
-          cliente:clientes(razao_social),
-          socio:socios(nome)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (status) {
@@ -38,7 +34,39 @@ export function useTarefasIR(status?: StatusTarefa) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as unknown as TarefaIR[];
+
+      const tarefas = (data || []) as TarefaIR[];
+      if (tarefas.length === 0) return [];
+
+      const clienteIds = [...new Set(tarefas.map((tarefa) => tarefa.cliente_id))];
+      const socioIds = [...new Set(
+        tarefas
+          .map((tarefa) => tarefa.socio_id)
+          .filter((id): id is string => Boolean(id))
+      )];
+
+      const [clientesResult, sociosResult] = await Promise.all([
+        supabase.from('clientes').select('id, razao_social').in('id', clienteIds),
+        socioIds.length > 0
+          ? supabase.from('socios').select('id, nome').in('id', socioIds)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      if (clientesResult.error) throw clientesResult.error;
+      if (sociosResult.error) throw sociosResult.error;
+
+      const clientesMap = new Map(
+        (clientesResult.data || []).map((cliente) => [cliente.id, { razao_social: cliente.razao_social }])
+      );
+      const sociosMap = new Map(
+        (sociosResult.data || []).map((socio) => [socio.id, { nome: socio.nome }])
+      );
+
+      return tarefas.map((tarefa) => ({
+        ...tarefa,
+        cliente: clientesMap.get(tarefa.cliente_id),
+        socio: tarefa.socio_id ? sociosMap.get(tarefa.socio_id) : undefined,
+      }));
     },
   });
 }
