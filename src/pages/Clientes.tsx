@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ImportDialog } from '@/components/ImportDialog';
-import { useUserClientes, useUserAllClientes } from '@/hooks/useUserClientes';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +75,7 @@ import {
   FileText,
   ExternalLink,
   Archive,
+  KeyRound,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -302,8 +302,7 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
   const handleResetSenha = async () => {
     setResetSenhaLoading(true);
     try {
-      // Find the user linked to this client's CNPJ
-      const cnpjEmail = cliente.cnpj.replace(/\D/g, '') + '@distribuilucros.app';
+      const cnpjEmail = 'cnpj_' + cliente.cnpj.replace(/\D/g, '') + '@distribuilucros.app';
       const { data: userData } = await supabase.rpc('find_user_by_email', { _email: cnpjEmail });
       if (!userData || userData.length === 0) {
         toast.error('Nenhum usuário encontrado para este cliente.');
@@ -417,7 +416,7 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
                   {t('common.delete')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setResetSenhaOpen(true)}>
-                  <Power className="mr-2 h-4 w-4" />
+                  <KeyRound className="mr-2 h-4 w-4" />
                   Resetar Senha
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -758,316 +757,6 @@ function LucrosAcumuladosSection({ clienteId, saldoAtual }: { clienteId: string;
   );
 }
 
-
-
-  const [editLink, setEditLink] = useState<{ user_id: string; nome?: string; email?: string } | null>(null);
-  const [deactivateMotivo, setDeactivateMotivo] = useState('');
-  const [editNome, setEditNome] = useState('');
-  const [editSobrenome, setEditSobrenome] = useState('');
-  const [editSaving, setEditSaving] = useState(false);
-
-  const pendingLinks = links?.filter(l => !l.aprovado) || [];
-  const approvedLinks = links?.filter(l => l.aprovado) || [];
-
-  const handleDeactivate = async () => {
-    if (!deactivateLink || !deactivateMotivo.trim()) return;
-    await deactivateUser.mutateAsync({ id: deactivateLink.id, clienteId, motivo: deactivateMotivo.trim() });
-    setDeactivateLink(null);
-    setDeactivateMotivo('');
-  };
-
-  const handleDelete = async () => {
-    if (!deleteLink) return;
-    await unlinkUser.mutateAsync({ id: deleteLink.id, clienteId });
-    setDeleteLink(null);
-  };
-
-  const handleEditOpen = (link: { user_id: string; nome?: string; email?: string }) => {
-    const parts = (link.nome || '').split(' ');
-    setEditNome(parts[0] || '');
-    setEditSobrenome(parts.slice(1).join(' ') || '');
-    setEditLink(link);
-  };
-
-  const handleEditSave = async () => {
-    if (!editLink || !editNome.trim()) return;
-    setEditSaving(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await supabase.functions.invoke('manage-admin', {
-        body: { action: 'update', user_id: editLink.user_id, nome: editNome.trim(), sobrenome: editSobrenome.trim() },
-      });
-      if (res.error) throw res.error;
-      queryClient.invalidateQueries({ queryKey: ['user_clientes', clienteId] });
-      toast.success('Usuário atualizado com sucesso!');
-      setEditLink(null);
-    } catch (err: any) {
-      toast.error('Erro ao atualizar: ' + (err.message || 'Erro desconhecido'));
-    } finally {
-      setEditSaving(false);
-    }
-  };
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-semibold flex items-center gap-2">
-          <Link2 className="h-4 w-4 text-accent" />
-          {t('clients.linkedUsers')}
-        </h4>
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-4">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {/* Pending approvals */}
-          {pendingLinks.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-amber-600 flex items-center gap-1">
-                <Loader2 className="h-3 w-3" />
-                {t('clients.pendingApproval')} ({pendingLinks.length})
-              </p>
-              {pendingLinks.map((link) => (
-                <div key={link.id} className="rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 text-sm">
-                  <div className="flex items-center justify-between p-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Badge variant="outline" className="text-xs border-amber-500 text-amber-700 dark:text-amber-400">
-                        {t('clients.pending')}
-                      </Badge>
-                      <span className="truncate font-medium">{link.nome || link.email || link.user_id}</span>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                        onClick={() => approveUser.mutate({ id: link.id, clienteId })}
-                        disabled={approveUser.isPending}
-                      >
-                        {approveUser.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-                        {t('clients.approve')}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-destructive hover:text-destructive shrink-0"
-                        onClick={() => unlinkUser.mutate({ id: link.id, clienteId })}
-                        disabled={unlinkUser.isPending}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Approved users */}
-          {approvedLinks.length > 0 ? (
-            <div className="space-y-2">
-              {approvedLinks.map((link) => (
-                <UserLinkedRow
-                  key={link.id}
-                  link={link}
-                  clienteId={clienteId}
-                  onEdit={() => handleEditOpen(link)}
-                  onDeactivate={() => setDeactivateLink({ id: link.id, nome: link.nome || link.email })}
-                  onDelete={() => setDeleteLink({ id: link.id, nome: link.nome || link.email })}
-                />
-              ))}
-            </div>
-          ) : pendingLinks.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">{t('clients.noLinkedUsers')}</p>
-          ) : null}
-        </div>
-      )}
-
-      {/* Deactivate Dialog */}
-      <Dialog open={!!deactivateLink} onOpenChange={() => { setDeactivateLink(null); setDeactivateMotivo(''); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Desativar Usuário</DialogTitle>
-            <DialogDescription>
-              Deseja desativar o acesso de <strong>{deactivateLink?.nome}</strong>? O usuário não poderá acessar os dados da empresa enquanto estiver desativado.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="motivo-desativacao">Justificativa *</Label>
-            <Textarea
-              id="motivo-desativacao"
-              placeholder="Informe o motivo da desativação..."
-              value={deactivateMotivo}
-              onChange={(e) => setDeactivateMotivo(e.target.value)}
-              rows={3}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setDeactivateLink(null); setDeactivateMotivo(''); }}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeactivate}
-              disabled={!deactivateMotivo.trim() || deactivateUser.isPending}
-            >
-              {deactivateUser.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Desativar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteLink} onOpenChange={() => setDeleteLink(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Vínculo</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o vínculo de <strong>{deleteLink?.nome}</strong>? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={unlinkUser.isPending}
-            >
-              {unlinkUser.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Edit User Dialog */}
-      <Dialog open={!!editLink} onOpenChange={() => setEditLink(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Usuário</DialogTitle>
-            <DialogDescription>
-              Atualize os dados do usuário vinculado.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="edit-nome">Nome *</Label>
-              <Input id="edit-nome" value={editNome} onChange={(e) => setEditNome(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-sobrenome">Sobrenome</Label>
-              <Input id="edit-sobrenome" value={editSobrenome} onChange={(e) => setEditSobrenome(e.target.value)} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditLink(null)}>Cancelar</Button>
-            <Button onClick={handleEditSave} disabled={!editNome.trim() || editSaving}>
-              {editSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-// ─── User Linked Row with companies ─────────────────────────────────────
-
-function UserLinkedRow({ link, clienteId, onEdit, onDeactivate, onDelete }: {
-  link: { id: string; user_id: string; email?: string; nome?: string; ativo?: boolean; motivo_desativacao?: string | null };
-  clienteId: string;
-  onEdit: () => void;
-  onDeactivate: () => void;
-  onDelete: () => void;
-}) {
-  const { t } = useLanguage();
-  const { data: allClientes } = useUserAllClientes(link.user_id);
-  const reactivateUser = useReactivateUserCliente();
-  const [expanded, setExpanded] = useState(false);
-  
-  const otherClientes = allClientes?.filter((c) => c.cliente_id !== clienteId) || [];
-  const isInactive = link.ativo === false;
-
-  return (
-    <div className={`rounded-md border text-sm ${isInactive ? 'opacity-60 border-dashed' : ''}`}>
-      <div className="flex items-center justify-between p-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="truncate font-medium">{link.nome || link.email || link.user_id}</span>
-          {isInactive && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Badge variant="outline" className="text-xs border-destructive text-destructive">
-                    <Ban className="h-3 w-3 mr-1" />
-                    Desativado
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">Motivo: {link.motivo_desativacao || 'Não informado'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          {otherClientes.length > 0 && (
-            <Badge variant="outline" className="text-xs shrink-0 cursor-pointer" onClick={() => setExpanded(!expanded)}>
-              <Building2 className="h-3 w-3 mr-1" />
-              +{otherClientes.length} {t('distributions.companies')}
-            </Badge>
-          )}
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onEdit}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Editar
-            </DropdownMenuItem>
-            {isInactive ? (
-              <DropdownMenuItem
-                onClick={() => reactivateUser.mutate({ id: link.id, clienteId })}
-                className="text-green-600"
-              >
-                <Power className="h-4 w-4 mr-2" />
-                Reativar
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={onDeactivate} className="text-amber-600">
-                <Ban className="h-4 w-4 mr-2" />
-                Desativar
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={onDelete} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Excluir
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      {expanded && otherClientes.length > 0 && (
-        <div className="border-t px-3 py-2 space-y-1 bg-muted/30">
-          <p className="text-xs font-medium text-muted-foreground mb-1">{t('clients.alsoLinkedTo')}</p>
-          {otherClientes.map((c) => (
-            <div key={c.id} className="flex items-center gap-2 text-xs">
-              <Building2 className="h-3 w-3 text-muted-foreground" />
-              <span>{c.clientes?.razao_social}</span>
-              <span className="text-muted-foreground font-mono">{c.clientes?.cnpj ? formatCNPJ(c.clientes.cnpj) : ''}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Delete Buttons ─────────────────────────────────────────────────────
 
 function DeleteClienteButton({ cliente, onDone }: { cliente: Cliente | null; onDone: () => void }) {
@@ -1168,7 +857,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         telefone: telefone ? maskPhone(telefone) : prev.telefone,
       }));
 
-      // Import QSA (sócios)
       if (data.qsa && data.qsa.length > 0) {
         const newSocios = data.qsa.map((s: any) => ({
           nome: s.nome_socio || '',
@@ -1265,7 +953,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
     let createdCliente: any;
     if (isEditing) {
-      // Upload ata file if provided
       if (ataFile) {
         const ext = ataFile.name.split('.').pop();
         const filePath = `${cliente.id}/ata.${ext}`;
@@ -1282,7 +969,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       const newSaldo = Number(data.saldo_lucros_acumulados) || 0;
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
 
-      // Register movement if saldo changed
       if (data.ata_registrada && newSaldo !== oldSaldo) {
         const diff = newSaldo - oldSaldo;
         try {
@@ -1309,7 +995,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
       createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
 
-      // Upload ata file for new client
       if (ataFile && createdCliente?.id) {
         const ext = ataFile.name.split('.').pop();
         const filePath = `${createdCliente.id}/ata.${ext}`;
@@ -1320,7 +1005,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         }
       }
 
-      // Always create portal access automatically
       if (createdCliente?.id) {
         try {
           const cnpjDigits = unmask(formData.cnpj);
@@ -1422,10 +1106,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               </TooltipProvider>
             </div>
           </div>
-
-
-
-
 
           <div className="space-y-2">
             <Label htmlFor="telefone">{t('clients.phoneLabel')}</Label>
@@ -1545,7 +1225,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             )}
           </div>
 
-
           {!isEditing && (
             <div className="space-y-3 pt-2 border-t">
               <div className="flex items-center justify-between">
@@ -1598,7 +1277,6 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               </p>
             </div>
           )}
-
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
@@ -1698,8 +1376,6 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
               disabled={isPending}
             />
           </div>
-
-
 
           <div className="flex items-center justify-between">
             <Label htmlFor="ativo">{t('partners.active')}</Label>
