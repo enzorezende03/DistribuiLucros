@@ -760,11 +760,6 @@ function LucrosAcumuladosSection({ clienteId, saldoAtual }: { clienteId: string;
 
 
 
-
-  const queryClient = useQueryClient();
-
-  const [deactivateLink, setDeactivateLink] = useState<{ id: string; nome?: string } | null>(null);
-  const [deleteLink, setDeleteLink] = useState<{ id: string; nome?: string } | null>(null);
   const [editLink, setEditLink] = useState<{ user_id: string; nome?: string; email?: string } | null>(null);
   const [deactivateMotivo, setDeactivateMotivo] = useState('');
   const [editNome, setEditNome] = useState('');
