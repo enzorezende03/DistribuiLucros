@@ -758,9 +758,7 @@ function LucrosAcumuladosSection({ clienteId, saldoAtual }: { clienteId: string;
   );
 }
 
-// ─── Usuários Vinculados Section ─────────────────────────────────────────
 
-function UsuariosVinculadosSection({ clienteId }: { clienteId: string }) {
   const { t } = useLanguage();
   const { data: links, isLoading } = useUserClientes(clienteId);
   const approveUser = useApproveUserCliente();
