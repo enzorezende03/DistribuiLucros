@@ -712,7 +712,7 @@ function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/alertas')}>
           <div className="stat-card-accent bg-destructive" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -721,10 +721,11 @@ function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{alertas50k.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Clique para ver</p>
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/alertas')}>
           <div className="stat-card-accent bg-warning" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -733,6 +734,7 @@ function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{alertasPendentes.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Clique para ver</p>
           </CardContent>
         </Card>
       </div>
