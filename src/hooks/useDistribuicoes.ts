@@ -310,6 +310,9 @@ export function useBatchUpdateStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['distribuicoes'] });
+      queryClient.invalidateQueries({ queryKey: ['movimentacoes_lucros'] });
+      queryClient.invalidateQueries({ queryKey: ['clientes'] });
+      queryClient.invalidateQueries({ queryKey: ['cliente'] });
       toast.success('Distribuições atualizadas com sucesso!');
     },
     onError: (error) => {
