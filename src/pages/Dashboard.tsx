@@ -679,10 +679,19 @@ function AdminDashboard() {
   const { t } = useLanguage();
   const { data: distribuicoes, isLoading: loadingDist } = useDistribuicoes();
   const { data: alertas, isLoading: loadingAlertas } = useAlertas(undefined, undefined, false);
+  const navigate = useNavigate();
 
-  const competenciaAtual = getCompetenciaAnterior();
-  const distribuicoesMes = distribuicoes?.filter(d => d.competencia === competenciaAtual) || [];
-  const totalMes = distribuicoesMes.reduce((sum, d) => sum + Number(d.valor_total), 0);
+  const { data: clientesAtivosCount } = useQuery({
+    queryKey: ['clientes-ativos-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('clientes')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'ativo');
+      if (error) throw error;
+      return count || 0;
+    },
+  });
 
   const alertas50k = alertas?.filter(a => a.tipo === 'ALERTA_50K') || [];
   const alertasPendentes = alertas?.filter(a => a.tipo === 'PENDENTE_MES') || [];
@@ -690,27 +699,16 @@ function AdminDashboard() {
   return (
     <>
       <div className="dashboard-grid">
-        <Card className="stat-card">
-          <div className="stat-card-accent bg-accent" />
+        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/clientes')}>
+          <div className="stat-card-accent bg-primary" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('dashboard.totalDistributedMonth')}
+              Clientes Ativos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="money-value-lg">{formatCurrency(totalMes)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="stat-card">
-          <div className="stat-card-accent bg-info" />
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('dashboard.distributionsMonth')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{distribuicoesMes.length}</p>
+            <p className="text-2xl font-bold">{clientesAtivosCount ?? 0}</p>
+            <p className="text-xs text-muted-foreground mt-1">Clique para ver todos</p>
           </CardContent>
         </Card>
 
