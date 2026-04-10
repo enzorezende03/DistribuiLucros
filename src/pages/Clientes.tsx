@@ -431,10 +431,28 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
             {cliente.ata_registrada && (
               <LucrosAcumuladosSection clienteId={cliente.id} saldoAtual={cliente.saldo_lucros_acumulados} />
             )}
-            <UsuariosVinculadosSection clienteId={cliente.id} />
           </div>
         </CollapsibleContent>
       </div>
+
+      {/* Reset Password Dialog */}
+      <AlertDialog open={resetSenhaOpen} onOpenChange={setResetSenhaOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resetar Senha</AlertDialogTitle>
+            <AlertDialogDescription>
+              A senha do cliente <strong>{cliente.razao_social}</strong> será redefinida para a senha padrão. O cliente deverá criar uma nova senha no próximo acesso.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResetSenha} disabled={resetSenhaLoading}>
+              {resetSenhaLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirmar Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Collapsible>
   );
 }
