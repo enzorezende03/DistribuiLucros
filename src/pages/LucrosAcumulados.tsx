@@ -7,9 +7,10 @@ import { useCliente } from '@/hooks/useClientes';
 import { useMovimentacoesLucros } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { ArrowDownCircle, ArrowUpCircle, Loader2, TrendingUp, FileText } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 export default function LucrosAcumuladosPage() {
+  const navigate = useNavigate();
   const { clienteId } = useAuth();
   const { data: cliente, isLoading: loadingCliente } = useCliente(clienteId);
   const { data: movimentacoes, isLoading: loadingMov } = useMovimentacoesLucros(clienteId);
@@ -86,7 +87,11 @@ export default function LucrosAcumuladosPage() {
                   </TableHeader>
                   <TableBody>
                     {movimentacoes.map((mov) => (
-                      <TableRow key={mov.id}>
+                      <TableRow 
+                        key={mov.id}
+                        className={mov.distribuicao_id ? 'cursor-pointer hover:bg-muted/50' : ''}
+                        onClick={() => mov.distribuicao_id && navigate(`/distribuicoes/editar/${mov.distribuicao_id}`)}
+                      >
                         <TableCell className="whitespace-nowrap">
                           {formatDate(mov.created_at)}
                         </TableCell>
