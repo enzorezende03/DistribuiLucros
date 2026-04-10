@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export type TipoAlerta = 'ALERTA_50K' | 'PENDENTE_MES';
+export type ResolucaoTipo = 'GERAR_GUIA_IR' | 'DISPENSADO';
 
 export interface Alerta {
   id: string;
@@ -13,6 +14,9 @@ export interface Alerta {
   descricao: string;
   resolvido: boolean;
   created_at: string;
+  resolucao_tipo: ResolucaoTipo | null;
+  resolucao_justificativa: string | null;
+  resolucao_data: string | null;
   cliente?: {
     razao_social: string;
   };
@@ -59,10 +63,19 @@ export function useResolverAlerta() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, resolucao_tipo, resolucao_justificativa }: {
+      id: string;
+      resolucao_tipo: ResolucaoTipo;
+      resolucao_justificativa?: string;
+    }) => {
       const { data, error } = await supabase
         .from('alertas')
-        .update({ resolvido: true })
+        .update({
+          resolvido: true,
+          resolucao_tipo,
+          resolucao_justificativa: resolucao_justificativa || null,
+          resolucao_data: new Date().toISOString(),
+        } as any)
         .eq('id', id)
         .select()
         .single();
@@ -70,9 +83,13 @@ export function useResolverAlerta() {
       if (error) throw error;
       return data as Alerta;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['alertas'] });
-      toast.success('Alerta resolvido!');
+      if (variables.resolucao_tipo === 'GERAR_GUIA_IR') {
+        toast.success('Guia de IR marcada para geração!');
+      } else {
+        toast.success('Alerta dispensado com sucesso!');
+      }
     },
     onError: (error) => {
       toast.error('Erro ao resolver alerta: ' + error.message);

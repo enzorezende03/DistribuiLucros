@@ -21,6 +21,9 @@ export type Database = {
           created_at: string
           descricao: string
           id: string
+          resolucao_data: string | null
+          resolucao_justificativa: string | null
+          resolucao_tipo: string | null
           resolvido: boolean
           socio_id: string | null
           tipo: Database["public"]["Enums"]["tipo_alerta"]
@@ -31,6 +34,9 @@ export type Database = {
           created_at?: string
           descricao: string
           id?: string
+          resolucao_data?: string | null
+          resolucao_justificativa?: string | null
+          resolucao_tipo?: string | null
           resolvido?: boolean
           socio_id?: string | null
           tipo: Database["public"]["Enums"]["tipo_alerta"]
@@ -41,6 +47,9 @@ export type Database = {
           created_at?: string
           descricao?: string
           id?: string
+          resolucao_data?: string | null
+          resolucao_justificativa?: string | null
+          resolucao_tipo?: string | null
           resolvido?: boolean
           socio_id?: string | null
           tipo?: Database["public"]["Enums"]["tipo_alerta"]
