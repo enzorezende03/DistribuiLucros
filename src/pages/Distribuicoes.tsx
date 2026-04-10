@@ -28,7 +28,7 @@ import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, u
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatCurrency, formatDate, formatCompetencia } from '@/lib/format';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
@@ -96,11 +96,12 @@ export default function DistribuicoesPage() {
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { data: clientes } = useClientes();
-  const queryClienteId = isAdmin ? null : clienteId;
-  const { data: socios } = useSocios(queryClienteId);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
+  const queryClienteId = isAdmin ? selectedClienteId : clienteId;
+  const { data: socios } = useSocios(queryClienteId);
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
   const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
+  const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const batchUpdate = useBatchUpdateStatus();
@@ -112,6 +113,22 @@ export default function DistribuicoesPage() {
   const [search, setSearch] = useState('');
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
 
+  // Build unique competencias from data for month filter
+  const competencias = Array.from(new Set(distribuicoes?.map(d => d.competencia) || [])).sort().reverse();
+
+  // Build unique socios list for admin (from all distributions when no client selected)
+  const allSociosFromDist = (() => {
+    if (!isAdmin) return null;
+    const map = new Map<string, string>();
+    distribuicoes?.forEach(d => {
+      d.itens?.forEach(item => {
+        if (item.socio_id && item.socio?.nome) {
+          map.set(item.socio_id, item.socio.nome);
+        }
+      });
+    });
+    return Array.from(map.entries()).map(([id, nome]) => ({ id, nome })).sort((a, b) => a.nome.localeCompare(b.nome));
+  })();
 
   let filteredDistribuicoes = distribuicoes;
   if (selectedStatus) {
@@ -121,6 +138,9 @@ export default function DistribuicoesPage() {
     filteredDistribuicoes = filteredDistribuicoes?.filter((d) =>
       d.itens?.some((item) => item.socio_id === selectedSocioId)
     );
+  }
+  if (selectedCompetencia) {
+    filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.competencia === selectedCompetencia);
   }
   if (search) {
     filteredDistribuicoes = filteredDistribuicoes?.filter(
@@ -224,24 +244,43 @@ export default function DistribuicoesPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {!isAdmin && socios && socios.length > 0 && (
-                  <Select
-                    value={selectedSocioId || 'all'}
-                    onValueChange={(v) => setSelectedSocioId(v === 'all' ? null : v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('distributions.filterByPartner')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('distributions.allPartners')}</SelectItem>
-                      {socios.filter(s => s.ativo).map((socio) => (
-                        <SelectItem key={socio.id} value={socio.id}>
-                          {socio.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                {(() => {
+                  const sociosList = isAdmin ? allSociosFromDist : socios?.filter(s => s.ativo);
+                  return sociosList && sociosList.length > 0 ? (
+                    <Select
+                      value={selectedSocioId || 'all'}
+                      onValueChange={(v) => setSelectedSocioId(v === 'all' ? null : v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('distributions.filterByPartner')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('distributions.allPartners')}</SelectItem>
+                        {sociosList.map((socio) => (
+                          <SelectItem key={socio.id} value={socio.id}>
+                            {socio.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : null;
+                })()}
+                <Select
+                  value={selectedCompetencia || 'all'}
+                  onValueChange={(v) => setSelectedCompetencia(v === 'all' ? null : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por mês" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os meses</SelectItem>
+                    {competencias.map((comp) => (
+                      <SelectItem key={comp} value={comp}>
+                        {formatCompetencia(comp)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
