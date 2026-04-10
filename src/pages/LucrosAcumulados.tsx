@@ -10,6 +10,7 @@ import { ArrowDownCircle, ArrowUpCircle, Loader2, TrendingUp, FileText } from 'l
 import { Navigate, useNavigate } from 'react-router-dom';
 
 export default function LucrosAcumuladosPage() {
+  const navigate = useNavigate();
   const { clienteId } = useAuth();
   const { data: cliente, isLoading: loadingCliente } = useCliente(clienteId);
   const { data: movimentacoes, isLoading: loadingMov } = useMovimentacoesLucros(clienteId);
