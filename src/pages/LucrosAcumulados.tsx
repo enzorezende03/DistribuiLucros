@@ -87,7 +87,11 @@ export default function LucrosAcumuladosPage() {
                   </TableHeader>
                   <TableBody>
                     {movimentacoes.map((mov) => (
-                      <TableRow key={mov.id}>
+                      <TableRow 
+                        key={mov.id}
+                        className={mov.distribuicao_id ? 'cursor-pointer hover:bg-muted/50' : ''}
+                        onClick={() => mov.distribuicao_id && navigate(`/distribuicoes/${mov.distribuicao_id}`)}
+                      >
                         <TableCell className="whitespace-nowrap">
                           {formatDate(mov.created_at)}
                         </TableCell>
