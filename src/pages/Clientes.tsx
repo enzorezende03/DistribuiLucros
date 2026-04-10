@@ -1153,9 +1153,15 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             </Select>
           </div>
 
-          <div className="space-y-3 pt-2 border-t">
-            <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">Ata Registrada</Label>
+          <div className="space-y-4 pt-4 border-t">
+            <div className={`flex items-center justify-between rounded-lg p-3 ${formData.ata_registrada ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800' : 'bg-muted/50 border border-border'}`}>
+              <div className="flex items-center gap-3">
+                <FileText className={`h-5 w-5 ${formData.ata_registrada ? 'text-emerald-600' : 'text-muted-foreground'}`} />
+                <div>
+                  <Label className="text-base font-semibold cursor-pointer">Ata Registrada</Label>
+                  <p className="text-xs text-muted-foreground">Ativa o controle de lucros acumulados isentos de IR</p>
+                </div>
+              </div>
               <Switch
                 checked={formData.ata_registrada || false}
                 onCheckedChange={(v) => setFormData({ ...formData, ata_registrada: v })}
