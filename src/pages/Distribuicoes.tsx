@@ -96,9 +96,9 @@ export default function DistribuicoesPage() {
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { data: clientes } = useClientes();
+  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
   const queryClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: socios } = useSocios(queryClienteId);
-  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
   const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
   const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(null);
