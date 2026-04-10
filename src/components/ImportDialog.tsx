@@ -133,7 +133,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
 
       const clientMap = new Map<string, ParsedClient>();
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      
 
       for (const row of rows) {
         const cnpj = unmask(String(row.cnpj || ''));
