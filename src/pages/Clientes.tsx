@@ -1171,8 +1171,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.saldo_lucros_acumulados || 0}
-                    onChange={(e) => setFormData({ ...formData, saldo_lucros_acumulados: parseFloat(e.target.value) || 0 })}
+                    value={formData.saldo_lucros_acumulados === 0 ? '' : formData.saldo_lucros_acumulados}
+                    onChange={(e) => setFormData({ ...formData, saldo_lucros_acumulados: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                     disabled={isPending}
                     placeholder="0,00"
                   />
