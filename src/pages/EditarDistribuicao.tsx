@@ -15,7 +15,7 @@ import { useDistribuicao, useDistribuicoes } from '@/hooks/useDistribuicoes';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency, formatCPF } from '@/lib/format';
 import { toast } from 'sonner';
-import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getExcessColor } from '@/lib/excessColor';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -280,36 +280,123 @@ export default function EditarDistribuicaoPage() {
                   </>
                 )}
 
-                {rateio.some((item) => {
-                  const valorForm = parseMaskedCurrency(item.valor);
-                  const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
-                  return (valorForm + acumulado) > 50000;
-                }) && (
-                  <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-200 [&>svg]:text-yellow-600">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription className="text-sm font-medium">
-                      <strong>{t('common.attention')}:</strong> {t('newDist.irWarning')}
-                      {rateio.filter((item) => {
-                        const valorForm = parseMaskedCurrency(item.valor);
-                        const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
-                        return (valorForm + acumulado) > 50000;
-                      }).map((item) => {
-                        const socio = sociosAtivos.find((s) => s.id === item.socio_id);
-                        const valorForm = parseMaskedCurrency(item.valor);
-                        const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
-                        const totalSocio = valorForm + acumulado;
-                        const ir = totalSocio * 0.1;
-                        return socio ? (
-                          <div key={item.socio_id} className="mt-1 text-xs">
-                            • {socio.nome}: <span style={{ color: getExcessColor(totalSocio) }} className="font-semibold">{formatCurrency(totalSocio)}</span>
-                            {acumulado > 0 && <span className="text-muted-foreground"> (já distribuído: {formatCurrency(acumulado)})</span>}
-                            {' '}— {t('newDist.estimatedIR')}: <span style={{ color: getExcessColor(totalSocio) }} className="font-semibold">{formatCurrency(ir)}</span>
+                {(() => {
+                  const hasExcess = rateio.some((item) => {
+                    const valorForm = parseMaskedCurrency(item.valor);
+                    const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                    return (valorForm + acumulado) > 50000;
+                  });
+                  if (!hasExcess) return null;
+
+                  const hasAta = cliente?.ata_registrada && (cliente?.saldo_lucros_acumulados || 0) > 0;
+                  const saldoIsento = hasAta ? (cliente?.saldo_lucros_acumulados || 0) : 0;
+
+                  const excessItems = rateio.filter((item) => {
+                    const valorForm = parseMaskedCurrency(item.valor);
+                    const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                    return (valorForm + acumulado) > 50000;
+                  });
+
+                  const totalExcess = excessItems.reduce((sum, item) => {
+                    const valorForm = parseMaskedCurrency(item.valor);
+                    const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                    return sum + (valorForm + acumulado);
+                  }, 0);
+
+                  const cobertoPeloSaldo = hasAta ? Math.min(saldoIsento, totalExcess) : 0;
+                  const excedenteReal = totalExcess - cobertoPeloSaldo;
+                  const totalIR = excedenteReal > 0 ? excedenteReal * 0.1 : 0;
+                  const fullyExempt = hasAta && excedenteReal <= 0;
+
+                  if (fullyExempt) {
+                    return (
+                      <Alert className="border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 [&>svg]:text-emerald-600">
+                        <ShieldCheck className="h-4 w-4" />
+                        <AlertDescription className="text-sm font-medium">
+                          <strong>{t('common.attention')}:</strong> {t('newDist.irWarningAtaExempt')}
+                          <div className="mt-2 space-y-1 text-xs">
+                            <div>📋 {t('newDist.irExemptBalance')}: <span className="font-semibold text-emerald-700 dark:text-emerald-300">{formatCurrency(saldoIsento)}</span></div>
+                            <div>✅ {t('newDist.noIRDue')}</div>
                           </div>
-                        ) : null;
-                      })}
-                    </AlertDescription>
-                  </Alert>
-                )}
+                          {excessItems.map((item) => {
+                            const socio = sociosAtivos.find((s) => s.id === item.socio_id);
+                            const valorForm = parseMaskedCurrency(item.valor);
+                            const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                            const totalSocio = valorForm + acumulado;
+                            return socio ? (
+                              <div key={item.socio_id} className="mt-1 text-xs">
+                                • {socio.nome}: <span className="font-semibold">{formatCurrency(totalSocio)}</span>
+                                {acumulado > 0 && <span className="text-muted-foreground"> (já distribuído: {formatCurrency(acumulado)})</span>}
+                                {' '}— <span className="text-emerald-700 dark:text-emerald-300 font-semibold">Isento de IR</span>
+                              </div>
+                            ) : null;
+                          })}
+                        </AlertDescription>
+                      </Alert>
+                    );
+                  }
+
+                  if (hasAta && cobertoPeloSaldo > 0) {
+                    return (
+                      <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 [&>svg]:text-amber-600">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="text-sm font-medium">
+                          <strong>{t('common.attention')}:</strong> {t('newDist.irWarningAtaPartial')}
+                          <div className="mt-2 space-y-1 text-xs">
+                            <div>📋 {t('newDist.irExemptBalance')}: <span className="font-semibold">{formatCurrency(saldoIsento)}</span></div>
+                            <div>✅ {t('newDist.irExemptCovered')}: <span className="font-semibold text-emerald-700 dark:text-emerald-300">{formatCurrency(cobertoPeloSaldo)}</span></div>
+                            <div>⚠️ {t('newDist.irExemptRemaining')}: <span className="font-semibold text-destructive">{formatCurrency(excedenteReal)}</span></div>
+                          </div>
+                          {excessItems.map((item) => {
+                            const socio = sociosAtivos.find((s) => s.id === item.socio_id);
+                            const valorForm = parseMaskedCurrency(item.valor);
+                            const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                            const totalSocio = valorForm + acumulado;
+                            return socio ? (
+                              <div key={item.socio_id} className="mt-1 text-xs">
+                                • {socio.nome}: <span style={{ color: getExcessColor(totalSocio) }} className="font-semibold">{formatCurrency(totalSocio)}</span>
+                                {acumulado > 0 && <span className="text-muted-foreground"> (já distribuído: {formatCurrency(acumulado)})</span>}
+                              </div>
+                            ) : null;
+                          })}
+                          {totalIR > 0 && (
+                            <div className="mt-2 pt-2 border-t border-amber-500/30 text-sm font-bold">
+                              {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIR)}</span>
+                            </div>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    );
+                  }
+
+                  return (
+                    <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-200 [&>svg]:text-yellow-600">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription className="text-sm font-medium">
+                        <strong>{t('common.attention')}:</strong> {t('newDist.irWarning')}
+                        {excessItems.map((item) => {
+                          const socio = sociosAtivos.find((s) => s.id === item.socio_id);
+                          const valorForm = parseMaskedCurrency(item.valor);
+                          const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                          const totalSocio = valorForm + acumulado;
+                          const ir = totalSocio * 0.1;
+                          return socio ? (
+                            <div key={item.socio_id} className="mt-1 text-xs">
+                              • {socio.nome}: <span style={{ color: getExcessColor(totalSocio) }} className="font-semibold">{formatCurrency(totalSocio)}</span>
+                              {acumulado > 0 && <span className="text-muted-foreground"> (já distribuído: {formatCurrency(acumulado)})</span>}
+                              {' '}— {t('newDist.estimatedIR')}: <span style={{ color: getExcessColor(totalSocio) }} className="font-semibold">{formatCurrency(ir)}</span>
+                            </div>
+                          ) : null;
+                        })}
+                        {totalIR > 0 && (
+                          <div className="mt-2 pt-2 border-t border-yellow-500/30 text-sm font-bold">
+                            {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIR)}</span>
+                          </div>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  );
+                })()}
 
                 <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-accent/10 border border-accent/20">
                   <div className="flex items-center gap-2">
