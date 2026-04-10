@@ -416,6 +416,10 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t('common.delete')}
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setResetSenhaOpen(true)}>
+                  <Power className="mr-2 h-4 w-4" />
+                  Resetar Senha
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
