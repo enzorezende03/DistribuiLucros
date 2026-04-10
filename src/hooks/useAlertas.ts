@@ -83,10 +83,21 @@ export function useResolverAlerta() {
       if (error) throw error;
       return data as Alerta;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['alertas'] });
-      if (variables.resolucao_tipo === 'GERAR_GUIA_IR') {
-        toast.success('Guia de IR marcada para geração!');
+      
+      if (variables.resolucao_tipo === 'GERAR_GUIA_IR' && data) {
+        // Create a task in tarefas_ir
+        const alertaData = data as any;
+        await supabase.from('tarefas_ir').insert({
+          alerta_id: alertaData.id,
+          cliente_id: alertaData.cliente_id,
+          socio_id: alertaData.socio_id || null,
+          competencia: alertaData.competencia,
+          descricao: alertaData.descricao || '',
+        } as any);
+        queryClient.invalidateQueries({ queryKey: ['tarefas_ir'] });
+        toast.success('Tarefa de Guia IR criada! Acesse Tarefas IR para gerenciar.');
       } else {
         toast.success('Alerta dispensado com sucesso!');
       }
