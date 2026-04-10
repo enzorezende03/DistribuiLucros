@@ -87,17 +87,26 @@ export function useResolverAlerta() {
       queryClient.invalidateQueries({ queryKey: ['alertas'] });
       
       if (variables.resolucao_tipo === 'GERAR_GUIA_IR' && data) {
-        // Create a task in tarefas_ir
-        const alertaData = data as any;
-        await supabase.from('tarefas_ir').insert({
-          alerta_id: alertaData.id,
-          cliente_id: alertaData.cliente_id,
-          socio_id: alertaData.socio_id || null,
-          competencia: alertaData.competencia,
-          descricao: alertaData.descricao || '',
-        } as any);
-        queryClient.invalidateQueries({ queryKey: ['tarefas_ir'] });
-        toast.success('Tarefa de Guia IR criada! Acesse Tarefas IR para gerenciar.');
+        try {
+          const { error: taskError } = await supabase.from('tarefas_ir').insert({
+            alerta_id: data.id,
+            cliente_id: data.cliente_id,
+            socio_id: data.socio_id || null,
+            competencia: data.competencia,
+            descricao: data.descricao || '',
+          } as any);
+          
+          if (taskError) {
+            console.error('Erro ao criar tarefa IR:', taskError);
+            toast.error('Alerta resolvido, mas erro ao criar tarefa: ' + taskError.message);
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['tarefas_ir'] });
+            toast.success('Tarefa de Guia IR criada! Acesse Tarefas IR para gerenciar.');
+          }
+        } catch (err: any) {
+          console.error('Erro ao criar tarefa IR:', err);
+          toast.error('Alerta resolvido, mas erro ao criar tarefa: ' + err.message);
+        }
       } else {
         toast.success('Alerta dispensado com sucesso!');
       }
