@@ -460,6 +460,45 @@ export type Database = {
           },
         ]
       }
+      tarefas_ir: {
+        Row: {
+          alerta_id: string
+          cliente_id: string
+          competencia: string
+          concluida_em: string | null
+          created_at: string
+          descricao: string
+          id: string
+          observacao: string | null
+          socio_id: string | null
+          status: string
+        }
+        Insert: {
+          alerta_id: string
+          cliente_id: string
+          competencia: string
+          concluida_em?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          observacao?: string | null
+          socio_id?: string | null
+          status?: string
+        }
+        Update: {
+          alerta_id?: string
+          cliente_id?: string
+          competencia?: string
+          concluida_em?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          observacao?: string | null
+          socio_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       user_clientes: {
         Row: {
           aprovado: boolean
