@@ -96,11 +96,12 @@ export default function DistribuicoesPage() {
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { data: clientes } = useClientes();
-  const queryClienteId = isAdmin ? null : clienteId;
+  const queryClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: socios } = useSocios(queryClienteId);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(null);
   const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
+  const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const batchUpdate = useBatchUpdateStatus();
@@ -112,6 +113,22 @@ export default function DistribuicoesPage() {
   const [search, setSearch] = useState('');
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
 
+  // Build unique competencias from data for month filter
+  const competencias = Array.from(new Set(distribuicoes?.map(d => d.competencia) || [])).sort().reverse();
+
+  // Build unique socios list for admin (from all distributions when no client selected)
+  const allSociosFromDist = (() => {
+    if (!isAdmin) return null;
+    const map = new Map<string, string>();
+    distribuicoes?.forEach(d => {
+      d.itens?.forEach(item => {
+        if (item.socio_id && item.socio?.nome) {
+          map.set(item.socio_id, item.socio.nome);
+        }
+      });
+    });
+    return Array.from(map.entries()).map(([id, nome]) => ({ id, nome })).sort((a, b) => a.nome.localeCompare(b.nome));
+  })();
 
   let filteredDistribuicoes = distribuicoes;
   if (selectedStatus) {
@@ -121,6 +138,9 @@ export default function DistribuicoesPage() {
     filteredDistribuicoes = filteredDistribuicoes?.filter((d) =>
       d.itens?.some((item) => item.socio_id === selectedSocioId)
     );
+  }
+  if (selectedCompetencia) {
+    filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.competencia === selectedCompetencia);
   }
   if (search) {
     filteredDistribuicoes = filteredDistribuicoes?.filter(
