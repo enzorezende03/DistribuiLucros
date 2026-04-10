@@ -27,8 +27,6 @@ import { unmask } from '@/lib/format';
 interface ParsedClient {
   razao_social: string;
   cnpj: string;
-  email_responsavel: string;
-  email_copia?: string;
   telefone?: string;
   socios: {
     nome: string;
@@ -68,8 +66,6 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       {
         razao_social: 'Empresa ABC Ltda',
         cnpj: '12345678000190',
-        email_responsavel: 'contato@empresa.com',
-        email_copia: '',
         telefone: '',
         socio_nome: 'João da Silva',
         socio_cpf: '12345678901',
@@ -78,8 +74,6 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       {
         razao_social: 'Empresa ABC Ltda',
         cnpj: '12345678000190',
-        email_responsavel: 'contato@empresa.com',
-        email_copia: '',
         telefone: '',
         socio_nome: 'Maria Santos',
         socio_cpf: '98765432100',
@@ -88,8 +82,6 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       {
         razao_social: 'Outra Empresa SA',
         cnpj: '98765432000110',
-        email_responsavel: 'admin@outra.com',
-        email_copia: 'copia@outra.com',
         telefone: '11999990000',
         socio_nome: 'Carlos Pereira',
         socio_cpf: '11122233344',
@@ -153,20 +145,6 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           const errors: string[] = [];
           if (cnpj.length !== 14) errors.push('CNPJ inválido');
 
-          const emailResp = String(row.email_responsavel || '').trim();
-          if (!emailResp) {
-            errors.push('E-mail obrigatório');
-          } else if (!emailRegex.test(emailResp)) {
-            errors.push('E-mail responsável inválido');
-          } else if (emailResp.length > 255) {
-            errors.push('E-mail responsável muito longo (máx 255)');
-          }
-
-          const emailCopia = String(row.email_copia || '').trim() || undefined;
-          if (emailCopia && !emailRegex.test(emailCopia)) {
-            errors.push('E-mail cópia inválido');
-          }
-
           if (razaoSocial.length > 255) {
             errors.push('Razão social muito longa (máx 255 caracteres)');
           }
@@ -179,8 +157,6 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           clientMap.set(cnpj, {
             razao_social: razaoSocial.slice(0, 255),
             cnpj,
-            email_responsavel: emailResp.slice(0, 255),
-            email_copia: emailCopia?.slice(0, 255),
             telefone,
             socios: [],
             errors,
@@ -244,8 +220,6 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           .insert({
             razao_social: client.razao_social,
             cnpj: client.cnpj,
-            email_responsavel: client.email_responsavel,
-            email_copia: client.email_copia || null,
             telefone: client.telefone || null,
           })
           .select()
