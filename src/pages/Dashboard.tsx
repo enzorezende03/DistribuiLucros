@@ -814,33 +814,42 @@ function AdminDashboard() {
               </div>
             ) : (() => {
               const pendentes = distribuicoes?.filter(d => d.status === 'ENVIADA_AO_CONTADOR') || [];
+              // Group by cliente
+              const grouped = new Map<string, { razao_social: string; dists: typeof pendentes }>();
+              pendentes.forEach(dist => {
+                const key = dist.cliente_id || 'unknown';
+                if (!grouped.has(key)) {
+                  grouped.set(key, { razao_social: dist.cliente?.razao_social || '—', dists: [] });
+                }
+                grouped.get(key)!.dists.push(dist);
+              });
+
               return pendentes.length > 0 ? (
-                <div className="space-y-3">
-                  {pendentes.slice(0, 10).map((dist) => (
-                    <Link
-                      key={dist.id}
-                      to={`/distribuicoes/editar/${dist.id}`}
-                      className="flex items-center justify-between p-4 rounded-lg border table-row-interactive block"
-                    >
-                      <div>
-                        <p className="font-medium">{dist.cliente?.razao_social}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatCompetencia(dist.competencia)} • {formatDate(dist.data_distribuicao)}
-                        </p>
+                <div className="space-y-4">
+                  {Array.from(grouped.entries()).map(([clienteKey, group]) => (
+                    <div key={clienteKey} className="rounded-lg border overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-muted/30">
+                        <span className="font-semibold text-sm">{group.razao_social}</span>
+                        <Badge variant="secondary" className="text-xs">{group.dists.length}</Badge>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold money-value">
-                          {formatCurrency(Number(dist.valor_total))}
-                        </p>
-                        <StatusBadge status={dist.status} />
+                      <div className="divide-y">
+                        {group.dists.map((dist) => (
+                          <Link
+                            key={dist.id}
+                            to={`/distribuicoes/editar/${dist.id}`}
+                            className="flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors block"
+                          >
+                            <p className="text-sm text-muted-foreground">
+                              {formatCompetencia(dist.competencia)} • {formatDate(dist.data_distribuicao)}
+                            </p>
+                            <p className="font-semibold money-value text-sm">
+                              {formatCurrency(Number(dist.valor_total))}
+                            </p>
+                          </Link>
+                        ))}
                       </div>
-                    </Link>
+                    </div>
                   ))}
-                  {pendentes.length > 10 && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      + {pendentes.length - 10} distribuições pendentes
-                    </p>
-                  )}
                 </div>
               ) : (
                 <div className="empty-state py-8">
