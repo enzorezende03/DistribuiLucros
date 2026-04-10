@@ -798,8 +798,8 @@ function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-accent" />
-              {t('dashboard.lastDistributions')}
+              <Clock className="h-5 w-5 text-info" />
+              Distribuições Pendentes de Aprovação
             </CardTitle>
             <Link to="/distribuicoes">
               <Button variant="ghost" size="sm">
@@ -812,34 +812,43 @@ function AdminDashboard() {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : distribuicoes && distribuicoes.length > 0 ? (
-              <div className="space-y-3">
-                {distribuicoes.slice(0, 5).map((dist) => (
-                  <div
-                    key={dist.id}
-                    className="flex items-center justify-between p-4 rounded-lg border table-row-interactive"
-                  >
-                    <div>
-                      <p className="font-medium">{dist.cliente?.razao_social}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(dist.data_distribuicao)} • {dist.recibo_numero}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold money-value">
-                        {formatCurrency(Number(dist.valor_total))}
-                      </p>
-                      <StatusBadge status={dist.status} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state py-8">
-                <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">{t('dashboard.noDistributionRegistered')}</p>
-              </div>
-            )}
+            ) : (() => {
+              const pendentes = distribuicoes?.filter(d => d.status === 'ENVIADA_AO_CONTADOR') || [];
+              return pendentes.length > 0 ? (
+                <div className="space-y-3">
+                  {pendentes.slice(0, 10).map((dist) => (
+                    <Link
+                      key={dist.id}
+                      to={`/distribuicoes/editar/${dist.id}`}
+                      className="flex items-center justify-between p-4 rounded-lg border table-row-interactive block"
+                    >
+                      <div>
+                        <p className="font-medium">{dist.cliente?.razao_social}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatCompetencia(dist.competencia)} • {formatDate(dist.data_distribuicao)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold money-value">
+                          {formatCurrency(Number(dist.valor_total))}
+                        </p>
+                        <StatusBadge status={dist.status} />
+                      </div>
+                    </Link>
+                  ))}
+                  {pendentes.length > 10 && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      + {pendentes.length - 10} distribuições pendentes
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="empty-state py-8">
+                  <CheckCircle2 className="h-12 w-12 text-accent mb-4" />
+                  <p className="text-muted-foreground">Nenhuma distribuição pendente de aprovação</p>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
