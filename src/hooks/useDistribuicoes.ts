@@ -256,6 +256,9 @@ export function useUpdateDistribuicaoStatus() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['distribuicoes'] });
       queryClient.invalidateQueries({ queryKey: ['distribuicao', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['movimentacoes_lucros'] });
+      queryClient.invalidateQueries({ queryKey: ['clientes'] });
+      queryClient.invalidateQueries({ queryKey: ['cliente'] });
       toast.success('Status atualizado com sucesso!');
     },
     onError: (error) => {
@@ -307,6 +310,9 @@ export function useBatchUpdateStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['distribuicoes'] });
+      queryClient.invalidateQueries({ queryKey: ['movimentacoes_lucros'] });
+      queryClient.invalidateQueries({ queryKey: ['clientes'] });
+      queryClient.invalidateQueries({ queryKey: ['cliente'] });
       toast.success('Distribuições atualizadas com sucesso!');
     },
     onError: (error) => {
