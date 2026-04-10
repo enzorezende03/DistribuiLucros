@@ -759,11 +759,8 @@ function LucrosAcumuladosSection({ clienteId, saldoAtual }: { clienteId: string;
 }
 
 
-  const { t } = useLanguage();
-  const { data: links, isLoading } = useUserClientes(clienteId);
-  const approveUser = useApproveUserCliente();
-  const unlinkUser = useUnlinkUserFromCliente();
-  const deactivateUser = useDeactivateUserCliente();
+
+
   const queryClient = useQueryClient();
 
   const [deactivateLink, setDeactivateLink] = useState<{ id: string; nome?: string } | null>(null);
