@@ -244,24 +244,43 @@ export default function DistribuicoesPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {!isAdmin && socios && socios.length > 0 && (
-                  <Select
-                    value={selectedSocioId || 'all'}
-                    onValueChange={(v) => setSelectedSocioId(v === 'all' ? null : v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('distributions.filterByPartner')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('distributions.allPartners')}</SelectItem>
-                      {socios.filter(s => s.ativo).map((socio) => (
-                        <SelectItem key={socio.id} value={socio.id}>
-                          {socio.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                {(() => {
+                  const sociosList = isAdmin ? allSociosFromDist : socios?.filter(s => s.ativo);
+                  return sociosList && sociosList.length > 0 ? (
+                    <Select
+                      value={selectedSocioId || 'all'}
+                      onValueChange={(v) => setSelectedSocioId(v === 'all' ? null : v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('distributions.filterByPartner')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('distributions.allPartners')}</SelectItem>
+                        {sociosList.map((socio) => (
+                          <SelectItem key={socio.id} value={socio.id}>
+                            {socio.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : null;
+                })()}
+                <Select
+                  value={selectedCompetencia || 'all'}
+                  onValueChange={(v) => setSelectedCompetencia(v === 'all' ? null : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por mês" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os meses</SelectItem>
+                    {competencias.map((comp) => (
+                      <SelectItem key={comp} value={comp}>
+                        {formatCompetencia(comp)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
