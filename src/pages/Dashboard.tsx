@@ -830,10 +830,13 @@ function AdminDashboard() {
                 <div className="space-y-4">
                   {Array.from(grouped.entries()).map(([clienteKey, group]) => (
                     <div key={clienteKey} className="rounded-lg border overflow-hidden">
-                      <div className="flex items-center justify-between px-4 py-2.5 bg-muted/30">
+                      <Link
+                        to={`/distribuicoes?cliente=${clienteKey}&status=ENVIADA_AO_CONTADOR`}
+                        className="flex items-center justify-between px-4 py-2.5 bg-muted/30 hover:bg-muted/50 transition-colors"
+                      >
                         <span className="font-semibold text-sm">{group.razao_social}</span>
-                        <Badge variant="secondary" className="text-xs">{group.dists.length}</Badge>
-                      </div>
+                        <Badge variant="secondary" className="text-xs">{group.dists.length} →</Badge>
+                      </Link>
                       <div className="divide-y">
                         {group.dists.map((dist) => (
                           <Link
