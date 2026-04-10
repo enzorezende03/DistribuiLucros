@@ -198,7 +198,7 @@
 
   /* Stat card */
   .stat-card {
-    @apply relative overflow-hidden rounded-lg border bg-card p-3 md:p-6 shadow-sm min-w-0;
+    @apply relative overflow-hidden rounded-lg border bg-card p-3 md:p-4 shadow-sm min-w-0;
   }
 
   .stat-card-accent {
@@ -212,7 +212,7 @@
 
   /* Dashboard grid */
   .dashboard-grid {
-    @apply grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4;
+    @apply grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4 auto-rows-min;
   }
 
   /* Money value display */
@@ -221,7 +221,7 @@
   }
 
   .money-value-lg {
-    @apply text-xs sm:text-lg lg:text-2xl font-bold font-mono tabular-nums text-foreground;
+    @apply text-xs sm:text-base lg:text-xl font-bold font-mono tabular-nums text-foreground;
   }
 
   /* Navigation active state */
