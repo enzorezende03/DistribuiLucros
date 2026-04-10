@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ImportDialog } from '@/components/ImportDialog';
-import { useUserClientes, useUserAllClientes, useLinkUserByEmail, useUnlinkUserFromCliente, useApproveUserCliente, useDeactivateUserCliente, useReactivateUserCliente } from '@/hooks/useUserClientes';
+import { useUserClientes, useUserAllClientes } from '@/hooks/useUserClientes';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
