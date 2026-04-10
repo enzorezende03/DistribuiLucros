@@ -28,7 +28,7 @@ import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, u
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatCurrency, formatDate, formatCompetencia } from '@/lib/format';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
