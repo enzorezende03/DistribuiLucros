@@ -5,15 +5,19 @@ import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { useAlertas, useResolverAlerta, type TipoAlerta } from '@/hooks/useAlertas';
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import { useAlertas, useResolverAlerta, type TipoAlerta, type Alerta, type ResolucaoTipo } from '@/hooks/useAlertas';
 import { formatDate } from '@/lib/format';
-import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign } from 'lucide-react';
+import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign, FileText, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -21,6 +25,8 @@ export default function AlertasPage() {
   const { t } = useLanguage();
   const [selectedTipo, setSelectedTipo] = useState<TipoAlerta | null>(null);
   const [showResolvidos, setShowResolvidos] = useState(false);
+  const [resolveDialog, setResolveDialog] = useState<Alerta | null>(null);
+  const [justificativa, setJustificativa] = useState('');
   
   const { data: alertas, isLoading } = useAlertas(undefined, selectedTipo || undefined, showResolvidos ? undefined : false);
   const resolverAlerta = useResolverAlerta();
@@ -38,8 +44,22 @@ export default function AlertasPage() {
     },
   };
 
-  const handleResolver = async (id: string) => {
-    await resolverAlerta.mutateAsync(id);
+  const openResolveDialog = (alerta: Alerta) => {
+    setResolveDialog(alerta);
+    setJustificativa('');
+  };
+
+  const handleResolve = async (tipo: ResolucaoTipo) => {
+    if (!resolveDialog) return;
+    if (tipo === 'DISPENSADO' && !justificativa.trim()) return;
+    
+    await resolverAlerta.mutateAsync({
+      id: resolveDialog.id,
+      resolucao_tipo: tipo,
+      resolucao_justificativa: tipo === 'DISPENSADO' ? justificativa.trim() : undefined,
+    });
+    setResolveDialog(null);
+    setJustificativa('');
   };
 
   const alertas50k = alertas?.filter((a) => a.tipo === 'ALERTA_50K' && !a.resolvido) || [];
@@ -142,9 +162,7 @@ export default function AlertasPage() {
                             <span className="text-xs font-medium">{config.label}</span>
                           </div>
                           {alerta.resolvido ? (
-                            <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                              {t('alerts.resolved')}
-                            </Badge>
+                            <ResolucaoBadge alerta={alerta} />
                           ) : (
                             <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
                               {t('alerts.active')}
@@ -160,12 +178,16 @@ export default function AlertasPage() {
                         <div className="text-xs text-muted-foreground">
                           <span>{formatDate(alerta.created_at)}</span>
                         </div>
+                        {alerta.resolvido && alerta.resolucao_justificativa && (
+                          <p className="text-xs text-muted-foreground italic border-l-2 border-muted pl-2">
+                            {alerta.resolucao_justificativa}
+                          </p>
+                        )}
                         {!alerta.resolvido && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleResolver(alerta.id)}
-                            disabled={resolverAlerta.isPending}
+                            onClick={() => openResolveDialog(alerta)}
                             className="w-full gap-2"
                           >
                             <CheckCircle2 className="h-4 w-4" />
@@ -186,7 +208,6 @@ export default function AlertasPage() {
                         <TableHead>{t('alerts.client')}</TableHead>
                         <TableHead className="hidden md:table-cell">{t('alerts.partner')}</TableHead>
                         <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
-                        
                         <TableHead className="hidden md:table-cell">{t('alerts.date')}</TableHead>
                         <TableHead>{t('alerts.status')}</TableHead>
                         <TableHead className="w-[100px]"></TableHead>
@@ -211,14 +232,14 @@ export default function AlertasPage() {
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(alerta.created_at)}</TableCell>
                             <TableCell>
                               {alerta.resolvido ? (
-                                <Badge variant="outline" className="bg-success/10 text-success border-success/20">{t('alerts.resolved')}</Badge>
+                                <ResolucaoBadge alerta={alerta} />
                               ) : (
                                 <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">{t('alerts.active')}</Badge>
                               )}
                             </TableCell>
                             <TableCell>
                               {!alerta.resolvido && (
-                                <Button variant="ghost" size="sm" onClick={() => handleResolver(alerta.id)} disabled={resolverAlerta.isPending} className="gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => openResolveDialog(alerta)} className="gap-2">
                                   <CheckCircle2 className="h-4 w-4" />
                                   {t('alerts.resolve')}
                                 </Button>
@@ -244,6 +265,112 @@ export default function AlertasPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Resolve Dialog */}
+      <Dialog open={!!resolveDialog} onOpenChange={(open) => { if (!open) setResolveDialog(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              Resolver Alerta
+            </DialogTitle>
+            <DialogDescription>
+              {resolveDialog?.cliente?.razao_social}
+              {resolveDialog?.socio?.nome ? ` — ${resolveDialog.socio.nome}` : ''}
+              {' • '}
+              {resolveDialog?.competencia}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {resolveDialog?.tipo === 'ALERTA_50K' && (
+              <div className="rounded-lg border p-3 text-sm">
+                <AlertaDescricao descricao={resolveDialog.descricao} tipo={resolveDialog.tipo} />
+              </div>
+            )}
+
+            <p className="text-sm font-medium">Escolha uma ação:</p>
+
+            {/* Option 1: Generate IR Guide */}
+            {resolveDialog?.tipo === 'ALERTA_50K' && (
+              <Button
+                className="w-full gap-2 justify-start h-auto py-3"
+                variant="default"
+                onClick={() => handleResolve('GERAR_GUIA_IR')}
+                disabled={resolverAlerta.isPending}
+              >
+                {resolverAlerta.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin shrink-0" />
+                ) : (
+                  <FileText className="h-5 w-5 shrink-0" />
+                )}
+                <div className="text-left">
+                  <p className="font-medium">Gerar Guia de IR</p>
+                  <p className="text-xs opacity-80 font-normal">Marcar para geração da guia de recolhimento do imposto</p>
+                </div>
+              </Button>
+            )}
+
+            {/* Option 2: Dismiss with justification */}
+            <div className="space-y-3 rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <XCircle className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div>
+                  <p className="font-medium text-sm">Dispensar Alerta</p>
+                  <p className="text-xs text-muted-foreground">Informe o motivo da dispensa</p>
+                </div>
+              </div>
+              <Textarea
+                placeholder="Ex: Cliente já recolheu o IR por conta própria..."
+                value={justificativa}
+                onChange={(e) => setJustificativa(e.target.value)}
+                rows={3}
+              />
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => handleResolve('DISPENSADO')}
+                disabled={resolverAlerta.isPending || !justificativa.trim()}
+              >
+                {resolverAlerta.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <XCircle className="h-4 w-4" />
+                )}
+                Dispensar com justificativa
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarLayout>
+  );
+}
+
+function ResolucaoBadge({ alerta }: { alerta: Alerta }) {
+  const { t } = useLanguage();
+  
+  if (alerta.resolucao_tipo === 'GERAR_GUIA_IR') {
+    return (
+      <Badge variant="outline" className="bg-info/10 text-info border-info/20 gap-1">
+        <FileText className="h-3 w-3" />
+        Guia IR
+      </Badge>
+    );
+  }
+  
+  if (alerta.resolucao_tipo === 'DISPENSADO') {
+    return (
+      <Badge variant="outline" className="bg-muted text-muted-foreground border-muted gap-1" title={alerta.resolucao_justificativa || ''}>
+        <XCircle className="h-3 w-3" />
+        Dispensado
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+      {t('alerts.resolved')}
+    </Badge>
   );
 }
