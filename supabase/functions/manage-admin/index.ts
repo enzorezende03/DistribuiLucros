@@ -216,6 +216,28 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: true });
     }
 
+    // === RESET PASSWORD ===
+    if (action === "reset_password") {
+      if (!targetUserId) {
+        return jsonResponse({ error: "user_id obrigatório" }, 400);
+      }
+
+      const defaultPassword = "2mCliente";
+
+      const { error: resetErr } = await supabaseAdmin.auth.admin.updateUserById(targetUserId, {
+        password: defaultPassword,
+        user_metadata: {
+          must_change_password: true,
+        },
+      });
+
+      if (resetErr) {
+        return jsonResponse({ error: resetErr.message }, 500);
+      }
+
+      return jsonResponse({ success: true });
+    }
+
     return jsonResponse({ error: "Ação inválida" }, 400);
   } catch (err) {
     return jsonResponse({ error: err.message }, 500);
