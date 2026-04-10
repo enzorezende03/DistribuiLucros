@@ -296,6 +296,35 @@ interface ClienteRowProps {
 function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive }: ClienteRowProps) {
   const { t } = useLanguage();
   const updateCliente = useUpdateCliente();
+  const [resetSenhaOpen, setResetSenhaOpen] = useState(false);
+  const [resetSenhaLoading, setResetSenhaLoading] = useState(false);
+
+  const handleResetSenha = async () => {
+    setResetSenhaLoading(true);
+    try {
+      // Find the user linked to this client's CNPJ
+      const cnpjEmail = cliente.cnpj.replace(/\D/g, '') + '@distribuilucros.app';
+      const { data: userData } = await supabase.rpc('find_user_by_email', { _email: cnpjEmail });
+      if (!userData || userData.length === 0) {
+        toast.error('Nenhum usuário encontrado para este cliente.');
+        return;
+      }
+      const userId = userData[0].user_id;
+      const res = await supabase.functions.invoke('manage-admin', {
+        body: { action: 'reset_password', user_id: userId },
+      });
+      if (res.error) throw res.error;
+      const resData = res.data as any;
+      if (resData?.error) throw new Error(resData.error);
+      toast.success('Senha resetada! O cliente deverá criar uma nova senha no próximo acesso.');
+    } catch (err: any) {
+      toast.error('Erro ao resetar senha: ' + (err.message || 'Erro desconhecido'));
+    } finally {
+      setResetSenhaLoading(false);
+      setResetSenhaOpen(false);
+    }
+  };
+
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
       <div className="rounded-lg border">
