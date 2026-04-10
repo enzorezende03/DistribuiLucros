@@ -7,7 +7,7 @@ import { useCliente } from '@/hooks/useClientes';
 import { useMovimentacoesLucros } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { ArrowDownCircle, ArrowUpCircle, Loader2, TrendingUp, FileText } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 export default function LucrosAcumuladosPage() {
   const { clienteId } = useAuth();
