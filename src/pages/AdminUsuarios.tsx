@@ -9,16 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, X, Building2, Shield, CheckCircle2 } from 'lucide-react';
-
-const formatCNPJ = (value: string) => {
-  const digits = value.replace(/\D/g, '').slice(0, 14);
-  return digits
-    .replace(/^(\d{2})(\d)/, '$1.$2')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
-};
+import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, Building2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -37,8 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ManagedUser {
   user_id: string;
@@ -49,11 +38,6 @@ interface ManagedUser {
   empresas: { cliente_id: string; razao_social: string }[];
 }
 
-interface ClienteOption {
-  id: string;
-  razao_social: string;
-}
-
 export default function AdminUsuariosPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -61,12 +45,7 @@ export default function AdminUsuariosPage() {
   const [nome, setNome] = useState('');
   const [sobrenome, setSobrenome] = useState('');
   const [email, setEmail] = useState('');
-  const [cnpj, setCnpj] = useState('');
-  const [cnpjEmpresa, setCnpjEmpresa] = useState('');
-  const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
-  const [password, setPassword] = useState('2mCliente');
-  const [role, setRole] = useState<'admin' | 'cliente'>('cliente');
-  const [selectedClienteIds, setSelectedClienteIds] = useState<string[]>([]);
+  const [password, setPassword] = useState('');
   const [creating, setCreating] = useState(false);
   const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'cliente'>('all');
 
@@ -79,21 +58,6 @@ export default function AdminUsuariosPage() {
   // Delete state
   const [deleteTarget, setDeleteTarget] = useState<ManagedUser | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  // Fetch clientes for association
-  const { data: clientes } = useQuery({
-    queryKey: ['clientes-list'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clientes')
-        .select('id, razao_social')
-        .eq('status', 'ativo')
-        .order('razao_social');
-      if (error) throw error;
-      return (data || []) as ClienteOption[];
-    },
-    enabled: !!user,
-  });
 
   const { data: users, isLoading, isError, error } = useQuery({
     queryKey: ['managed-users'],
@@ -122,79 +86,31 @@ export default function AdminUsuariosPage() {
 
   const filteredUsers = users?.filter(u => filterRole === 'all' || u.role === filterRole);
 
-  const toggleClienteId = (id: string) => {
-    setSelectedClienteIds(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
-  };
-
-  const handleCnpjChange = async (value: string) => {
-    const formatted = formatCNPJ(value);
-    setCnpj(formatted);
-    setCnpjEmpresa('');
-    setSelectedClienteIds([]);
-
-    const digits = formatted.replace(/\D/g, '');
-    if (digits.length === 14) {
-      setLookingUpCnpj(true);
-      const { data, error: err } = await supabase
-        .from('clientes')
-        .select('id, razao_social')
-        .eq('cnpj', digits)
-        .maybeSingle();
-
-      if (!err && data) {
-        setCnpjEmpresa(data.razao_social);
-        setSelectedClienteIds([data.id]);
-      } else {
-        toast.error(t('register.cnpjNotFound'));
-      }
-      setLookingUpCnpj(false);
-    }
-  };
-
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !sobrenome.trim()) {
       toast.error(t('admin.fillNameSurname'));
       return;
     }
-    if (role === 'admin') {
-      if (!email || !password) {
-        toast.error(t('admin.fillEmailPassword'));
-        return;
-      }
-    } else {
-      const cnpjDigits = cnpj.replace(/\D/g, '');
-      if (cnpjDigits.length !== 14 || selectedClienteIds.length === 0) {
-        toast.error(t('register.cnpjNotFound'));
-        return;
-      }
-      if (!password) {
-        toast.error(t('admin.fillEmailPassword'));
-        return;
-      }
+    if (!email || !password) {
+      toast.error(t('admin.fillEmailPassword'));
+      return;
     }
     if (password.length < 6) {
       toast.error(t('admin.passwordMinLength'));
       return;
     }
 
-    const finalEmail = role === 'cliente'
-      ? `cnpj_${cnpj.replace(/\D/g, '')}@distribuilucros.app`
-      : email;
-
     setCreating(true);
     try {
       const res = await supabase.functions.invoke('manage-admin', {
         body: {
           action: 'create',
-          email: finalEmail,
+          email,
           password,
           nome: nome.trim(),
           sobrenome: sobrenome.trim(),
-          role,
-          cliente_ids: role === 'cliente' ? selectedClienteIds : undefined,
+          role: 'admin',
         },
       });
       if (res.error) throw new Error(res.error.message);
@@ -204,11 +120,7 @@ export default function AdminUsuariosPage() {
       setNome('');
       setSobrenome('');
       setEmail('');
-      setCnpj('');
-      setCnpjEmpresa('');
       setPassword('');
-      setRole('cliente');
-      setSelectedClienteIds([]);
       queryClient.invalidateQueries({ queryKey: ['managed-users'] });
     } catch (err: any) {
       toast.error('Erro: ' + err.message);
@@ -287,7 +199,7 @@ export default function AdminUsuariosPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Create form */}
+          {/* Create admin user form */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -296,32 +208,10 @@ export default function AdminUsuariosPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs value={role} onValueChange={(v) => { setRole(v as 'admin' | 'cliente'); setSelectedClienteIds([]); setPassword(v === 'cliente' ? '2mCliente' : ''); }}>
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="admin" className="gap-1.5">
-                    <Shield className="h-4 w-4" />
-                    {t('admin.tabInternal')}
-                  </TabsTrigger>
-                  <TabsTrigger value="cliente" className="gap-1.5">
-                    <Building2 className="h-4 w-4" />
-                    {t('admin.tabClient')}
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="admin" className="mt-0">
-                  <p className="text-sm text-muted-foreground mb-4 p-3 rounded-lg bg-muted/50 border">
-                    <Shield className="h-4 w-4 inline mr-1.5 -mt-0.5" />
-                    {t('admin.internalDesc')}
-                  </p>
-                </TabsContent>
-
-                <TabsContent value="cliente" className="mt-0">
-                  <p className="text-sm text-muted-foreground mb-4 p-3 rounded-lg bg-muted/50 border">
-                    <Building2 className="h-4 w-4 inline mr-1.5 -mt-0.5" />
-                    {t('admin.clientDesc')}
-                  </p>
-                </TabsContent>
-              </Tabs>
+              <p className="text-sm text-muted-foreground mb-4 p-3 rounded-lg bg-muted/50 border">
+                <Shield className="h-4 w-4 inline mr-1.5 -mt-0.5" />
+                {t('admin.internalDesc')}
+              </p>
 
               <form onSubmit={handleCreate} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -334,36 +224,10 @@ export default function AdminUsuariosPage() {
                     <Input id="admin-sobrenome" placeholder={t('admin.surname')} value={sobrenome} onChange={(e) => setSobrenome(e.target.value)} required disabled={creating} />
                   </div>
                 </div>
-                {role === 'admin' ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-email">{t('admin.email')} *</Label>
-                    <Input id="admin-email" type="email" placeholder="usuario@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={creating} />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-cnpj">CNPJ *</Label>
-                    <div className="relative">
-                      <Input
-                        id="admin-cnpj"
-                        type="text"
-                        placeholder="00.000.000/0000-00"
-                        value={cnpj}
-                        onChange={(e) => handleCnpjChange(e.target.value)}
-                        required
-                        disabled={creating}
-                      />
-                      {lookingUpCnpj && (
-                        <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-muted-foreground" />
-                      )}
-                    </div>
-                    {cnpjEmpresa && (
-                      <div className="flex items-center gap-2 text-sm text-emerald-600">
-                        <CheckCircle2 className="h-4 w-4" />
-                        <span>{cnpjEmpresa}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="admin-email">{t('admin.email')} *</Label>
+                  <Input id="admin-email" type="email" placeholder="usuario@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={creating} />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-password">{t('admin.password')} *</Label>
                   <Input
@@ -375,16 +239,11 @@ export default function AdminUsuariosPage() {
                     required
                     disabled={creating}
                   />
-                  {role === 'cliente' && (
-                    <p className="text-xs text-muted-foreground">
-                      Senha padrão: 2mCliente (o cliente deverá alterar no primeiro acesso)
-                    </p>
-                  )}
                 </div>
 
                 <Button type="submit" className="w-full gap-2" disabled={creating}>
                   {creating && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {role === 'admin' ? t('admin.createInternal') : t('admin.createClient')}
+                  {t('admin.createInternal')}
                 </Button>
               </form>
             </CardContent>
