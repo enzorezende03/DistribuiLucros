@@ -52,6 +52,7 @@ const navItems: NavItem[] = [
   { href: '/admin-usuarios', label: 'nav.adminUsuarios', icon: <Users className="h-5 w-5" />, adminOnly: true },
   { href: '/distribuicoes', label: 'nav.distribuicoes', icon: <FileText className="h-5 w-5" /> },
   { href: '/alertas', label: 'nav.alertas', icon: <AlertTriangle className="h-5 w-5" /> },
+  { href: '/tarefas-ir', label: 'nav.tarefasIR', icon: <FileText className="h-5 w-5" />, adminOnly: true },
   { href: '/notificacoes', label: 'nav.notificacoes', icon: <Bell className="h-5 w-5" /> },
   { href: '/pendencias', label: 'nav.pendencias', icon: <AlertCircle className="h-5 w-5" />, clienteOnly: true },
   { href: '/simulacao', label: 'nav.simulacao', icon: <Calculator className="h-5 w-5" />, clienteOnly: true },

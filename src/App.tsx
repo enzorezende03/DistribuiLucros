@@ -23,6 +23,7 @@ import PendenciasPage from "@/pages/Pendencias";
 import SimulacaoPage from "@/pages/Simulacao";
 import AdminUsuariosPage from "@/pages/AdminUsuarios";
 import LucrosAcumuladosPage from "@/pages/LucrosAcumulados";
+import TarefasIRPage from "@/pages/TarefasIR";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -74,6 +75,7 @@ function AppRoutes() {
       <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
       <Route path="/distribuicoes/editar/:id" element={<ProtectedRoute><EditarDistribuicaoPage /></ProtectedRoute>} />
       <Route path="/alertas" element={<ProtectedRoute><AlertasRoute /></ProtectedRoute>} />
+      <Route path="/tarefas-ir" element={<ProtectedRoute requireAdmin><TarefasIRPage /></ProtectedRoute>} />
       <Route path="/notificacoes" element={<ProtectedRoute><NotificacoesPage /></ProtectedRoute>} />
       <Route path="/pendencias" element={<ProtectedRoute><PendenciasPage /></ProtectedRoute>} />
       <Route path="/simulacao" element={<ProtectedRoute><SimulacaoPage /></ProtectedRoute>} />
