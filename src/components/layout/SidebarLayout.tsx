@@ -30,6 +30,7 @@ import {
   ArrowLeft,
   Bell,
   Globe,
+  HelpCircle,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import logo2m from '@/assets/logo-2m.png';
@@ -56,6 +57,7 @@ const navItems: NavItem[] = [
   { href: '/notificacoes', label: 'nav.notificacoes', icon: <Bell className="h-5 w-5" /> },
   { href: '/pendencias', label: 'nav.pendencias', icon: <AlertCircle className="h-5 w-5" />, clienteOnly: true },
   { href: '/simulacao', label: 'nav.simulacao', icon: <Calculator className="h-5 w-5" />, clienteOnly: true },
+  { href: '/ajuda', label: 'nav.ajuda', icon: <HelpCircle className="h-5 w-5" />, clienteOnly: true },
 ];
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
