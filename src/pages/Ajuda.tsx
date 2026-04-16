@@ -2,6 +2,7 @@ import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AlertTriangle, PlayCircle, BookOpen } from 'lucide-react';
 
 const passos = [
@@ -28,29 +29,35 @@ export default function AjudaPage() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              📘 Como fazer a Distribuição de Lucros no Sistema
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              🔹 Passo a passo
-            </h2>
-            <ol className="space-y-3">
-              {passos.map((p) => (
-                <li key={p.numero} className="flex gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
-                  <Badge variant="default" className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 text-sm">
-                    {p.numero}
-                  </Badge>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium">{p.titulo}</p>
-                    <p className="text-sm text-muted-foreground mt-0.5">{p.descricao}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </CardContent>
+          <Accordion type="single" collapsible>
+            <AccordionItem value="passo-a-passo" className="border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <span className="text-base font-semibold text-left">
+                  📘 Como fazer a Distribuição de Lucros no Sistema
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    🔹 Passo a passo
+                  </h2>
+                  <ol className="space-y-3">
+                    {passos.map((p) => (
+                      <li key={p.numero} className="flex gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+                        <Badge variant="default" className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 text-sm">
+                          {p.numero}
+                        </Badge>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium">{p.titulo}</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">{p.descricao}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
 
         <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
