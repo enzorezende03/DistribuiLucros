@@ -151,9 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Use the user from the session directly to avoid an extra network
-        // round-trip (getUser) that can hang and keep the app stuck on the
-        // loading spinner.
         setSession(session);
         setUser(session.user);
 
@@ -165,12 +162,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!isMounted) return;
           setUserRole(role);
           setUserClientes(clientes);
-          setRoleLoaded(true);
           if (role?.role === 'cliente' && clientes.length === 1) {
             setSelectedClienteId(clientes[0].cliente_id);
           }
         } catch (err) {
           console.error('Error loading role/clientes:', err);
+        } finally {
           if (isMounted) setRoleLoaded(true);
         }
       } catch (err) {
@@ -180,10 +177,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    initializeAuth();
+    // Hard safety: never let loading stay true for more than 10s
+    const hardTimeout = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 10000);
+
+    initializeAuth().finally(() => clearTimeout(hardTimeout));
 
     return () => {
       isMounted = false;
+      clearTimeout(hardTimeout);
       subscription.unsubscribe();
     };
   }, []);
