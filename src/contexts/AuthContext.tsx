@@ -102,26 +102,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
+          setLoading(false);
+          setRoleLoaded(false);
           setTimeout(() => {
             if (!isMounted) return;
             const userId = session.user.id;
-            Promise.all([fetchUserRole(userId), fetchUserClientes(userId)]).then(
-              ([role, clientes]) => {
+            // Safety timeout: never block UI more than 8s waiting for roles
+            const safetyTimer = setTimeout(() => {
+              if (isMounted) setRoleLoaded(true);
+            }, 8000);
+            Promise.all([fetchUserRole(userId), fetchUserClientes(userId)])
+              .then(([role, clientes]) => {
                 if (!isMounted) return;
                 setUserRole(role);
                 setUserClientes(clientes);
-                setRoleLoaded(true);
                 if (role?.role === 'cliente' && clientes.length === 1) {
                   setSelectedClienteId(clientes[0].cliente_id);
                 }
-              }
-            );
+              })
+              .catch((err) => console.error('Role fetch error:', err))
+              .finally(() => {
+                clearTimeout(safetyTimer);
+                if (isMounted) setRoleLoaded(true);
+              });
           }, 0);
         } else {
           setUserRole(null);
           setUserClientes([]);
           setSelectedClienteId(null);
           setRoleLoaded(false);
+          setLoading(false);
         }
       }
     );
