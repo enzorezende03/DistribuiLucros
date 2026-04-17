@@ -247,7 +247,7 @@ function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang, mobile: bo
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; color:#1a1a1a; padding:40px; background:#fff; }
-  .container { max-width:700px; margin:0 auto; }
+  .container { max-width:700px; margin:0 auto 40px auto; }
   .header { text-align:center; border-bottom:3px solid #2563eb; padding-bottom:20px; margin-bottom:30px; }
   .header h1 { font-size:22px; color:#2563eb; margin-bottom:4px; }
   .header p { font-size:13px; color:#666; }
@@ -264,48 +264,15 @@ function buildHtml(dist: any, cliente: any, itens: any[], lang: Lang, mobile: bo
   .total-row td { padding:12px; font-size:16px; font-weight:700; }
   .footer { margin-top:40px; text-align:center; font-size:11px; color:#999; border-top:1px solid #e5e7eb; padding-top:16px; }
   .sig-line { border-top:1px solid #333; padding-top:8px; text-align:center; font-size:12px; }
+  @media print {
+    body { padding:0; }
+    .container { margin:0 auto; padding:20px; }
+  }
   ${mobileStyles}
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <h1>${l.title}</h1>
-    <p>${cliente.razao_social}</p>
-    <p>CNPJ: ${formatCNPJ(cliente.cnpj)}</p>
-    <div class="recibo-num">${l.receiptNum} ${dist.recibo_numero || "—"}</div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">${l.sectionData}</div>
-     <div class="info-grid">
-       <div><div class="info-label">${l.competencia}</div><div class="info-value">${formatCompetencia(dist.competencia, l)}</div></div>
-       <div><div class="info-label">${l.dataDistribuicao}</div><div class="info-value">${formatDate(dist.data_distribuicao, lang)}</div></div>
-     </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">${l.sectionRateio}</div>
-    <table>
-      <thead><tr><th>${l.socio}</th><th>${l.cpf}</th><th style="text-align:right">${l.valor}</th></tr></thead>
-      <tbody>
-        ${itensRows}
-        <tr class="total-row">
-          <td colspan="2">${l.total}</td>
-          <td style="text-align:right">${formatCurrency(Number(dist.valor_total), lang)}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div style="margin-top:50px;max-width:300px;margin-left:auto;margin-right:auto;">
-    <div class="sig-line">${l.responsavel}</div>
-  </div>
-
-  <div class="footer">
-    ${l.geradoEm} ${dateStr} ${l.as} ${timeStr}.
-  </div>
-</div>
+${pages}
 </body>
 </html>`;
 }
