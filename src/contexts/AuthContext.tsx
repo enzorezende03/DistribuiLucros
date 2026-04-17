@@ -141,33 +141,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const { data: userData, error: userError } = await supabase.auth.getUser(session.access_token);
-        if (!isMounted) return;
-
-        if (userError || !userData.user) {
-          setSession(null);
-          setUser(null);
-          setUserRole(null);
-          setUserClientes([]);
-          setSelectedClienteId(null);
-          setRoleLoaded(false);
-          return;
-        }
-
+        // Use the user from the session directly to avoid an extra network
+        // round-trip (getUser) that can hang and keep the app stuck on the
+        // loading spinner.
         setSession(session);
-        setUser(userData.user);
+        setUser(session.user);
 
-        const [role, clientes] = await Promise.all([
-          fetchUserRole(session.user.id),
-          fetchUserClientes(session.user.id),
-        ]);
-        if (!isMounted) return;
-        setUserRole(role);
-        setUserClientes(clientes);
-        setRoleLoaded(true);
-        if (role?.role === 'cliente' && clientes.length === 1) {
-          setSelectedClienteId(clientes[0].cliente_id);
+        try {
+          const [role, clientes] = await Promise.all([
+            fetchUserRole(session.user.id),
+            fetchUserClientes(session.user.id),
+          ]);
+          if (!isMounted) return;
+          setUserRole(role);
+          setUserClientes(clientes);
+          setRoleLoaded(true);
+          if (role?.role === 'cliente' && clientes.length === 1) {
+            setSelectedClienteId(clientes[0].cliente_id);
+          }
+        } catch (err) {
+          console.error('Error loading role/clientes:', err);
+          if (isMounted) setRoleLoaded(true);
         }
+      } catch (err) {
+        console.error('Error initializing auth:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
