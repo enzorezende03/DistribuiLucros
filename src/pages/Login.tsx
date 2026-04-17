@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +19,14 @@ const formatCNPJ = (value: string) => {
     .replace(/(\d{4})(\d)/, '$1-$2');
 };
 
+const getLoginErrorMessage = (errorMessage: string, fallback: string) => {
+  if (/failed to fetch|networkerror|load failed/i.test(errorMessage)) {
+    return 'Falha de conexão ao entrar. Verifique sua internet e tente novamente.';
+  }
+
+  return `${fallback}: ${errorMessage}`;
+};
+
 type LoginMode = 'cliente' | 'admin';
 
 export default function LoginPage() {
@@ -30,56 +37,74 @@ export default function LoginPage() {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleClienteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const cnpjDigits = cnpj.replace(/\D/g, '');
-    if (cnpjDigits.length !== 14) {
-      toast.error(t('login.invalidCnpj'));
-      setLoading(false);
-      return;
-    }
-    const { data: email, error: lookupError } = await supabase.rpc('find_email_by_cnpj', { _cnpj: cnpjDigits });
-    if (lookupError || !email) {
-      toast.error(t('login.cnpjNotFound'));
-      setLoading(false);
-      return;
-    }
-    const senhaEfetiva = primeiroAcesso ? '2mCliente' : clientePassword;
-    const { error, data } = await supabase.auth.signInWithPassword({ email, password: senhaEfetiva });
-    if (error) {
-      if (primeiroAcesso) {
-        toast.error('Senha padrão não reconhecida. Se você já redefiniu sua senha, desmarque "Primeiro acesso".');
-      } else {
-        toast.error(t('login.error') + ': ' + error.message);
+
+    try {
+      const cnpjDigits = cnpj.replace(/\D/g, '');
+      if (cnpjDigits.length !== 14) {
+        toast.error(t('login.invalidCnpj'));
+        return;
       }
+
+      const { data: email, error: lookupError } = await supabase.rpc('find_email_by_cnpj', { _cnpj: cnpjDigits });
+      if (lookupError || !email) {
+        toast.error(t('login.cnpjNotFound'));
+        return;
+      }
+
+      const senhaEfetiva = primeiroAcesso ? '2mCliente' : clientePassword;
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password: senhaEfetiva });
+
+      if (error) {
+        if (/failed to fetch|networkerror|load failed/i.test(error.message)) {
+          toast.error('Falha de conexão ao entrar. Verifique sua internet e tente novamente.');
+          return;
+        }
+
+        if (primeiroAcesso) {
+          toast.error('Senha padrão não reconhecida. Se você já redefiniu sua senha, desmarque "Primeiro acesso".');
+        } else {
+          toast.error(getLoginErrorMessage(error.message, t('login.error')));
+        }
+        return;
+      }
+
+      toast.success(t('login.success'));
+      const mustChange = data?.user?.user_metadata?.must_change_password;
+      navigate(mustChange ? '/alterar-senha' : '/dashboard');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('login.error');
+      toast.error(getLoginErrorMessage(message, t('login.error')));
+    } finally {
       setLoading(false);
-      return;
-    }
-    toast.success(t('login.success'));
-    const mustChange = data?.user?.user_metadata?.must_change_password;
-    if (mustChange) {
-      navigate('/alterar-senha');
-    } else {
-      navigate('/dashboard');
     }
   };
 
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: adminEmail, password: adminPassword });
-    if (error) {
-      toast.error(t('login.error') + ': ' + error.message);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: adminEmail, password: adminPassword });
+
+      if (error) {
+        toast.error(getLoginErrorMessage(error.message, t('login.error')));
+        return;
+      }
+
+      toast.success(t('login.success'));
+      navigate('/dashboard');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('login.error');
+      toast.error(getLoginErrorMessage(message, t('login.error')));
+    } finally {
       setLoading(false);
-      return;
     }
-    toast.success(t('login.success'));
-    navigate('/dashboard');
   };
 
   return (
