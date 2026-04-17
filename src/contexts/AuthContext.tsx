@@ -102,26 +102,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
+          setLoading(false);
+          setRoleLoaded(false);
           setTimeout(() => {
             if (!isMounted) return;
             const userId = session.user.id;
-            Promise.all([fetchUserRole(userId), fetchUserClientes(userId)]).then(
-              ([role, clientes]) => {
+            // Safety timeout: never block UI more than 8s waiting for roles
+            const safetyTimer = setTimeout(() => {
+              if (isMounted) setRoleLoaded(true);
+            }, 8000);
+            Promise.all([fetchUserRole(userId), fetchUserClientes(userId)])
+              .then(([role, clientes]) => {
                 if (!isMounted) return;
                 setUserRole(role);
                 setUserClientes(clientes);
-                setRoleLoaded(true);
                 if (role?.role === 'cliente' && clientes.length === 1) {
                   setSelectedClienteId(clientes[0].cliente_id);
                 }
-              }
-            );
+              })
+              .catch((err) => console.error('Role fetch error:', err))
+              .finally(() => {
+                clearTimeout(safetyTimer);
+                if (isMounted) setRoleLoaded(true);
+              });
           }, 0);
         } else {
           setUserRole(null);
           setUserClientes([]);
           setSelectedClienteId(null);
           setRoleLoaded(false);
+          setLoading(false);
         }
       }
     );
@@ -141,9 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Use the user from the session directly to avoid an extra network
-        // round-trip (getUser) that can hang and keep the app stuck on the
-        // loading spinner.
         setSession(session);
         setUser(session.user);
 
@@ -155,12 +162,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!isMounted) return;
           setUserRole(role);
           setUserClientes(clientes);
-          setRoleLoaded(true);
           if (role?.role === 'cliente' && clientes.length === 1) {
             setSelectedClienteId(clientes[0].cliente_id);
           }
         } catch (err) {
           console.error('Error loading role/clientes:', err);
+        } finally {
           if (isMounted) setRoleLoaded(true);
         }
       } catch (err) {
@@ -170,10 +177,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    initializeAuth();
+    // Hard safety: never let loading stay true for more than 10s
+    const hardTimeout = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 10000);
+
+    initializeAuth().finally(() => clearTimeout(hardTimeout));
 
     return () => {
       isMounted = false;
+      clearTimeout(hardTimeout);
       subscription.unsubscribe();
     };
   }, []);
