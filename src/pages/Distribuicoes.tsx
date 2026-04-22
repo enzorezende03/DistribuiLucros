@@ -136,20 +136,47 @@ export default function DistribuicoesPage() {
   if (selectedStatus) {
     filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.status === selectedStatus);
   }
-  if (selectedSocioId) {
-    filteredDistribuicoes = filteredDistribuicoes?.filter((d) =>
-      d.itens?.some((item) => item.socio_id === selectedSocioId)
-    );
-  }
   if (selectedCompetencia) {
     filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.competencia === selectedCompetencia);
   }
+
+  // Explode each distribution into one row per partner item
+  type DistRow = Distribuicao & {
+    rowKey: string;
+    item: NonNullable<Distribuicao['itens']>[number] | null;
+    rowValor: number;
+    reciboDisplay: string;
+    multiSocios: boolean;
+    socioIndex: number;
+  };
+  const explodedRows: DistRow[] = (filteredDistribuicoes || []).flatMap((d) => {
+    const itens = d.itens && d.itens.length > 0 ? d.itens : [null];
+    const multi = (d.itens?.length || 0) > 1;
+    return itens.map((item, idx) => ({
+      ...d,
+      rowKey: item ? `${d.id}-${item.id}` : d.id,
+      item,
+      rowValor: item ? Number(item.valor) : Number(d.valor_total),
+      reciboDisplay: multi && item
+        ? `${d.recibo_numero || ''}-${String.fromCharCode(65 + idx)}`
+        : (d.recibo_numero || ''),
+      multiSocios: multi,
+      socioIndex: idx,
+    }));
+  });
+
+  let visibleRows = explodedRows;
+  if (selectedSocioId) {
+    visibleRows = visibleRows.filter((r) => r.item?.socio_id === selectedSocioId);
+  }
   if (search) {
-    filteredDistribuicoes = filteredDistribuicoes?.filter(
-      (d) =>
-        d.recibo_numero?.toLowerCase().includes(search.toLowerCase()) ||
-        d.cliente?.razao_social?.toLowerCase().includes(search.toLowerCase()) ||
-        d.itens?.some((item) => item.socio?.nome?.toLowerCase().includes(search.toLowerCase()))
+    const s = search.toLowerCase();
+    visibleRows = visibleRows.filter(
+      (r) =>
+        r.reciboDisplay.toLowerCase().includes(s) ||
+        r.recibo_numero?.toLowerCase().includes(s) ||
+        r.cliente?.razao_social?.toLowerCase().includes(s) ||
+        r.item?.socio?.nome?.toLowerCase().includes(s)
     );
   }
 
