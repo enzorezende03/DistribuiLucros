@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, useBatchUpdateStatus, type StatusDistribuicao } from '@/hooks/useDistribuicoes';
+import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, useBatchUpdateStatus, type StatusDistribuicao, type Distribuicao } from '@/hooks/useDistribuicoes';
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -136,20 +136,47 @@ export default function DistribuicoesPage() {
   if (selectedStatus) {
     filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.status === selectedStatus);
   }
-  if (selectedSocioId) {
-    filteredDistribuicoes = filteredDistribuicoes?.filter((d) =>
-      d.itens?.some((item) => item.socio_id === selectedSocioId)
-    );
-  }
   if (selectedCompetencia) {
     filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.competencia === selectedCompetencia);
   }
+
+  // Explode each distribution into one row per partner item
+  type DistRow = Distribuicao & {
+    rowKey: string;
+    item: NonNullable<Distribuicao['itens']>[number] | null;
+    rowValor: number;
+    reciboDisplay: string;
+    multiSocios: boolean;
+    socioIndex: number;
+  };
+  const explodedRows: DistRow[] = (filteredDistribuicoes || []).flatMap((d) => {
+    const itens = d.itens && d.itens.length > 0 ? d.itens : [null];
+    const multi = (d.itens?.length || 0) > 1;
+    return itens.map((item, idx) => ({
+      ...d,
+      rowKey: item ? `${d.id}-${item.id}` : d.id,
+      item,
+      rowValor: item ? Number(item.valor) : Number(d.valor_total),
+      reciboDisplay: multi && item
+        ? `${d.recibo_numero || ''}-${String.fromCharCode(65 + idx)}`
+        : (d.recibo_numero || ''),
+      multiSocios: multi,
+      socioIndex: idx,
+    }));
+  });
+
+  let visibleRows = explodedRows;
+  if (selectedSocioId) {
+    visibleRows = visibleRows.filter((r) => r.item?.socio_id === selectedSocioId);
+  }
   if (search) {
-    filteredDistribuicoes = filteredDistribuicoes?.filter(
-      (d) =>
-        d.recibo_numero?.toLowerCase().includes(search.toLowerCase()) ||
-        d.cliente?.razao_social?.toLowerCase().includes(search.toLowerCase()) ||
-        d.itens?.some((item) => item.socio?.nome?.toLowerCase().includes(search.toLowerCase()))
+    const s = search.toLowerCase();
+    visibleRows = visibleRows.filter(
+      (r) =>
+        r.reciboDisplay.toLowerCase().includes(s) ||
+        r.recibo_numero?.toLowerCase().includes(s) ||
+        r.cliente?.razao_social?.toLowerCase().includes(s) ||
+        r.item?.socio?.nome?.toLowerCase().includes(s)
     );
   }
 
@@ -300,34 +327,35 @@ export default function DistribuicoesPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : filteredDistribuicoes && filteredDistribuicoes.length > 0 ? (
+            ) : visibleRows && visibleRows.length > 0 ? (
               <>
                 {/* Mobile card layout */}
                 <div className="space-y-3 sm:hidden">
-                  {filteredDistribuicoes.map((dist) => (
-                    <div key={dist.id} className="rounded-lg border p-4 space-y-2">
+                  {visibleRows.map((row) => (
+                    <div key={row.rowKey} className="rounded-lg border p-4 space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                             <FileText className="h-4 w-4 text-accent" />
                           </div>
-                          <span className="font-mono text-sm truncate">{dist.recibo_numero}</span>
+                          <span className="font-mono text-sm truncate">{row.reciboDisplay}</span>
                         </div>
                         <DistribuicaoActions
-                          distribuicao={dist}
+                          distribuicao={row}
                           isAdmin={isAdmin}
-                          onView={() => setViewingDistribuicao(dist.id)}
+                          onView={() => setViewingDistribuicao(row.id)}
                         />
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {isAdmin ? dist.cliente?.razao_social : dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ')}
-                      </p>
+                      {isAdmin && (
+                        <p className="text-sm text-muted-foreground truncate">{row.cliente?.razao_social}</p>
+                      )}
+                      <p className="text-sm font-medium truncate">{row.item?.socio?.nome || '—'}</p>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold money-value text-sm">{formatCurrency(Number(dist.valor_total))}</span>
+                        <span className="font-semibold money-value text-sm">{formatCurrency(row.rowValor)}</span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
-                        <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
-                        <span className="text-xs text-muted-foreground">{formatDate(dist.data_distribuicao)}</span>
+                        <StatusBadgeWithHistory distribuicaoId={row.id} status={row.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
+                        <span className="text-xs text-muted-foreground">{formatDate(row.data_distribuicao)}</span>
                       </div>
                     </div>
                   ))}
@@ -343,10 +371,13 @@ export default function DistribuicoesPage() {
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={filteredDistribuicoes!.length > 0 && filteredDistribuicoes!.every((d) => selectedIds.has(d.id))}
+                                checked={(() => {
+                                  const ids = Array.from(new Set(visibleRows.map((r) => r.id)));
+                                  return ids.length > 0 && ids.every((id) => selectedIds.has(id));
+                                })()}
                                 onChange={(e) => {
                                   if (e.target.checked) {
-                                    setSelectedIds(new Set(filteredDistribuicoes!.map((d) => d.id)));
+                                    setSelectedIds(new Set(visibleRows.map((r) => r.id)));
                                   } else {
                                     setSelectedIds(new Set());
                                   }
@@ -359,29 +390,31 @@ export default function DistribuicoesPage() {
                         )}
                         <TableHead>{t('distributions.receipt')}</TableHead>
                         {isAdmin && <TableHead className="hidden md:table-cell">{t('distributions.client')}</TableHead>}
+                        <TableHead>Sócio</TableHead>
                         <TableHead>{t('distributions.date')}</TableHead>
                         <TableHead className="text-right">{t('distributions.value')}</TableHead>
-                        {!isAdmin && <TableHead className="hidden md:table-cell">{t('distributions.partners')}</TableHead>}
                         <TableHead>{t('distributions.status')}</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredDistribuicoes.map((dist) => (
-                        <TableRow key={dist.id} className="table-row-interactive">
+                      {visibleRows.map((row) => (
+                        <TableRow key={row.rowKey} className="table-row-interactive">
                           {isAdmin && (
                             <TableCell>
-                              <input
-                                type="checkbox"
-                                checked={selectedIds.has(dist.id)}
-                                onChange={(e) => {
-                                  const next = new Set(selectedIds);
-                                  if (e.target.checked) next.add(dist.id);
-                                  else next.delete(dist.id);
-                                  setSelectedIds(next);
-                                }}
-                                className="h-4 w-4 rounded border-input"
-                              />
+                              {row.socioIndex === 0 ? (
+                                <input
+                                  type="checkbox"
+                                  checked={selectedIds.has(row.id)}
+                                  onChange={(e) => {
+                                    const next = new Set(selectedIds);
+                                    if (e.target.checked) next.add(row.id);
+                                    else next.delete(row.id);
+                                    setSelectedIds(next);
+                                  }}
+                                  className="h-4 w-4 rounded border-input"
+                                />
+                              ) : null}
                             </TableCell>
                           )}
                           <TableCell>
@@ -390,24 +423,24 @@ export default function DistribuicoesPage() {
                                 <FileText className="h-4 w-4 text-accent" />
                               </div>
                               <div>
-                                <span className="font-mono text-sm">{dist.recibo_numero}</span>
-                                <p className="text-xs text-muted-foreground md:hidden">{isAdmin ? dist.cliente?.razao_social : dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ')}</p>
+                                <span className="font-mono text-sm">{row.reciboDisplay}</span>
+                                {isAdmin && (
+                                  <p className="text-xs text-muted-foreground md:hidden">{row.cliente?.razao_social}</p>
+                                )}
                               </div>
                             </div>
                           </TableCell>
                           {isAdmin && (
-                            <TableCell className="font-medium hidden md:table-cell">{dist.cliente?.razao_social}</TableCell>
+                            <TableCell className="font-medium hidden md:table-cell">{row.cliente?.razao_social}</TableCell>
                           )}
-                          <TableCell>{formatDate(dist.data_distribuicao)}</TableCell>
-                          <TableCell className="text-right font-semibold money-value">{formatCurrency(Number(dist.valor_total))}</TableCell>
-                          {!isAdmin && (
-                            <TableCell className="text-sm hidden md:table-cell">{dist.itens?.map((item) => item.socio?.nome).filter(Boolean).join(', ') || '—'}</TableCell>
-                          )}
+                          <TableCell className="text-sm">{row.item?.socio?.nome || '—'}</TableCell>
+                          <TableCell>{formatDate(row.data_distribuicao)}</TableCell>
+                          <TableCell className="text-right font-semibold money-value">{formatCurrency(row.rowValor)}</TableCell>
                           <TableCell>
-                            <StatusBadgeWithHistory distribuicaoId={dist.id} status={dist.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
+                            <StatusBadgeWithHistory distribuicaoId={row.id} status={row.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
                           </TableCell>
                           <TableCell>
-                            <DistribuicaoActions distribuicao={dist} isAdmin={isAdmin} onView={() => setViewingDistribuicao(dist.id)} />
+                            <DistribuicaoActions distribuicao={row} isAdmin={isAdmin} onView={() => setViewingDistribuicao(row.id)} />
                           </TableCell>
                         </TableRow>
                       ))}
