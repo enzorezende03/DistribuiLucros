@@ -29,6 +29,7 @@ import NotFound from "@/pages/NotFound";
 
 // Components
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
