@@ -15,9 +15,10 @@ export function breakableCurrency(value: number): string {
   return formatted.replace(/([.,])/g, '$1\u200B');
 }
 
-export function formatCPF(cpf: string): string {
-  const cleaned = cpf.replace(/\D/g, '');
-  if (cleaned.length !== 11) return cpf;
+export function formatCPF(cpf: string | null | undefined): string {
+  if (!cpf) return '';
+  const cleaned = String(cpf).replace(/\D/g, '');
+  if (cleaned.length !== 11) return String(cpf);
   return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }
 
