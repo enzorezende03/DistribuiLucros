@@ -75,8 +75,8 @@ function AppRoutes() {
         <Route path="/admin-usuarios" element={<ProtectedRoute requireAdmin><AdminUsuariosPage /></ProtectedRoute>} />
         <Route path="/socios" element={<Navigate to="/clientes" replace />} />
         <Route path="/distribuicoes" element={<ProtectedRoute><DistribuicoesPage /></ProtectedRoute>} />
-        <Route path="/distribuicoes/nova" element={<ProtectedRoute><ErrorBoundary><NovaDistribuicaoPage /></ErrorBoundary></ProtectedRoute>} />
-        <Route path="/distribuicoes/editar/:id" element={<ProtectedRoute><ErrorBoundary><EditarDistribuicaoPage /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
+        <Route path="/distribuicoes/editar/:id" element={<ProtectedRoute><EditarDistribuicaoPage /></ProtectedRoute>} />
         <Route path="/alertas" element={<ProtectedRoute><AlertasRoute /></ProtectedRoute>} />
         <Route path="/tarefas-ir" element={<ProtectedRoute requireAdmin><TarefasIRPage /></ProtectedRoute>} />
         <Route path="/notificacoes" element={<ProtectedRoute><NotificacoesPage /></ProtectedRoute>} />
