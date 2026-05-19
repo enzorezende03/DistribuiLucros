@@ -59,37 +59,39 @@ function AppRoutes() {
   }
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
-      <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
-      <Route path="/alterar-senha" element={<ProtectedRoute><AlterarSenhaPage /></ProtectedRoute>} />
+    <ErrorBoundary>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+        <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
+        <Route path="/alterar-senha" element={<ProtectedRoute><AlterarSenhaPage /></ProtectedRoute>} />
 
-      {/* Company selection */}
-      <Route path="/selecionar-empresa" element={<ProtectedRoute><SelecionarEmpresaPage /></ProtectedRoute>} />
+        {/* Company selection */}
+        <Route path="/selecionar-empresa" element={<ProtectedRoute><SelecionarEmpresaPage /></ProtectedRoute>} />
 
-      {/* Protected routes */}
-      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-      <Route path="/clientes" element={<ProtectedRoute requireAdmin><ClientesPage /></ProtectedRoute>} />
-      <Route path="/admin-usuarios" element={<ProtectedRoute requireAdmin><AdminUsuariosPage /></ProtectedRoute>} />
-      <Route path="/socios" element={<Navigate to="/clientes" replace />} />
-      <Route path="/distribuicoes" element={<ProtectedRoute><DistribuicoesPage /></ProtectedRoute>} />
-      <Route path="/distribuicoes/nova" element={<ProtectedRoute><NovaDistribuicaoPage /></ProtectedRoute>} />
-      <Route path="/distribuicoes/editar/:id" element={<ProtectedRoute><EditarDistribuicaoPage /></ProtectedRoute>} />
-      <Route path="/alertas" element={<ProtectedRoute><AlertasRoute /></ProtectedRoute>} />
-      <Route path="/tarefas-ir" element={<ProtectedRoute requireAdmin><TarefasIRPage /></ProtectedRoute>} />
-      <Route path="/notificacoes" element={<ProtectedRoute><NotificacoesPage /></ProtectedRoute>} />
-      <Route path="/pendencias" element={<ProtectedRoute><PendenciasPage /></ProtectedRoute>} />
-      <Route path="/simulacao" element={<ProtectedRoute><SimulacaoPage /></ProtectedRoute>} />
-      <Route path="/lucros-acumulados" element={<ProtectedRoute><LucrosAcumuladosPage /></ProtectedRoute>} />
-      <Route path="/ajuda" element={<ProtectedRoute><AjudaPage /></ProtectedRoute>} />
+        {/* Protected routes */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/clientes" element={<ProtectedRoute requireAdmin><ClientesPage /></ProtectedRoute>} />
+        <Route path="/admin-usuarios" element={<ProtectedRoute requireAdmin><AdminUsuariosPage /></ProtectedRoute>} />
+        <Route path="/socios" element={<Navigate to="/clientes" replace />} />
+        <Route path="/distribuicoes" element={<ProtectedRoute><DistribuicoesPage /></ProtectedRoute>} />
+        <Route path="/distribuicoes/nova" element={<ProtectedRoute><ErrorBoundary><NovaDistribuicaoPage /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="/distribuicoes/editar/:id" element={<ProtectedRoute><ErrorBoundary><EditarDistribuicaoPage /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="/alertas" element={<ProtectedRoute><AlertasRoute /></ProtectedRoute>} />
+        <Route path="/tarefas-ir" element={<ProtectedRoute requireAdmin><TarefasIRPage /></ProtectedRoute>} />
+        <Route path="/notificacoes" element={<ProtectedRoute><NotificacoesPage /></ProtectedRoute>} />
+        <Route path="/pendencias" element={<ProtectedRoute><PendenciasPage /></ProtectedRoute>} />
+        <Route path="/simulacao" element={<ProtectedRoute><SimulacaoPage /></ProtectedRoute>} />
+        <Route path="/lucros-acumulados" element={<ProtectedRoute><LucrosAcumuladosPage /></ProtectedRoute>} />
+        <Route path="/ajuda" element={<ProtectedRoute><AjudaPage /></ProtectedRoute>} />
 
-      {/* Redirect root */}
-      <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+        {/* Redirect root */}
+        <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
 
-      {/* 404 */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
 
