@@ -21,10 +21,21 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Surface the error in the console so we can see it in logs
     // eslint-disable-next-line no-console
     console.error('[ErrorBoundary] Captured render error:', error, info);
+
+    // Erros causados por extensões do navegador (Google Tradutor, etc.)
+    // que mexem no DOM. Recuperamos automaticamente sem mostrar tela de erro.
+    const msg = error?.message || '';
+    if (
+      msg.includes('removeChild') ||
+      msg.includes('insertBefore') ||
+      msg.includes('not a child of this node')
+    ) {
+      setTimeout(() => this.setState({ hasError: false, error: null }), 0);
+    }
   }
+
 
   handleReset = () => {
     this.setState({ hasError: false, error: null });
