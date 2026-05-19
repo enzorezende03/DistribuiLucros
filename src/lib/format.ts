@@ -28,6 +28,14 @@ export function formatCNPJ(cnpj: string): string {
 }
 
 export function formatDate(date: string): string {
+  if (!date) return '';
+  // Handle 'YYYY-MM-DD' as a local date to avoid UTC timezone shifting
+  // (e.g. '2026-05-18' parsed as UTC midnight becomes 17/05 in BRT).
+  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (dateOnlyMatch) {
+    const [, y, m, d] = dateOnlyMatch;
+    return `${d}/${m}/${y}`;
+  }
   return new Date(date).toLocaleDateString('pt-BR');
 }
 
