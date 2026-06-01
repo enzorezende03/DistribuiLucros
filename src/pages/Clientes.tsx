@@ -961,8 +961,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           toast.error('Erro ao enviar ata: ' + uploadErr.message);
           return;
         }
-        const { data: urlData } = supabase.storage.from('atas').getPublicUrl(filePath);
-        (data as any).ata_url = urlData.publicUrl;
+        (data as any).ata_url = filePath;
       }
 
       const oldSaldo = Number(cliente.saldo_lucros_acumulados) || 0;
