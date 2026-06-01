@@ -230,6 +230,16 @@ export default function LoginPage() {
                 </Button>
               </form>
 
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => { setForgotCnpj(cnpj); setForgotOpen(true); }}
+                  className="text-sm text-primary hover:underline transition-colors"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
+
               <div className="text-center pt-2">
                 <button
                   onClick={() => setMode('admin')}
