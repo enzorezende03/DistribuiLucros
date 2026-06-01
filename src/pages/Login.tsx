@@ -302,6 +302,73 @@ export default function LoginPage() {
           )}
         </div>
       </div>
+
+      <Dialog open={forgotOpen} onOpenChange={(o) => (o ? setForgotOpen(true) : closeForgot())}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Esqueci minha senha</DialogTitle>
+            <DialogDescription>
+              {forgotSuccess
+                ? 'Sua senha foi redefinida com sucesso.'
+                : 'Informe o CNPJ da sua empresa. Vamos redefinir sua senha para a padrão para que você possa entrar e criar uma nova.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!forgotSuccess ? (
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-cnpj">CNPJ</Label>
+                <Input
+                  id="forgot-cnpj"
+                  type="text"
+                  placeholder="00.000.000/0000-00"
+                  value={forgotCnpj}
+                  onChange={(e) => setForgotCnpj(formatCNPJ(e.target.value))}
+                  required
+                  disabled={forgotLoading}
+                  autoFocus
+                  className="h-11"
+                />
+              </div>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="outline" onClick={closeForgot} disabled={forgotLoading}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={forgotLoading}>
+                  {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Redefinir senha
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border bg-muted/40 p-4 text-sm space-y-2">
+                <p className="font-medium text-foreground">{forgotSuccess}</p>
+                <p className="text-muted-foreground">
+                  Sua senha foi redefinida para a senha padrão{' '}
+                  <span className="font-mono font-semibold text-foreground">2mCliente</span>.
+                </p>
+                <p className="text-muted-foreground">
+                  Na tela de login, marque <strong>"Primeiro acesso (senha padrão)"</strong> e
+                  entre — você será solicitado a criar uma nova senha em seguida.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    setPrimeiroAcesso(true);
+                    setClientePassword('');
+                    closeForgot();
+                  }}
+                  className="w-full"
+                >
+                  Entendi, ir para o login
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
