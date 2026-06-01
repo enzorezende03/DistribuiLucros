@@ -6,6 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, ArrowLeft } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import logo2m from '@/assets/logo-2m.png';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,8 +45,45 @@ export default function LoginPage() {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Forgot password
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotCnpj, setForgotCnpj] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cnpjDigits = forgotCnpj.replace(/\D/g, '');
+    if (cnpjDigits.length !== 14) {
+      toast.error('Informe um CNPJ válido');
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('reset-password-cnpj', {
+        body: { cnpj: cnpjDigits },
+      });
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || error?.message || 'Não foi possível redefinir a senha');
+        return;
+      }
+      setForgotSuccess((data as any)?.razao_social || 'Empresa');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro inesperado');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const closeForgot = () => {
+    setForgotOpen(false);
+    setForgotCnpj('');
+    setForgotSuccess(null);
+  };
 
   const handleClienteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,6 +230,16 @@ export default function LoginPage() {
                 </Button>
               </form>
 
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => { setForgotCnpj(cnpj); setForgotOpen(true); }}
+                  className="text-sm text-primary hover:underline transition-colors"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
+
               <div className="text-center pt-2">
                 <button
                   onClick={() => setMode('admin')}
@@ -247,6 +302,73 @@ export default function LoginPage() {
           )}
         </div>
       </div>
+
+      <Dialog open={forgotOpen} onOpenChange={(o) => (o ? setForgotOpen(true) : closeForgot())}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Esqueci minha senha</DialogTitle>
+            <DialogDescription>
+              {forgotSuccess
+                ? 'Sua senha foi redefinida com sucesso.'
+                : 'Informe o CNPJ da sua empresa. Vamos redefinir sua senha para a padrão para que você possa entrar e criar uma nova.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!forgotSuccess ? (
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-cnpj">CNPJ</Label>
+                <Input
+                  id="forgot-cnpj"
+                  type="text"
+                  placeholder="00.000.000/0000-00"
+                  value={forgotCnpj}
+                  onChange={(e) => setForgotCnpj(formatCNPJ(e.target.value))}
+                  required
+                  disabled={forgotLoading}
+                  autoFocus
+                  className="h-11"
+                />
+              </div>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="outline" onClick={closeForgot} disabled={forgotLoading}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={forgotLoading}>
+                  {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Redefinir senha
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border bg-muted/40 p-4 text-sm space-y-2">
+                <p className="font-medium text-foreground">{forgotSuccess}</p>
+                <p className="text-muted-foreground">
+                  Sua senha foi redefinida para a senha padrão{' '}
+                  <span className="font-mono font-semibold text-foreground">2mCliente</span>.
+                </p>
+                <p className="text-muted-foreground">
+                  Na tela de login, marque <strong>"Primeiro acesso (senha padrão)"</strong> e
+                  entre — você será solicitado a criar uma nova senha em seguida.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    setPrimeiroAcesso(true);
+                    setClientePassword('');
+                    closeForgot();
+                  }}
+                  className="w-full"
+                >
+                  Entendi, ir para o login
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
