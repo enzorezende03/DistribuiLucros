@@ -1,8 +1,9 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders as baseCorsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  ...baseCorsHeaders,
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version, prefer",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -11,6 +12,10 @@ function json(body: Record<string, unknown>, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function formatCnpj(cnpj: string) {
+  return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 }
 
 Deno.serve(async (req) => {
@@ -28,10 +33,11 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceRoleKey);
 
     // Find cliente by CNPJ
+    const formattedCnpj = formatCnpj(cnpjDigits);
     const { data: cliente, error: cliErr } = await admin
       .from("clientes")
       .select("id, razao_social")
-      .eq("cnpj", cnpjDigits)
+      .in("cnpj", [cnpjDigits, formattedCnpj])
       .maybeSingle();
 
     if (cliErr) return json({ error: "Erro ao consultar CNPJ" }, 500);
