@@ -45,8 +45,45 @@ export default function LoginPage() {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Forgot password
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotCnpj, setForgotCnpj] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cnpjDigits = forgotCnpj.replace(/\D/g, '');
+    if (cnpjDigits.length !== 14) {
+      toast.error('Informe um CNPJ válido');
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('reset-password-cnpj', {
+        body: { cnpj: cnpjDigits },
+      });
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || error?.message || 'Não foi possível redefinir a senha');
+        return;
+      }
+      setForgotSuccess((data as any)?.razao_social || 'Empresa');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro inesperado');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const closeForgot = () => {
+    setForgotOpen(false);
+    setForgotCnpj('');
+    setForgotSuccess(null);
+  };
 
   const handleClienteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
