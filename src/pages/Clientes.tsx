@@ -961,8 +961,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           toast.error('Erro ao enviar ata: ' + uploadErr.message);
           return;
         }
-        const { data: urlData } = supabase.storage.from('atas').getPublicUrl(filePath);
-        (data as any).ata_url = urlData.publicUrl;
+        (data as any).ata_url = filePath;
       }
 
       const oldSaldo = Number(cliente.saldo_lucros_acumulados) || 0;
@@ -1000,8 +999,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         const filePath = `${createdCliente.id}/ata.${ext}`;
         const { error: uploadErr } = await supabase.storage.from('atas').upload(filePath, ataFile, { upsert: true });
         if (!uploadErr) {
-          const { data: urlData } = supabase.storage.from('atas').getPublicUrl(filePath);
-          await supabase.from('clientes').update({ ata_url: urlData.publicUrl } as any).eq('id', createdCliente.id);
+          await supabase.from('clientes').update({ ata_url: filePath } as any).eq('id', createdCliente.id);
         }
       }
 
@@ -1191,14 +1189,25 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                   {isEditing && cliente.ata_url && !ataFile && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                       <FileText className="h-4 w-4 text-emerald-600" />
-                      <a
-                        href={cliente.ata_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const raw = cliente.ata_url as string;
+                          let path = raw;
+                          const marker = '/atas/';
+                          const idx = raw.indexOf(marker);
+                          if (idx !== -1) path = raw.substring(idx + marker.length);
+                          const { data: signed, error } = await supabase.storage.from('atas').createSignedUrl(path, 60);
+                          if (error || !signed?.signedUrl) {
+                            toast.error('Não foi possível abrir a ata');
+                            return;
+                          }
+                          window.open(signed.signedUrl, '_blank', 'noopener,noreferrer');
+                        }}
                         className="text-primary hover:underline flex items-center gap-1"
                       >
                         Ver ata anexada <ExternalLink className="h-3 w-3" />
-                      </a>
+                      </button>
                     </div>
                   )}
                   <div className="flex items-center gap-2">
