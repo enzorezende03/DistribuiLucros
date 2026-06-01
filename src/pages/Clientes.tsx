@@ -999,8 +999,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         const filePath = `${createdCliente.id}/ata.${ext}`;
         const { error: uploadErr } = await supabase.storage.from('atas').upload(filePath, ataFile, { upsert: true });
         if (!uploadErr) {
-          const { data: urlData } = supabase.storage.from('atas').getPublicUrl(filePath);
-          await supabase.from('clientes').update({ ata_url: urlData.publicUrl } as any).eq('id', createdCliente.id);
+          await supabase.from('clientes').update({ ata_url: filePath } as any).eq('id', createdCliente.id);
         }
       }
 
