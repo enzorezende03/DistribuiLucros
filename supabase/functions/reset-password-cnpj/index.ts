@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const { cnpj } = await req.json().catch(() => ({}));
     const cnpjDigits = String(cnpj || "").replace(/\D/g, "");
     if (cnpjDigits.length !== 14) {
-      return json({ error: "CNPJ inválido" }, 400);
+      return json({ success: false, error: "CNPJ inválido" });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -40,8 +40,8 @@ Deno.serve(async (req) => {
       .in("cnpj", [cnpjDigits, formattedCnpj])
       .maybeSingle();
 
-    if (cliErr) return json({ error: "Erro ao consultar CNPJ" }, 500);
-    if (!cliente) return json({ error: "CNPJ não encontrado em nossa base" }, 404);
+    if (cliErr) return json({ success: false, error: "Erro ao consultar CNPJ" }, 500);
+    if (!cliente) return json({ success: false, error: "CNPJ não encontrado em nossa base" });
 
     // Find linked user
     const { data: link } = await admin
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!link?.user_id) {
-      return json({ error: "Nenhum usuário vinculado a este CNPJ. Entre em contato com o suporte." }, 404);
+      return json({ success: false, error: "Nenhum usuário vinculado a este CNPJ. Entre em contato com o suporte." });
     }
 
     // Reset password to default and force change on next login
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       user_metadata: { must_change_password: true },
     });
 
-    if (updErr) return json({ error: updErr.message }, 500);
+    if (updErr) return json({ success: false, error: "Não foi possível redefinir a senha. Tente novamente em instantes." }, 500);
 
     return json({
       success: true,
