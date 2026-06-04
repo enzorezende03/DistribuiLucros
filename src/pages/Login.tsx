@@ -64,16 +64,30 @@ export default function LoginPage() {
     }
     setForgotLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('reset-password-cnpj', {
-        body: { cnpj: cnpjDigits },
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const resp = await fetch(`${supabaseUrl}/functions/v1/reset-password-cnpj`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({ cnpj: cnpjDigits }),
       });
-      if (error || (data as any)?.error) {
-        toast.error((data as any)?.error || error?.message || 'Não foi possível redefinir a senha');
+      const data = await resp.json().catch(() => ({} as any));
+      if (!resp.ok || data?.success === false || data?.error) {
+        toast.error(data?.error || 'Não foi possível redefinir a senha');
         return;
       }
-      setForgotSuccess((data as any)?.razao_social || 'Empresa');
+      setForgotSuccess(data?.razao_social || 'Empresa');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro inesperado');
+      const msg = err instanceof Error ? err.message : 'Erro inesperado';
+      if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+        toast.error('Falha de conexão ao redefinir a senha. Verifique sua internet e tente novamente.');
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setForgotLoading(false);
     }
