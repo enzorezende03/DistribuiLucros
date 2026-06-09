@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
+import { useUrlBooleanParam, useUrlParam } from '@/hooks/useUrlState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,8 +21,9 @@ import { cn } from '@/lib/utils';
 export default function AlertasClientePage() {
   const { clienteId } = useAuth();
   const { t } = useLanguage();
-  const [selectedTipo, setSelectedTipo] = useState<TipoAlerta | null>(null);
-  const [showResolvidos, setShowResolvidos] = useState(false);
+  const [selectedTipoParam, setSelectedTipoParam] = useUrlParam('tipo');
+  const selectedTipo = (selectedTipoParam as TipoAlerta) || null;
+  const [showResolvidos, setShowResolvidos] = useUrlBooleanParam('resolvidos');
 
   const { data: alertas, isLoading } = useAlertas(
     clienteId,
@@ -95,7 +97,7 @@ export default function AlertasClientePage() {
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
                 <Select
                   value={selectedTipo || 'all'}
-                  onValueChange={(v) => setSelectedTipo(v === 'all' ? null : (v as TipoAlerta))}
+                  onValueChange={(v) => setSelectedTipoParam(v === 'all' ? null : v)}
                 >
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder={t('alerts.filterByType')} />
