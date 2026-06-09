@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -68,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userClientes, setUserClientes] = useState<UserCliente[]>([]);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
   const [roleLoaded, setRoleLoaded] = useState(false);
+  const loadedRoleForUserId = useRef<string | null>(null);
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -122,16 +123,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (session?.user) {
           setLoading(false);
-          // Only reload role on actual sign-in events; ignore TOKEN_REFRESHED / USER_UPDATED
-          // which fire when the browser tab regains focus and would otherwise remount the app.
-          if (event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') {
+          // Skip if we've already loaded role for this user. Prevents tab-focus
+          // events (TOKEN_REFRESHED, SIGNED_IN re-fires) from showing loading screen.
+          if (loadedRoleForUserId.current === session.user.id) {
             return;
           }
-          setRoleLoaded(false);
+          // Only load role on initial session or genuine sign-in
+          if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN') {
+            return;
+          }
+          loadedRoleForUserId.current = session.user.id;
           setTimeout(() => {
             if (!isMounted) return;
             const userId = session.user.id;
-            // Safety timeout: never block UI more than 8s waiting for roles
             const safetyTimer = setTimeout(() => {
               if (isMounted) setRoleLoaded(true);
             }, 8000);
@@ -160,6 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUserClientes([]);
           setSelectedClienteId(null);
           setRoleLoaded(false);
+          loadedRoleForUserId.current = null;
           setLoading(false);
         }
       }
@@ -182,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setSession(session);
         setUser(session.user);
+        loadedRoleForUserId.current = session.user.id;
 
         try {
           const [role, clientes] = await Promise.all([
