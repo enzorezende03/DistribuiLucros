@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
+import { useUrlParam } from '@/hooks/useUrlState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,7 +38,8 @@ const statusConfig: Record<StatusTarefa, { label: string; className: string; ico
 };
 
 export default function TarefasIRPage() {
-  const [filterStatus, setFilterStatus] = useState<StatusTarefa | 'all'>('all');
+  const [filterStatusParam, setFilterStatusParam] = useUrlParam('status');
+  const filterStatus = (filterStatusParam as StatusTarefa | '') || 'all';
   const [actionDialog, setActionDialog] = useState<TarefaIR | null>(null);
   const [observacao, setObservacao] = useState('');
 
@@ -124,7 +126,7 @@ export default function TarefasIRPage() {
                 <FileText className="h-5 w-5 text-primary" />
                 Lista de Tarefas
               </CardTitle>
-              <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as StatusTarefa | 'all')}>
+              <Select value={filterStatus} onValueChange={(v) => setFilterStatusParam(v === 'all' ? null : v)}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
