@@ -122,12 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (session?.user) {
           setLoading(false);
-          // Only reload role on actual sign-in events; ignore TOKEN_REFRESHED / USER_UPDATED
-          // which fire when the browser tab regains focus and would otherwise remount the app.
-          if (event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') {
+          // Only load role on initial session load. Ignore SIGNED_IN, TOKEN_REFRESHED,
+          // USER_UPDATED — these fire on tab focus and would cause a loading flicker.
+          if (event !== 'INITIAL_SESSION') {
             return;
           }
-          setRoleLoaded(false);
+          // If we already loaded the role for this user, don't reset roleLoaded
+          if (roleLoaded) {
+            return;
+          }
           setTimeout(() => {
             if (!isMounted) return;
             const userId = session.user.id;
