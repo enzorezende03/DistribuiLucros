@@ -4,7 +4,7 @@ import { ExportDistribuicoesDialog } from '@/components/ExportDistribuicoesDialo
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { supabase } from '@/integrations/supabase/client';
-import { useUrlParam } from '@/hooks/useUrlState';
+import { useUrlParam, useUrlParamsUpdater } from '@/hooks/useUrlState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,6 +96,7 @@ export default function DistribuicoesPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { data: clientes } = useClientes();
+  const updateUrlParams = useUrlParamsUpdater();
   const [selectedClienteParam, setSelectedClienteParam] = useUrlParam('cliente');
   const selectedClienteId = selectedClienteParam || null;
   const queryClienteId = isAdmin ? selectedClienteId : clienteId;
@@ -118,9 +119,8 @@ export default function DistribuicoesPage() {
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
 
   const setSelectedClienteId = useCallback((value: string | null) => {
-    setSelectedClienteParam(value);
-    setSelectedSocioParam(null);
-  }, [setSelectedClienteParam, setSelectedSocioParam]);
+    updateUrlParams({ cliente: value, socio: null });
+  }, [updateUrlParams]);
 
   const setSelectedStatus = useCallback((value: StatusDistribuicao | null) => {
     setSelectedStatusParam(value);
