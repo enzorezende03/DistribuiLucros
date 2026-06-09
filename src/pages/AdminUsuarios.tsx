@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useUrlParam } from '@/hooks/useUrlState';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Pencil, ShieldCheck, Trash2, UserPlus, Users, Building2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
@@ -47,7 +48,8 @@ export default function AdminUsuariosPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [creating, setCreating] = useState(false);
-  const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'cliente'>('all');
+  const [filterRoleParam, setFilterRoleParam] = useUrlParam('perfil');
+  const filterRole = (filterRoleParam as 'admin' | 'cliente' | '') || 'all';
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -257,7 +259,7 @@ export default function AdminUsuariosPage() {
                   <Users className="h-5 w-5" />
                   {t('admin.existingUsers')}
                 </CardTitle>
-                <Select value={filterRole} onValueChange={(v) => setFilterRole(v as any)}>
+                <Select value={filterRole} onValueChange={(v) => setFilterRoleParam(v === 'all' ? null : v)}>
                   <SelectTrigger className="w-[140px] h-8">
                     <SelectValue />
                   </SelectTrigger>
