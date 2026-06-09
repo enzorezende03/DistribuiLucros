@@ -371,38 +371,12 @@ interface ClienteRowProps {
   onEdit: () => void;
   onDelete: () => void;
   onArchive: () => void;
+  onResetPassword: () => void;
 }
 
-function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive }: ClienteRowProps) {
+const ClienteRow = memo(function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive, onResetPassword }: ClienteRowProps) {
   const { t } = useLanguage();
   const updateCliente = useUpdateCliente();
-  const [resetSenhaOpen, setResetSenhaOpen] = useState(false);
-  const [resetSenhaLoading, setResetSenhaLoading] = useState(false);
-
-  const handleResetSenha = async () => {
-    setResetSenhaLoading(true);
-    try {
-      const cnpjEmail = 'cnpj_' + cliente.cnpj.replace(/\D/g, '') + '@distribuilucros.app';
-      const { data: userData } = await supabase.rpc('find_user_by_email', { _email: cnpjEmail });
-      if (!userData || userData.length === 0) {
-        toast.error('Nenhum usuário encontrado para este cliente.');
-        return;
-      }
-      const userId = userData[0].user_id;
-      const res = await supabase.functions.invoke('manage-admin', {
-        body: { action: 'reset_password', user_id: userId },
-      });
-      if (res.error) throw res.error;
-      const resData = res.data as any;
-      if (resData?.error) throw new Error(resData.error);
-      toast.success('Senha resetada! O cliente deverá criar uma nova senha no próximo acesso.');
-    } catch (err: any) {
-      toast.error('Erro ao resetar senha: ' + (err.message || 'Erro desconhecido'));
-    } finally {
-      setResetSenhaLoading(false);
-      setResetSenhaOpen(false);
-    }
-  };
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
@@ -495,7 +469,7 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t('common.delete')}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setResetSenhaOpen(true)}>
+                <DropdownMenuItem onClick={onResetPassword}>
                   <KeyRound className="mr-2 h-4 w-4" />
                   Resetar Senha
                 </DropdownMenuItem>
@@ -514,27 +488,9 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
         </CollapsibleContent>
       </div>
 
-      {/* Reset Password Dialog */}
-      <AlertDialog open={resetSenhaOpen} onOpenChange={setResetSenhaOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Resetar Senha</AlertDialogTitle>
-            <AlertDialogDescription>
-              A senha do cliente <strong>{cliente.razao_social}</strong> será redefinida para a senha padrão. O cliente deverá criar uma nova senha no próximo acesso.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleResetSenha} disabled={resetSenhaLoading}>
-              {resetSenhaLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Confirmar Reset
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Collapsible>
   );
-}
+});
 
 // ─── Sócios Section (inside each client) ───────────────────────────────
 
