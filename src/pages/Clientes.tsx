@@ -290,6 +290,41 @@ export default function ClientesPage() {
   );
 }
 
+function ClienteSearchInput({
+  value,
+  onSearchChange,
+  placeholder,
+  className,
+}: {
+  value: string;
+  onSearchChange: (value: string) => void;
+  placeholder: string;
+  className?: string;
+}) {
+  const [inputValue, setInputValue] = useState(value);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (inputValue !== value) onSearchChange(inputValue);
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [inputValue, onSearchChange, value]);
+
+  return (
+    <Input
+      placeholder={placeholder}
+      value={inputValue}
+      onChange={(e) => setInputValue(e.target.value)}
+      className={className}
+    />
+  );
+}
+
 // ─── Cliente Row with expandable Sócios ────────────────────────────────
 
 interface ClienteRowProps {
