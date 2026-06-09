@@ -116,6 +116,14 @@ export default function DistribuicoesPage() {
     filterClienteId
   );
   const [search, setSearch] = useUrlParam('busca');
+  // Debounce search to avoid re-running the heavy filter on every keystroke.
+  const [searchInput, setSearchInput] = useState(search);
+  useEffect(() => { setSearchInput(search); }, [search]);
+  useEffect(() => {
+    if (searchInput === search) return;
+    const t = setTimeout(() => setSearch(searchInput || null), 250);
+    return () => clearTimeout(t);
+  }, [searchInput, search, setSearch]);
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
 
   const setSelectedClienteId = useCallback((value: string | null) => {
