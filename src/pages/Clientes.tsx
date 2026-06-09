@@ -107,7 +107,6 @@ export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
   const { t } = useLanguage();
   const [search, setSearch] = useUrlParam('busca');
-  const [searchInput, setSearchInput] = useState(search);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
@@ -117,20 +116,12 @@ export default function ClientesPage() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const updateCliente = useUpdateCliente();
 
-  useEffect(() => {
-    setSearchInput(search);
-  }, [search]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== search) setSearch(searchInput);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [searchInput, search, setSearch]);
-
   const filteredClientes = useMemo(() => {
-    const s = search.toLowerCase();
-    const sDigits = search.replace(/\D/g, '');
+    const termo = search.trim();
+    if (!termo) return clientes;
+
+    const s = termo.toLowerCase();
+    const sDigits = termo.replace(/\D/g, '');
     return clientes?.filter(
       (cliente) =>
         cliente.razao_social.toLowerCase().includes(s) ||
@@ -174,10 +165,10 @@ export default function ClientesPage() {
               <CardTitle className="text-lg">{t('clients.list')}</CardTitle>
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
+                <ClienteSearchInput
                   placeholder={t('clients.search')}
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onSearchChange={setSearch}
                   className="pl-9"
                 />
               </div>
