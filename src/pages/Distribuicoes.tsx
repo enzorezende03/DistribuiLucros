@@ -97,7 +97,7 @@ export default function DistribuicoesPage() {
   const { t } = useLanguage();
   const { data: clientes } = useClientes();
   const updateUrlParams = useUrlParamsUpdater();
-  const [selectedClienteParam, setSelectedClienteParam] = useUrlParam('cliente');
+  const [selectedClienteParam] = useUrlParam('cliente');
   const selectedClienteId = selectedClienteParam || null;
   const queryClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: socios } = useSocios(queryClienteId);
