@@ -219,6 +219,7 @@ export default function ClientesPage() {
                     }}
                     onDelete={() => setDeleteCliente(cliente)}
                     onArchive={() => setArchiveCliente(cliente)}
+                    onResetPassword={() => setResetSenhaCliente(cliente)}
                   />
                 ))}
                 {hiddenClientesCount > 0 && (
@@ -269,6 +270,13 @@ export default function ClientesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ResetSenhaDialog
+        cliente={resetSenhaCliente}
+        onOpenChange={(open) => {
+          if (!open) setResetSenhaCliente(null);
+        }}
+      />
 
       {/* Archive Dialog */}
       <Dialog open={!!archiveCliente} onOpenChange={() => { setArchiveCliente(null); setArchiveMotivo(''); }}>
