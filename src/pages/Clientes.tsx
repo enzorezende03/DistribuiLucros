@@ -4,6 +4,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useUrlParam } from '@/hooks/useUrlState';
 import { ImportDialog } from '@/components/ImportDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -105,7 +106,7 @@ import {
 export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
   const { t } = useLanguage();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useUrlParam('busca');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);

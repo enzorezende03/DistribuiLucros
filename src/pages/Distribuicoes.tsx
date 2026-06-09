@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ExportDistribuicoesDialog } from '@/components/ExportDistribuicoesDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { supabase } from '@/integrations/supabase/client';
+import { useUrlParam, useUrlParamsUpdater } from '@/hooks/useUrlState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,17 +94,19 @@ const statusClassNames: Record<StatusDistribuicao, string> = {
 export default function DistribuicoesPage() {
   const { isAdmin, clienteId, isImpersonating, userRole } = useAuth();
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { data: clientes } = useClientes();
-  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(searchParams.get('cliente') || null);
+  const updateUrlParams = useUrlParamsUpdater();
+  const [selectedClienteParam] = useUrlParam('cliente');
+  const selectedClienteId = selectedClienteParam || null;
   const queryClienteId = isAdmin ? selectedClienteId : clienteId;
   const { data: socios } = useSocios(queryClienteId);
-  const [selectedStatus, setSelectedStatus] = useState<StatusDistribuicao | null>(
-    (searchParams.get('status') as StatusDistribuicao) || null
-  );
-  const [selectedSocioId, setSelectedSocioId] = useState<string | null>(null);
-  const [selectedCompetencia, setSelectedCompetencia] = useState<string | null>(null);
+  const [selectedStatusParam, setSelectedStatusParam] = useUrlParam('status');
+  const selectedStatus = (selectedStatusParam as StatusDistribuicao) || null;
+  const [selectedSocioParam, setSelectedSocioParam] = useUrlParam('socio');
+  const selectedSocioId = selectedSocioParam || null;
+  const [selectedCompetenciaParam, setSelectedCompetenciaParam] = useUrlParam('competencia');
+  const selectedCompetencia = selectedCompetenciaParam || null;
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const batchUpdate = useBatchUpdateStatus();
@@ -112,8 +115,24 @@ export default function DistribuicoesPage() {
   const { data: distribuicoes, isLoading } = useDistribuicoes(
     filterClienteId
   );
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useUrlParam('busca');
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
+
+  const setSelectedClienteId = useCallback((value: string | null) => {
+    updateUrlParams({ cliente: value, socio: null });
+  }, [updateUrlParams]);
+
+  const setSelectedStatus = useCallback((value: StatusDistribuicao | null) => {
+    setSelectedStatusParam(value);
+  }, [setSelectedStatusParam]);
+
+  const setSelectedSocioId = useCallback((value: string | null) => {
+    setSelectedSocioParam(value);
+  }, [setSelectedSocioParam]);
+
+  const setSelectedCompetencia = useCallback((value: string | null) => {
+    setSelectedCompetenciaParam(value);
+  }, [setSelectedCompetenciaParam]);
 
   // Build unique competencias from data for month filter
   const competencias = Array.from(new Set(distribuicoes?.map(d => d.competencia) || [])).sort().reverse();

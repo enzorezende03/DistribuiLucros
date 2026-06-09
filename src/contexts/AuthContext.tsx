@@ -40,6 +40,25 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const selectedClienteStorageKey = (userId: string) => `distribuilucros:selected-cliente:${userId}`;
+
+const getStoredSelectedCliente = (userId: string, clientes: UserCliente[]) => {
+  try {
+    const storedClienteId = window.localStorage.getItem(selectedClienteStorageKey(userId));
+    return clientes.some((cliente) => cliente.cliente_id === storedClienteId) ? storedClienteId : null;
+  } catch {
+    return null;
+  }
+};
+
+const storeSelectedCliente = (userId: string, clienteId: string) => {
+  try {
+    window.localStorage.setItem(selectedClienteStorageKey(userId), clienteId);
+  } catch {
+    // Ignore storage failures; the in-memory selection still works.
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -121,8 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (!isMounted) return;
                 setUserRole(role);
                 setUserClientes(clientes);
-                if (role?.role === 'cliente' && clientes.length === 1) {
-                  setSelectedClienteId(clientes[0].cliente_id);
+                if (role?.role === 'cliente') {
+                  const storedClienteId = getStoredSelectedCliente(userId, clientes);
+                  if (storedClienteId) {
+                    setSelectedClienteId(storedClienteId);
+                  } else if (clientes.length === 1) {
+                    setSelectedClienteId(clientes[0].cliente_id);
+                  }
                 }
               })
               .catch((err) => console.error('Role fetch error:', err))
@@ -167,8 +191,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!isMounted) return;
           setUserRole(role);
           setUserClientes(clientes);
-          if (role?.role === 'cliente' && clientes.length === 1) {
-            setSelectedClienteId(clientes[0].cliente_id);
+          if (role?.role === 'cliente') {
+            const storedClienteId = getStoredSelectedCliente(session.user.id, clientes);
+            if (storedClienteId) {
+              setSelectedClienteId(storedClienteId);
+            } else if (clientes.length === 1) {
+              setSelectedClienteId(clientes[0].cliente_id);
+            }
           }
         } catch (err) {
           console.error('Error loading role/clientes:', err);
@@ -219,6 +248,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    if (user?.id) {
+      try {
+        window.localStorage.removeItem(selectedClienteStorageKey(user.id));
+      } catch {
+        // Ignore storage failures during logout.
+      }
+    }
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
@@ -229,8 +265,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const selectCliente = useCallback((clienteId: string) => {
+    if (user?.id) {
+      storeSelectedCliente(user.id, clienteId);
+    }
     setSelectedClienteId(clienteId);
-  }, []);
+  }, [user?.id]);
 
   const isRealAdmin = userRole?.role === 'admin';
   const isImpersonating = isRealAdmin && impersonatedClienteId !== null;
