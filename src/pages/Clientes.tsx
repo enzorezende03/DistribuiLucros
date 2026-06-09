@@ -346,8 +346,10 @@ function ClienteSearchInput({
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      if (inputValue !== value) onSearchChange(inputValue);
-    }, 400);
+      if (inputValue !== value) {
+        startTransition(() => onSearchChange(inputValue));
+      }
+    }, 500);
 
     return () => window.clearTimeout(timer);
   }, [inputValue, onSearchChange, value]);
@@ -359,6 +361,63 @@ function ClienteSearchInput({
       onChange={(e) => setInputValue(e.target.value)}
       className={className}
     />
+  );
+}
+
+function ResetSenhaDialog({
+  cliente,
+  onOpenChange,
+}: {
+  cliente: Cliente | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [resetSenhaLoading, setResetSenhaLoading] = useState(false);
+
+  const handleResetSenha = async () => {
+    if (!cliente) return;
+
+    setResetSenhaLoading(true);
+    try {
+      const cnpjEmail = 'cnpj_' + cliente.cnpj.replace(/\D/g, '') + '@distribuilucros.app';
+      const { data: userData } = await supabase.rpc('find_user_by_email', { _email: cnpjEmail });
+      if (!userData || userData.length === 0) {
+        toast.error('Nenhum usuário encontrado para este cliente.');
+        return;
+      }
+      const userId = userData[0].user_id;
+      const res = await supabase.functions.invoke('manage-admin', {
+        body: { action: 'reset_password', user_id: userId },
+      });
+      if (res.error) throw res.error;
+      const resData = res.data as any;
+      if (resData?.error) throw new Error(resData.error);
+      toast.success('Senha resetada! O cliente deverá criar uma nova senha no próximo acesso.');
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error('Erro ao resetar senha: ' + (err.message || 'Erro desconhecido'));
+    } finally {
+      setResetSenhaLoading(false);
+    }
+  };
+
+  return (
+    <AlertDialog open={!!cliente} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Resetar Senha</AlertDialogTitle>
+          <AlertDialogDescription>
+            A senha do cliente <strong>{cliente?.razao_social}</strong> será redefinida para a senha padrão. O cliente deverá criar uma nova senha no próximo acesso.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleResetSenha} disabled={resetSenhaLoading}>
+            {resetSenhaLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Confirmar Reset
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
