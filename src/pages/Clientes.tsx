@@ -103,6 +103,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
+const CLIENTES_VISIBLE_LIMIT = 120;
+
 export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
   const { t } = useLanguage();
@@ -128,6 +130,11 @@ export default function ClientesPage() {
         (sDigits && cliente.cnpj.includes(sDigits))
     );
   }, [clientes, search]);
+  const visibleClientes = useMemo(
+    () => filteredClientes?.slice(0, CLIENTES_VISIBLE_LIMIT),
+    [filteredClientes]
+  );
+  const hiddenClientesCount = Math.max((filteredClientes?.length ?? 0) - CLIENTES_VISIBLE_LIMIT, 0);
 
   return (
     <SidebarLayout>
@@ -179,9 +186,9 @@ export default function ClientesPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : filteredClientes && filteredClientes.length > 0 ? (
+            ) : visibleClientes && visibleClientes.length > 0 ? (
               <div className="space-y-2">
-                {filteredClientes.map((cliente) => (
+                {visibleClientes.map((cliente) => (
                   <ClienteRow
                     key={cliente.id}
                     cliente={cliente}
@@ -197,6 +204,11 @@ export default function ClientesPage() {
                     onArchive={() => setArchiveCliente(cliente)}
                   />
                 ))}
+                {hiddenClientesCount > 0 && (
+                  <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+                    {hiddenClientesCount} clientes ocultos. Refine a busca por nome ou CNPJ para encontrar mais rápido.
+                  </div>
+                )}
               </div>
             ) : (
               <div className="empty-state py-12">
