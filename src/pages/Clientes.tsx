@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { memo, startTransition, useState, useEffect, useMemo } from 'react';
 import { useMovimentacoesLucros, useCreateMovimentacao } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
@@ -103,7 +103,9 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-const CLIENTES_VISIBLE_LIMIT = 120;
+const CLIENTES_VISIBLE_LIMIT = 80;
+const CLIENTES_SEARCH_VISIBLE_LIMIT = 40;
+const CLIENTES_MIN_SEARCH_LENGTH = 2;
 
 export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
@@ -113,10 +115,21 @@ export default function ClientesPage() {
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
   const [archiveCliente, setArchiveCliente] = useState<Cliente | null>(null);
+  const [resetSenhaCliente, setResetSenhaCliente] = useState<Cliente | null>(null);
   const [archiveMotivo, setArchiveMotivo] = useState('');
   const [expandedCliente, setExpandedCliente] = useState<string | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const updateCliente = useUpdateCliente();
+
+  const indexedClientes = useMemo(
+    () =>
+      clientes?.map((cliente) => ({
+        cliente,
+        razaoSocialBusca: cliente.razao_social.toLowerCase(),
+        cnpjBusca: cliente.cnpj.replace(/\D/g, ''),
+      })),
+    [clientes]
+  );
 
   const filteredClientes = useMemo(() => {
     const termo = search.trim();
@@ -124,17 +137,21 @@ export default function ClientesPage() {
 
     const s = termo.toLowerCase();
     const sDigits = termo.replace(/\D/g, '');
-    return clientes?.filter(
-      (cliente) =>
-        cliente.razao_social.toLowerCase().includes(s) ||
-        (sDigits && cliente.cnpj.includes(sDigits))
-    );
-  }, [clientes, search]);
+    if (s.length < CLIENTES_MIN_SEARCH_LENGTH && sDigits.length < CLIENTES_MIN_SEARCH_LENGTH) return clientes;
+
+    return indexedClientes
+      ?.filter(
+        ({ razaoSocialBusca, cnpjBusca }) =>
+          razaoSocialBusca.includes(s) || (sDigits.length >= CLIENTES_MIN_SEARCH_LENGTH && cnpjBusca.includes(sDigits))
+      )
+      .map(({ cliente }) => cliente);
+  }, [clientes, indexedClientes, search]);
+  const visibleLimit = search.trim() ? CLIENTES_SEARCH_VISIBLE_LIMIT : CLIENTES_VISIBLE_LIMIT;
   const visibleClientes = useMemo(
-    () => filteredClientes?.slice(0, CLIENTES_VISIBLE_LIMIT),
-    [filteredClientes]
+    () => filteredClientes?.slice(0, visibleLimit),
+    [filteredClientes, visibleLimit]
   );
-  const hiddenClientesCount = Math.max((filteredClientes?.length ?? 0) - CLIENTES_VISIBLE_LIMIT, 0);
+  const hiddenClientesCount = Math.max((filteredClientes?.length ?? 0) - visibleLimit, 0);
 
   return (
     <SidebarLayout>
