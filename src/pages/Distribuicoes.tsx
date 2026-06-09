@@ -190,11 +190,13 @@ export default function DistribuicoesPage() {
   }
   if (search) {
     const s = search.toLowerCase();
+    const sDigits = s.replace(/\D/g, '');
     visibleRows = visibleRows.filter(
       (r) =>
         r.reciboDisplay.toLowerCase().includes(s) ||
         r.recibo_numero?.toLowerCase().includes(s) ||
         r.cliente?.razao_social?.toLowerCase().includes(s) ||
+        (sDigits && r.cliente?.cnpj?.replace(/\D/g, '').includes(sDigits)) ||
         r.item?.socio?.nome?.toLowerCase().includes(s)
     );
   }
