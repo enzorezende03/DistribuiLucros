@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ExportDistribuicoesDialog } from '@/components/ExportDistribuicoesDialog';
 import { Textarea } from '@/components/ui/textarea';
