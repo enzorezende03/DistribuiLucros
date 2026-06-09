@@ -187,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setSession(session);
         setUser(session.user);
+        loadedRoleForUserId.current = session.user.id;
 
         try {
           const [role, clientes] = await Promise.all([
