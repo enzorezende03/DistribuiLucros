@@ -29,6 +29,34 @@ export function useUrlParam(key: string, defaultValue = '') {
   return [value, setValue] as const;
 }
 
+export function useUrlParamsUpdater() {
+  const [, setSearchParams] = useSearchParams();
+
+  return useCallback(
+    (updates: Record<string, string | null | undefined>, defaultValues: Record<string, string> = {}) => {
+      setSearchParams(
+        (currentParams) => {
+          const nextParams = new URLSearchParams(currentParams);
+
+          Object.entries(updates).forEach(([key, value]) => {
+            const normalizedValue = value ?? '';
+
+            if (!normalizedValue || normalizedValue === (defaultValues[key] ?? '')) {
+              nextParams.delete(key);
+            } else {
+              nextParams.set(key, normalizedValue);
+            }
+          });
+
+          return nextParams;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+}
+
 export function useUrlBooleanParam(key: string, defaultValue = false) {
   const [rawValue, setRawValue] = useUrlParam(key, defaultValue ? '1' : '');
   const value = rawValue === '1';
