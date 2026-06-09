@@ -123,19 +123,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (session?.user) {
           setLoading(false);
-          // Only load role on initial session load. Ignore SIGNED_IN, TOKEN_REFRESHED,
-          // USER_UPDATED — these fire on tab focus and would cause a loading flicker.
-          if (event !== 'INITIAL_SESSION') {
+          // Skip if we've already loaded role for this user. Prevents tab-focus
+          // events (TOKEN_REFRESHED, SIGNED_IN re-fires) from showing loading screen.
+          if (loadedRoleForUserId.current === session.user.id) {
             return;
           }
-          // If we already loaded the role for this user, don't reset roleLoaded
-          if (roleLoaded) {
+          // Only load role on initial session or genuine sign-in
+          if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN') {
             return;
           }
+          loadedRoleForUserId.current = session.user.id;
           setTimeout(() => {
             if (!isMounted) return;
             const userId = session.user.id;
-            // Safety timeout: never block UI more than 8s waiting for roles
             const safetyTimer = setTimeout(() => {
               if (isMounted) setRoleLoaded(true);
             }, 8000);
@@ -164,6 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUserClientes([]);
           setSelectedClienteId(null);
           setRoleLoaded(false);
+          loadedRoleForUserId.current = null;
           setLoading(false);
         }
       }
