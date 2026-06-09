@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { memo, startTransition, useState, useEffect, useMemo } from 'react';
 import { useMovimentacoesLucros, useCreateMovimentacao } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
@@ -103,7 +103,9 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-const CLIENTES_VISIBLE_LIMIT = 120;
+const CLIENTES_VISIBLE_LIMIT = 80;
+const CLIENTES_SEARCH_VISIBLE_LIMIT = 40;
+const CLIENTES_MIN_SEARCH_LENGTH = 2;
 
 export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
@@ -113,10 +115,21 @@ export default function ClientesPage() {
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
   const [archiveCliente, setArchiveCliente] = useState<Cliente | null>(null);
+  const [resetSenhaCliente, setResetSenhaCliente] = useState<Cliente | null>(null);
   const [archiveMotivo, setArchiveMotivo] = useState('');
   const [expandedCliente, setExpandedCliente] = useState<string | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const updateCliente = useUpdateCliente();
+
+  const indexedClientes = useMemo(
+    () =>
+      clientes?.map((cliente) => ({
+        cliente,
+        razaoSocialBusca: cliente.razao_social.toLowerCase(),
+        cnpjBusca: cliente.cnpj.replace(/\D/g, ''),
+      })),
+    [clientes]
+  );
 
   const filteredClientes = useMemo(() => {
     const termo = search.trim();
@@ -124,17 +137,21 @@ export default function ClientesPage() {
 
     const s = termo.toLowerCase();
     const sDigits = termo.replace(/\D/g, '');
-    return clientes?.filter(
-      (cliente) =>
-        cliente.razao_social.toLowerCase().includes(s) ||
-        (sDigits && cliente.cnpj.includes(sDigits))
-    );
-  }, [clientes, search]);
+    if (s.length < CLIENTES_MIN_SEARCH_LENGTH && sDigits.length < CLIENTES_MIN_SEARCH_LENGTH) return clientes;
+
+    return indexedClientes
+      ?.filter(
+        ({ razaoSocialBusca, cnpjBusca }) =>
+          razaoSocialBusca.includes(s) || (sDigits.length >= CLIENTES_MIN_SEARCH_LENGTH && cnpjBusca.includes(sDigits))
+      )
+      .map(({ cliente }) => cliente);
+  }, [clientes, indexedClientes, search]);
+  const visibleLimit = search.trim() ? CLIENTES_SEARCH_VISIBLE_LIMIT : CLIENTES_VISIBLE_LIMIT;
   const visibleClientes = useMemo(
-    () => filteredClientes?.slice(0, CLIENTES_VISIBLE_LIMIT),
-    [filteredClientes]
+    () => filteredClientes?.slice(0, visibleLimit),
+    [filteredClientes, visibleLimit]
   );
-  const hiddenClientesCount = Math.max((filteredClientes?.length ?? 0) - CLIENTES_VISIBLE_LIMIT, 0);
+  const hiddenClientesCount = Math.max((filteredClientes?.length ?? 0) - visibleLimit, 0);
 
   return (
     <SidebarLayout>
@@ -202,6 +219,7 @@ export default function ClientesPage() {
                     }}
                     onDelete={() => setDeleteCliente(cliente)}
                     onArchive={() => setArchiveCliente(cliente)}
+                    onResetPassword={() => setResetSenhaCliente(cliente)}
                   />
                 ))}
                 {hiddenClientesCount > 0 && (
@@ -252,6 +270,13 @@ export default function ClientesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ResetSenhaDialog
+        cliente={resetSenhaCliente}
+        onOpenChange={(open) => {
+          if (!open) setResetSenhaCliente(null);
+        }}
+      />
 
       {/* Archive Dialog */}
       <Dialog open={!!archiveCliente} onOpenChange={() => { setArchiveCliente(null); setArchiveMotivo(''); }}>
@@ -321,8 +346,10 @@ function ClienteSearchInput({
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      if (inputValue !== value) onSearchChange(inputValue);
-    }, 400);
+      if (inputValue !== value) {
+        startTransition(() => onSearchChange(inputValue));
+      }
+    }, 500);
 
     return () => window.clearTimeout(timer);
   }, [inputValue, onSearchChange, value]);
@@ -337,24 +364,18 @@ function ClienteSearchInput({
   );
 }
 
-// ─── Cliente Row with expandable Sócios ────────────────────────────────
-
-interface ClienteRowProps {
-  cliente: Cliente;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  onArchive: () => void;
-}
-
-function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive }: ClienteRowProps) {
-  const { t } = useLanguage();
-  const updateCliente = useUpdateCliente();
-  const [resetSenhaOpen, setResetSenhaOpen] = useState(false);
+function ResetSenhaDialog({
+  cliente,
+  onOpenChange,
+}: {
+  cliente: Cliente | null;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [resetSenhaLoading, setResetSenhaLoading] = useState(false);
 
   const handleResetSenha = async () => {
+    if (!cliente) return;
+
     setResetSenhaLoading(true);
     try {
       const cnpjEmail = 'cnpj_' + cliente.cnpj.replace(/\D/g, '') + '@distribuilucros.app';
@@ -371,13 +392,50 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
       const resData = res.data as any;
       if (resData?.error) throw new Error(resData.error);
       toast.success('Senha resetada! O cliente deverá criar uma nova senha no próximo acesso.');
+      onOpenChange(false);
     } catch (err: any) {
       toast.error('Erro ao resetar senha: ' + (err.message || 'Erro desconhecido'));
     } finally {
       setResetSenhaLoading(false);
-      setResetSenhaOpen(false);
     }
   };
+
+  return (
+    <AlertDialog open={!!cliente} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Resetar Senha</AlertDialogTitle>
+          <AlertDialogDescription>
+            A senha do cliente <strong>{cliente?.razao_social}</strong> será redefinida para a senha padrão. O cliente deverá criar uma nova senha no próximo acesso.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleResetSenha} disabled={resetSenhaLoading}>
+            {resetSenhaLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Confirmar Reset
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+// ─── Cliente Row with expandable Sócios ────────────────────────────────
+
+interface ClienteRowProps {
+  cliente: Cliente;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onArchive: () => void;
+  onResetPassword: () => void;
+}
+
+const ClienteRow = memo(function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive, onResetPassword }: ClienteRowProps) {
+  const { t } = useLanguage();
+  const updateCliente = useUpdateCliente();
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
@@ -470,7 +528,7 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t('common.delete')}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setResetSenhaOpen(true)}>
+                <DropdownMenuItem onClick={onResetPassword}>
                   <KeyRound className="mr-2 h-4 w-4" />
                   Resetar Senha
                 </DropdownMenuItem>
@@ -489,27 +547,9 @@ function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onA
         </CollapsibleContent>
       </div>
 
-      {/* Reset Password Dialog */}
-      <AlertDialog open={resetSenhaOpen} onOpenChange={setResetSenhaOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Resetar Senha</AlertDialogTitle>
-            <AlertDialogDescription>
-              A senha do cliente <strong>{cliente.razao_social}</strong> será redefinida para a senha padrão. O cliente deverá criar uma nova senha no próximo acesso.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleResetSenha} disabled={resetSenhaLoading}>
-              {resetSenhaLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Confirmar Reset
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Collapsible>
   );
-}
+});
 
 // ─── Sócios Section (inside each client) ───────────────────────────────
 
