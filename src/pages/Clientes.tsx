@@ -107,6 +107,7 @@ export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
   const { t } = useLanguage();
   const [search, setSearch] = useUrlParam('busca');
+  const [searchInput, setSearchInput] = useState(search);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
@@ -116,11 +117,26 @@ export default function ClientesPage() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const updateCliente = useUpdateCliente();
 
-  const filteredClientes = clientes?.filter(
-    (cliente) =>
-      cliente.razao_social.toLowerCase().includes(search.toLowerCase()) ||
-      cliente.cnpj.includes(search.replace(/\D/g, ''))
-  );
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== search) setSearch(searchInput);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchInput, search, setSearch]);
+
+  const filteredClientes = useMemo(() => {
+    const s = search.toLowerCase();
+    const sDigits = search.replace(/\D/g, '');
+    return clientes?.filter(
+      (cliente) =>
+        cliente.razao_social.toLowerCase().includes(s) ||
+        (sDigits && cliente.cnpj.includes(sDigits))
+    );
+  }, [clientes, search]);
 
   return (
     <SidebarLayout>
