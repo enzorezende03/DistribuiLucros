@@ -103,11 +103,12 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
+const CLIENTES_VISIBLE_LIMIT = 120;
+
 export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
   const { t } = useLanguage();
   const [search, setSearch] = useUrlParam('busca');
-  const [searchInput, setSearchInput] = useState(search);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
@@ -117,26 +118,23 @@ export default function ClientesPage() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const updateCliente = useUpdateCliente();
 
-  useEffect(() => {
-    setSearchInput(search);
-  }, [search]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== search) setSearch(searchInput);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [searchInput, search, setSearch]);
-
   const filteredClientes = useMemo(() => {
-    const s = search.toLowerCase();
-    const sDigits = search.replace(/\D/g, '');
+    const termo = search.trim();
+    if (!termo) return clientes;
+
+    const s = termo.toLowerCase();
+    const sDigits = termo.replace(/\D/g, '');
     return clientes?.filter(
       (cliente) =>
         cliente.razao_social.toLowerCase().includes(s) ||
         (sDigits && cliente.cnpj.includes(sDigits))
     );
   }, [clientes, search]);
+  const visibleClientes = useMemo(
+    () => filteredClientes?.slice(0, CLIENTES_VISIBLE_LIMIT),
+    [filteredClientes]
+  );
+  const hiddenClientesCount = Math.max((filteredClientes?.length ?? 0) - CLIENTES_VISIBLE_LIMIT, 0);
 
   return (
     <SidebarLayout>
@@ -174,10 +172,10 @@ export default function ClientesPage() {
               <CardTitle className="text-lg">{t('clients.list')}</CardTitle>
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
+                <ClienteSearchInput
                   placeholder={t('clients.search')}
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onSearchChange={setSearch}
                   className="pl-9"
                 />
               </div>
@@ -188,9 +186,9 @@ export default function ClientesPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : filteredClientes && filteredClientes.length > 0 ? (
+            ) : visibleClientes && visibleClientes.length > 0 ? (
               <div className="space-y-2">
-                {filteredClientes.map((cliente) => (
+                {visibleClientes.map((cliente) => (
                   <ClienteRow
                     key={cliente.id}
                     cliente={cliente}
@@ -206,6 +204,11 @@ export default function ClientesPage() {
                     onArchive={() => setArchiveCliente(cliente)}
                   />
                 ))}
+                {hiddenClientesCount > 0 && (
+                  <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+                    {hiddenClientesCount} clientes ocultos. Refine a busca por nome ou CNPJ para encontrar mais rápido.
+                  </div>
+                )}
               </div>
             ) : (
               <div className="empty-state py-12">
@@ -296,6 +299,41 @@ export default function ClientesPage() {
 
       <ImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
     </SidebarLayout>
+  );
+}
+
+function ClienteSearchInput({
+  value,
+  onSearchChange,
+  placeholder,
+  className,
+}: {
+  value: string;
+  onSearchChange: (value: string) => void;
+  placeholder: string;
+  className?: string;
+}) {
+  const [inputValue, setInputValue] = useState(value);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (inputValue !== value) onSearchChange(inputValue);
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [inputValue, onSearchChange, value]);
+
+  return (
+    <Input
+      placeholder={placeholder}
+      value={inputValue}
+      onChange={(e) => setInputValue(e.target.value)}
+      className={className}
+    />
   );
 }
 
