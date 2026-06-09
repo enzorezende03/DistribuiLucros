@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ExportDistribuicoesDialog } from '@/components/ExportDistribuicoesDialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -116,6 +116,14 @@ export default function DistribuicoesPage() {
     filterClienteId
   );
   const [search, setSearch] = useUrlParam('busca');
+  // Debounce search to avoid re-running the heavy filter on every keystroke.
+  const [searchInput, setSearchInput] = useState(search);
+  useEffect(() => { setSearchInput(search); }, [search]);
+  useEffect(() => {
+    if (searchInput === search) return;
+    const t = setTimeout(() => setSearch(searchInput || null), 250);
+    return () => clearTimeout(t);
+  }, [searchInput, search, setSearch]);
   const [viewingDistribuicao, setViewingDistribuicao] = useState<string | null>(null);
 
   const setSelectedClienteId = useCallback((value: string | null) => {
@@ -335,8 +343,8 @@ export default function DistribuicoesPage() {
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder={t('distributions.search')}
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     className="pl-9"
                   />
                 </div>
