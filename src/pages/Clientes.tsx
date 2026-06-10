@@ -155,7 +155,7 @@ export default function ClientesPage() {
     }
 
     const visible: Cliente[] = [];
-    let matches = 0;
+    let hasMoreMatches = false;
 
     for (const { cliente, razaoSocialBusca, cnpjBusca } of indexedClientes ?? []) {
       const matchByName = razaoSocialBusca.includes(normalizedSearch.text);
@@ -163,14 +163,18 @@ export default function ClientesPage() {
         normalizedSearch.digits.length >= CLIENTES_MIN_SEARCH_LENGTH && cnpjBusca.includes(normalizedSearch.digits);
 
       if (matchByName || matchByCnpj) {
-        matches += 1;
-        if (visible.length < visibleLimit) visible.push(cliente);
+        if (visible.length < visibleLimit) {
+          visible.push(cliente);
+        } else {
+          hasMoreMatches = true;
+          break;
+        }
       }
     }
 
     return {
       visibleClientes: visible,
-      hiddenClientesCount: Math.max(matches - visibleLimit, 0),
+      hiddenClientesCount: hasMoreMatches ? 1 : 0,
     };
   }, [clientes, indexedClientes, normalizedSearch]);
 
