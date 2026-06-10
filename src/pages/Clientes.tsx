@@ -388,17 +388,22 @@ function ClienteSearchInput({
   className?: string;
 }) {
   const [inputValue, setInputValue] = useState(value);
+  const lastSyncedValue = useRef(value);
 
   useEffect(() => {
-    setInputValue(value);
+    if (value !== lastSyncedValue.current) {
+      lastSyncedValue.current = value;
+      setInputValue(value);
+    }
   }, [value]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       if (inputValue !== value) {
+        lastSyncedValue.current = inputValue;
         startTransition(() => onSearchChange(inputValue));
       }
-    }, 500);
+    }, 650);
 
     return () => window.clearTimeout(timer);
   }, [inputValue, onSearchChange, value]);
@@ -474,20 +479,24 @@ function ResetSenhaDialog({
 
 interface ClienteRowProps {
   cliente: Cliente;
+  labels: {
+    active: string;
+    suspended: string;
+    edit: string;
+    delete: string;
+  };
   isExpanded: boolean;
-  onToggleExpand: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  onArchive: () => void;
-  onResetPassword: () => void;
+  onToggleExpand: (clienteId: string, open: boolean) => void;
+  onEdit: (cliente: Cliente) => void;
+  onDelete: (cliente: Cliente) => void;
+  onArchive: (cliente: Cliente) => void;
+  onResetPassword: (cliente: Cliente) => void;
+  onUnarchive: (cliente: Cliente) => void;
 }
 
-const ClienteRow = memo(function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive, onResetPassword }: ClienteRowProps) {
-  const { t } = useLanguage();
-  const updateCliente = useUpdateCliente();
-
+const ClienteRow = memo(function ClienteRow({ cliente, labels, isExpanded, onToggleExpand, onEdit, onDelete, onArchive, onResetPassword, onUnarchive }: ClienteRowProps) {
   return (
-    <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
+    <Collapsible open={isExpanded} onOpenChange={(open) => onToggleExpand(cliente.id, open)}>
       <div className="rounded-lg border">
         <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
           <CollapsibleTrigger asChild>
@@ -521,33 +530,31 @@ const ClienteRow = memo(function ClienteRow({ cliente, isExpanded, onToggleExpan
             </button>
           </CollapsibleTrigger>
           <div className="flex items-center gap-3 shrink-0">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
-                    className={
-                      cliente.status === 'ativo'
-                        ? 'bg-success text-success-foreground'
-                        : cliente.status === 'arquivado'
-                        ? 'bg-muted text-muted-foreground'
-                        : ''
-                    }
-                  >
-                    {cliente.status === 'ativo'
-                      ? t('clients.active')
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
+                  className={
+                    cliente.status === 'ativo'
+                      ? 'bg-success text-success-foreground'
                       : cliente.status === 'arquivado'
-                      ? 'Arquivado'
-                      : t('clients.suspended')}
-                  </Badge>
-                </TooltipTrigger>
-                {cliente.status === 'arquivado' && cliente.motivo_arquivamento && (
-                  <TooltipContent>
-                    <p className="max-w-xs">Motivo: {cliente.motivo_arquivamento}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+                      ? 'bg-muted text-muted-foreground'
+                      : ''
+                  }
+                >
+                  {cliente.status === 'ativo'
+                    ? labels.active
+                    : cliente.status === 'arquivado'
+                    ? 'Arquivado'
+                    : labels.suspended}
+                </Badge>
+              </TooltipTrigger>
+              {cliente.status === 'arquivado' && cliente.motivo_arquivamento && (
+                <TooltipContent>
+                  <p className="max-w-xs">Motivo: {cliente.motivo_arquivamento}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -555,29 +562,29 @@ const ClienteRow = memo(function ClienteRow({ cliente, isExpanded, onToggleExpan
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit}>
+                <DropdownMenuItem onClick={() => onEdit(cliente)}>
                   <Pencil className="mr-2 h-4 w-4" />
-                  {t('common.edit')}
+                  {labels.edit}
                 </DropdownMenuItem>
                 {cliente.status !== 'arquivado' ? (
-                  <DropdownMenuItem className="text-amber-600" onClick={onArchive}>
+                  <DropdownMenuItem className="text-amber-600" onClick={() => onArchive(cliente)}>
                     <Archive className="mr-2 h-4 w-4" />
                     Arquivar
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
                     className="text-green-600"
-                    onClick={() => updateCliente.mutate({ id: cliente.id, status: 'ativo' as StatusCliente, motivo_arquivamento: '' })}
+                    onClick={() => onUnarchive(cliente)}
                   >
                     <Power className="mr-2 h-4 w-4" />
                     Desarquivar
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+                <DropdownMenuItem className="text-destructive" onClick={() => onDelete(cliente)}>
                   <Trash2 className="mr-2 h-4 w-4" />
-                  {t('common.delete')}
+                  {labels.delete}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onResetPassword}>
+                <DropdownMenuItem onClick={() => onResetPassword(cliente)}>
                   <KeyRound className="mr-2 h-4 w-4" />
                   Resetar Senha
                 </DropdownMenuItem>
