@@ -277,7 +277,7 @@ export default function ClientesPage() {
                 ))}
                 {hiddenClientesCount > 0 && (
                   <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-                    {hiddenClientesCount} clientes ocultos. Refine a busca por nome ou CNPJ para encontrar mais rápido.
+                    Há mais clientes ocultos. Refine a busca por nome ou CNPJ para encontrar mais rápido.
                   </div>
                 )}
               </div>
@@ -380,7 +380,7 @@ export default function ClientesPage() {
   );
 }
 
-function ClienteSearchInput({
+const ClienteSearchInput = memo(function ClienteSearchInput({
   value,
   onSearchChange,
   placeholder,
@@ -420,7 +420,7 @@ function ClienteSearchInput({
       className={className}
     />
   );
-}
+});
 
 function ResetSenhaDialog({
   cliente,
