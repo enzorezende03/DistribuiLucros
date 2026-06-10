@@ -244,7 +244,7 @@ export default function ClientesPage() {
                 <ClienteSearchInput
                   placeholder={t('clients.search')}
                   value={search}
-                  onSearchChange={setSearch}
+                  onSearchChange={handleSearchChange}
                   className="pl-9"
                 />
               </div>
@@ -261,17 +261,14 @@ export default function ClientesPage() {
                   <ClienteRow
                     key={cliente.id}
                     cliente={cliente}
+                    labels={rowLabels}
                     isExpanded={expandedCliente === cliente.id}
-                    onToggleExpand={() =>
-                      setExpandedCliente(expandedCliente === cliente.id ? null : cliente.id)
-                    }
-                    onEdit={() => {
-                      setEditingCliente(cliente);
-                      setIsFormOpen(true);
-                    }}
-                    onDelete={() => setDeleteCliente(cliente)}
-                    onArchive={() => setArchiveCliente(cliente)}
-                    onResetPassword={() => setResetSenhaCliente(cliente)}
+                    onToggleExpand={handleToggleCliente}
+                    onEdit={handleEditCliente}
+                    onDelete={setDeleteCliente}
+                    onArchive={setArchiveCliente}
+                    onResetPassword={setResetSenhaCliente}
+                    onUnarchive={handleUnarchiveCliente}
                   />
                 ))}
                 {hiddenClientesCount > 0 && (
