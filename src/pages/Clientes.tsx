@@ -391,32 +391,40 @@ const ClienteSearchInput = memo(function ClienteSearchInput({
   placeholder: string;
   className?: string;
 }) {
-  const [inputValue, setInputValue] = useState(value);
-  const lastSyncedValue = useRef(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (value !== lastSyncedValue.current) {
-      lastSyncedValue.current = value;
-      setInputValue(value);
+    if (inputRef.current && inputRef.current.value !== value) {
+      inputRef.current.value = value;
     }
   }, [value]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      if (inputValue !== value) {
-        lastSyncedValue.current = inputValue;
-        startTransition(() => onSearchChange(inputValue));
-      }
-    }, 650);
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, []);
 
-    return () => window.clearTimeout(timer);
-  }, [inputValue, onSearchChange, value]);
+  const scheduleSearch = useCallback(
+    (nextValue: string) => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+
+      timerRef.current = window.setTimeout(() => {
+        if (nextValue !== value) {
+          startTransition(() => onSearchChange(nextValue));
+        }
+      }, 650);
+    },
+    [onSearchChange, value]
+  );
 
   return (
     <Input
       placeholder={placeholder}
-      value={inputValue}
-      onChange={(e) => setInputValue(e.target.value)}
+      defaultValue={value}
+      ref={inputRef}
+      onChange={(e) => scheduleSearch(e.currentTarget.value)}
       className={className}
     />
   );
