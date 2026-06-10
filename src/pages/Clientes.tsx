@@ -1,10 +1,9 @@
-import { memo, startTransition, useState, useEffect, useMemo } from 'react';
+import { memo, startTransition, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useMovimentacoesLucros, useCreateMovimentacao } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useUrlParam } from '@/hooks/useUrlState';
 import { ImportDialog } from '@/components/ImportDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -103,14 +102,14 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-const CLIENTES_VISIBLE_LIMIT = 80;
-const CLIENTES_SEARCH_VISIBLE_LIMIT = 40;
+const CLIENTES_VISIBLE_LIMIT = 60;
+const CLIENTES_SEARCH_VISIBLE_LIMIT = 20;
 const CLIENTES_MIN_SEARCH_LENGTH = 2;
 
 export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
   const { t } = useLanguage();
-  const [search, setSearch] = useUrlParam('busca');
+  const [search, setSearch] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
@@ -131,27 +130,80 @@ export default function ClientesPage() {
     [clientes]
   );
 
-  const filteredClientes = useMemo(() => {
+  const normalizedSearch = useMemo(() => {
     const termo = search.trim();
-    if (!termo) return clientes;
+    const text = termo.toLowerCase();
+    const digits = termo.replace(/\D/g, '');
 
-    const s = termo.toLowerCase();
-    const sDigits = termo.replace(/\D/g, '');
-    if (s.length < CLIENTES_MIN_SEARCH_LENGTH && sDigits.length < CLIENTES_MIN_SEARCH_LENGTH) return clientes;
+    return {
+      text,
+      digits,
+      isActive: text.length >= CLIENTES_MIN_SEARCH_LENGTH || digits.length >= CLIENTES_MIN_SEARCH_LENGTH,
+    };
+  }, [search]);
 
-    return indexedClientes
-      ?.filter(
-        ({ razaoSocialBusca, cnpjBusca }) =>
-          razaoSocialBusca.includes(s) || (sDigits.length >= CLIENTES_MIN_SEARCH_LENGTH && cnpjBusca.includes(sDigits))
-      )
-      .map(({ cliente }) => cliente);
-  }, [clientes, indexedClientes, search]);
-  const visibleLimit = search.trim() ? CLIENTES_SEARCH_VISIBLE_LIMIT : CLIENTES_VISIBLE_LIMIT;
-  const visibleClientes = useMemo(
-    () => filteredClientes?.slice(0, visibleLimit),
-    [filteredClientes, visibleLimit]
+  const { visibleClientes, hiddenClientesCount } = useMemo(() => {
+    if (!clientes) return { visibleClientes: undefined, hiddenClientesCount: 0 };
+
+    const visibleLimit = normalizedSearch.isActive ? CLIENTES_SEARCH_VISIBLE_LIMIT : CLIENTES_VISIBLE_LIMIT;
+
+    if (!normalizedSearch.isActive) {
+      return {
+        visibleClientes: clientes.slice(0, visibleLimit),
+        hiddenClientesCount: Math.max(clientes.length - visibleLimit, 0),
+      };
+    }
+
+    const visible: Cliente[] = [];
+    let matches = 0;
+
+    for (const { cliente, razaoSocialBusca, cnpjBusca } of indexedClientes ?? []) {
+      const matchByName = razaoSocialBusca.includes(normalizedSearch.text);
+      const matchByCnpj =
+        normalizedSearch.digits.length >= CLIENTES_MIN_SEARCH_LENGTH && cnpjBusca.includes(normalizedSearch.digits);
+
+      if (matchByName || matchByCnpj) {
+        matches += 1;
+        if (visible.length < visibleLimit) visible.push(cliente);
+      }
+    }
+
+    return {
+      visibleClientes: visible,
+      hiddenClientesCount: Math.max(matches - visibleLimit, 0),
+    };
+  }, [clientes, indexedClientes, normalizedSearch]);
+
+  const rowLabels = useMemo(
+    () => ({
+      active: t('clients.active'),
+      suspended: t('clients.suspended'),
+      edit: t('common.edit'),
+      delete: t('common.delete'),
+    }),
+    [t]
   );
-  const hiddenClientesCount = Math.max((filteredClientes?.length ?? 0) - visibleLimit, 0);
+
+  const handleSearchChange = useCallback((nextSearch: string) => {
+    setSearch(nextSearch);
+    setExpandedCliente(null);
+  }, []);
+
+  const handleToggleCliente = useCallback((clienteId: string, open: boolean) => {
+    setExpandedCliente((current) => (open ? clienteId : current === clienteId ? null : current));
+  }, []);
+
+  const handleEditCliente = useCallback((cliente: Cliente) => {
+    setEditingCliente(cliente);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleUnarchiveCliente = useCallback(
+    (cliente: Cliente) => {
+      updateCliente.mutate({ id: cliente.id, status: 'ativo' as StatusCliente, motivo_arquivamento: '' });
+    },
+    [updateCliente]
+  );
 
   return (
     <SidebarLayout>
