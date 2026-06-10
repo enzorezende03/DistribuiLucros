@@ -1,10 +1,9 @@
-import { memo, startTransition, useState, useEffect, useMemo } from 'react';
+import { memo, startTransition, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useMovimentacoesLucros, useCreateMovimentacao } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useUrlParam } from '@/hooks/useUrlState';
 import { ImportDialog } from '@/components/ImportDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -103,14 +102,14 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-const CLIENTES_VISIBLE_LIMIT = 80;
-const CLIENTES_SEARCH_VISIBLE_LIMIT = 40;
+const CLIENTES_VISIBLE_LIMIT = 60;
+const CLIENTES_SEARCH_VISIBLE_LIMIT = 20;
 const CLIENTES_MIN_SEARCH_LENGTH = 2;
 
 export default function ClientesPage() {
   const { data: clientes, isLoading } = useClientes();
   const { t } = useLanguage();
-  const [search, setSearch] = useUrlParam('busca');
+  const [search, setSearch] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
@@ -131,27 +130,84 @@ export default function ClientesPage() {
     [clientes]
   );
 
-  const filteredClientes = useMemo(() => {
+  const normalizedSearch = useMemo(() => {
     const termo = search.trim();
-    if (!termo) return clientes;
+    const text = termo.toLowerCase();
+    const digits = termo.replace(/\D/g, '');
 
-    const s = termo.toLowerCase();
-    const sDigits = termo.replace(/\D/g, '');
-    if (s.length < CLIENTES_MIN_SEARCH_LENGTH && sDigits.length < CLIENTES_MIN_SEARCH_LENGTH) return clientes;
+    return {
+      text,
+      digits,
+      isActive: text.length >= CLIENTES_MIN_SEARCH_LENGTH || digits.length >= CLIENTES_MIN_SEARCH_LENGTH,
+    };
+  }, [search]);
 
-    return indexedClientes
-      ?.filter(
-        ({ razaoSocialBusca, cnpjBusca }) =>
-          razaoSocialBusca.includes(s) || (sDigits.length >= CLIENTES_MIN_SEARCH_LENGTH && cnpjBusca.includes(sDigits))
-      )
-      .map(({ cliente }) => cliente);
-  }, [clientes, indexedClientes, search]);
-  const visibleLimit = search.trim() ? CLIENTES_SEARCH_VISIBLE_LIMIT : CLIENTES_VISIBLE_LIMIT;
-  const visibleClientes = useMemo(
-    () => filteredClientes?.slice(0, visibleLimit),
-    [filteredClientes, visibleLimit]
+  const { visibleClientes, hiddenClientesCount } = useMemo(() => {
+    if (!clientes) return { visibleClientes: undefined, hiddenClientesCount: 0 };
+
+    const visibleLimit = normalizedSearch.isActive ? CLIENTES_SEARCH_VISIBLE_LIMIT : CLIENTES_VISIBLE_LIMIT;
+
+    if (!normalizedSearch.isActive) {
+      return {
+        visibleClientes: clientes.slice(0, visibleLimit),
+        hiddenClientesCount: Math.max(clientes.length - visibleLimit, 0),
+      };
+    }
+
+    const visible: Cliente[] = [];
+    let hasMoreMatches = false;
+
+    for (const { cliente, razaoSocialBusca, cnpjBusca } of indexedClientes ?? []) {
+      const matchByName = razaoSocialBusca.includes(normalizedSearch.text);
+      const matchByCnpj =
+        normalizedSearch.digits.length >= CLIENTES_MIN_SEARCH_LENGTH && cnpjBusca.includes(normalizedSearch.digits);
+
+      if (matchByName || matchByCnpj) {
+        if (visible.length < visibleLimit) {
+          visible.push(cliente);
+        } else {
+          hasMoreMatches = true;
+          break;
+        }
+      }
+    }
+
+    return {
+      visibleClientes: visible,
+      hiddenClientesCount: hasMoreMatches ? 1 : 0,
+    };
+  }, [clientes, indexedClientes, normalizedSearch]);
+
+  const rowLabels = useMemo(
+    () => ({
+      active: t('clients.active'),
+      suspended: t('clients.suspended'),
+      edit: t('common.edit'),
+      delete: t('common.delete'),
+    }),
+    [t]
   );
-  const hiddenClientesCount = Math.max((filteredClientes?.length ?? 0) - visibleLimit, 0);
+
+  const handleSearchChange = useCallback((nextSearch: string) => {
+    setSearch(nextSearch);
+    setExpandedCliente(null);
+  }, []);
+
+  const handleToggleCliente = useCallback((clienteId: string, open: boolean) => {
+    setExpandedCliente((current) => (open ? clienteId : current === clienteId ? null : current));
+  }, []);
+
+  const handleEditCliente = useCallback((cliente: Cliente) => {
+    setEditingCliente(cliente);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleUnarchiveCliente = useCallback(
+    (cliente: Cliente) => {
+      updateCliente.mutate({ id: cliente.id, status: 'ativo' as StatusCliente, motivo_arquivamento: '' });
+    },
+    [updateCliente]
+  );
 
   return (
     <SidebarLayout>
@@ -192,7 +248,7 @@ export default function ClientesPage() {
                 <ClienteSearchInput
                   placeholder={t('clients.search')}
                   value={search}
-                  onSearchChange={setSearch}
+                  onSearchChange={handleSearchChange}
                   className="pl-9"
                 />
               </div>
@@ -209,22 +265,19 @@ export default function ClientesPage() {
                   <ClienteRow
                     key={cliente.id}
                     cliente={cliente}
+                    labels={rowLabels}
                     isExpanded={expandedCliente === cliente.id}
-                    onToggleExpand={() =>
-                      setExpandedCliente(expandedCliente === cliente.id ? null : cliente.id)
-                    }
-                    onEdit={() => {
-                      setEditingCliente(cliente);
-                      setIsFormOpen(true);
-                    }}
-                    onDelete={() => setDeleteCliente(cliente)}
-                    onArchive={() => setArchiveCliente(cliente)}
-                    onResetPassword={() => setResetSenhaCliente(cliente)}
+                    onToggleExpand={handleToggleCliente}
+                    onEdit={handleEditCliente}
+                    onDelete={setDeleteCliente}
+                    onArchive={setArchiveCliente}
+                    onResetPassword={setResetSenhaCliente}
+                    onUnarchive={handleUnarchiveCliente}
                   />
                 ))}
                 {hiddenClientesCount > 0 && (
                   <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-                    {hiddenClientesCount} clientes ocultos. Refine a busca por nome ou CNPJ para encontrar mais rápido.
+                    Há mais clientes ocultos. Refine a busca por nome ou CNPJ para encontrar mais rápido.
                   </div>
                 )}
               </div>
@@ -327,7 +380,7 @@ export default function ClientesPage() {
   );
 }
 
-function ClienteSearchInput({
+const ClienteSearchInput = memo(function ClienteSearchInput({
   value,
   onSearchChange,
   placeholder,
@@ -338,31 +391,44 @@ function ClienteSearchInput({
   placeholder: string;
   className?: string;
 }) {
-  const [inputValue, setInputValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    setInputValue(value);
+    if (inputRef.current && inputRef.current.value !== value) {
+      inputRef.current.value = value;
+    }
   }, [value]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      if (inputValue !== value) {
-        startTransition(() => onSearchChange(inputValue));
-      }
-    }, 500);
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, []);
 
-    return () => window.clearTimeout(timer);
-  }, [inputValue, onSearchChange, value]);
+  const scheduleSearch = useCallback(
+    (nextValue: string) => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+
+      timerRef.current = window.setTimeout(() => {
+        if (nextValue !== value) {
+          startTransition(() => onSearchChange(nextValue));
+        }
+      }, 650);
+    },
+    [onSearchChange, value]
+  );
 
   return (
     <Input
       placeholder={placeholder}
-      value={inputValue}
-      onChange={(e) => setInputValue(e.target.value)}
+      defaultValue={value}
+      ref={inputRef}
+      onChange={(e) => scheduleSearch(e.currentTarget.value)}
       className={className}
     />
   );
-}
+});
 
 function ResetSenhaDialog({
   cliente,
@@ -425,20 +491,24 @@ function ResetSenhaDialog({
 
 interface ClienteRowProps {
   cliente: Cliente;
+  labels: {
+    active: string;
+    suspended: string;
+    edit: string;
+    delete: string;
+  };
   isExpanded: boolean;
-  onToggleExpand: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  onArchive: () => void;
-  onResetPassword: () => void;
+  onToggleExpand: (clienteId: string, open: boolean) => void;
+  onEdit: (cliente: Cliente) => void;
+  onDelete: (cliente: Cliente) => void;
+  onArchive: (cliente: Cliente) => void;
+  onResetPassword: (cliente: Cliente) => void;
+  onUnarchive: (cliente: Cliente) => void;
 }
 
-const ClienteRow = memo(function ClienteRow({ cliente, isExpanded, onToggleExpand, onEdit, onDelete, onArchive, onResetPassword }: ClienteRowProps) {
-  const { t } = useLanguage();
-  const updateCliente = useUpdateCliente();
-
+const ClienteRow = memo(function ClienteRow({ cliente, labels, isExpanded, onToggleExpand, onEdit, onDelete, onArchive, onResetPassword, onUnarchive }: ClienteRowProps) {
   return (
-    <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
+    <Collapsible open={isExpanded} onOpenChange={(open) => onToggleExpand(cliente.id, open)}>
       <div className="rounded-lg border">
         <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
           <CollapsibleTrigger asChild>
@@ -472,33 +542,31 @@ const ClienteRow = memo(function ClienteRow({ cliente, isExpanded, onToggleExpan
             </button>
           </CollapsibleTrigger>
           <div className="flex items-center gap-3 shrink-0">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
-                    className={
-                      cliente.status === 'ativo'
-                        ? 'bg-success text-success-foreground'
-                        : cliente.status === 'arquivado'
-                        ? 'bg-muted text-muted-foreground'
-                        : ''
-                    }
-                  >
-                    {cliente.status === 'ativo'
-                      ? t('clients.active')
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant={cliente.status === 'ativo' ? 'default' : 'secondary'}
+                  className={
+                    cliente.status === 'ativo'
+                      ? 'bg-success text-success-foreground'
                       : cliente.status === 'arquivado'
-                      ? 'Arquivado'
-                      : t('clients.suspended')}
-                  </Badge>
-                </TooltipTrigger>
-                {cliente.status === 'arquivado' && cliente.motivo_arquivamento && (
-                  <TooltipContent>
-                    <p className="max-w-xs">Motivo: {cliente.motivo_arquivamento}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+                      ? 'bg-muted text-muted-foreground'
+                      : ''
+                  }
+                >
+                  {cliente.status === 'ativo'
+                    ? labels.active
+                    : cliente.status === 'arquivado'
+                    ? 'Arquivado'
+                    : labels.suspended}
+                </Badge>
+              </TooltipTrigger>
+              {cliente.status === 'arquivado' && cliente.motivo_arquivamento && (
+                <TooltipContent>
+                  <p className="max-w-xs">Motivo: {cliente.motivo_arquivamento}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -506,29 +574,29 @@ const ClienteRow = memo(function ClienteRow({ cliente, isExpanded, onToggleExpan
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit}>
+                <DropdownMenuItem onClick={() => onEdit(cliente)}>
                   <Pencil className="mr-2 h-4 w-4" />
-                  {t('common.edit')}
+                  {labels.edit}
                 </DropdownMenuItem>
                 {cliente.status !== 'arquivado' ? (
-                  <DropdownMenuItem className="text-amber-600" onClick={onArchive}>
+                  <DropdownMenuItem className="text-amber-600" onClick={() => onArchive(cliente)}>
                     <Archive className="mr-2 h-4 w-4" />
                     Arquivar
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
                     className="text-green-600"
-                    onClick={() => updateCliente.mutate({ id: cliente.id, status: 'ativo' as StatusCliente, motivo_arquivamento: '' })}
+                    onClick={() => onUnarchive(cliente)}
                   >
                     <Power className="mr-2 h-4 w-4" />
                     Desarquivar
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+                <DropdownMenuItem className="text-destructive" onClick={() => onDelete(cliente)}>
                   <Trash2 className="mr-2 h-4 w-4" />
-                  {t('common.delete')}
+                  {labels.delete}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onResetPassword}>
+                <DropdownMenuItem onClick={() => onResetPassword(cliente)}>
                   <KeyRound className="mr-2 h-4 w-4" />
                   Resetar Senha
                 </DropdownMenuItem>
