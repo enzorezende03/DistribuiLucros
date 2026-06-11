@@ -41,6 +41,7 @@ function parseMaskedCurrency(masked: string): number {
 
 export default function NovaDistribuicaoPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { clienteId, user } = useAuth();
   const { data: cliente } = useCliente(clienteId);
@@ -50,8 +51,28 @@ export default function NovaDistribuicaoPage() {
 
   const currentCompetencia = getCurrentCompetencia();
 
+  // If ?competencia=YYYY-MM is provided, default the date to the last day of that month
+  // (or today if that month is the current month). Otherwise default to today.
+  const initialDate = (() => {
+    const comp = searchParams.get('competencia');
+    if (comp && /^\d{4}-\d{2}$/.test(comp)) {
+      const [y, m] = comp.split('-').map(Number);
+      const today = new Date();
+      if (today.getFullYear() === y && today.getMonth() + 1 === m) {
+        return today.toISOString().split('T')[0];
+      }
+      // Last day of the requested month
+      const lastDay = new Date(y, m, 0);
+      const yyyy = lastDay.getFullYear();
+      const mm = String(lastDay.getMonth() + 1).padStart(2, '0');
+      const dd = String(lastDay.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    return new Date().toISOString().split('T')[0];
+  })();
+
   const [formData, setFormData] = useState({
-    data_distribuicao: new Date().toISOString().split('T')[0],
+    data_distribuicao: initialDate,
   });
 
   // Auto-derive competencia from data_distribuicao
