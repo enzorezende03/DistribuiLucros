@@ -146,7 +146,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Link to="/distribuicoes/nova" className="flex-1 sm:flex-none">
+              <Link to={`/distribuicoes/nova?competencia=${mostRecentPending}`} className="flex-1 sm:flex-none">
                 <Button className="w-full gap-2">
                   <PlusCircle className="h-4 w-4" />
                   {t('dashboard.happened')}
@@ -622,20 +622,28 @@ function PendenciasUnificadasCard({ clienteId, olderPendingMonths, declarandoCom
                     <p className="text-xs text-muted-foreground">Sem informação de distribuição</p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1 text-xs shrink-0"
-                  onClick={() => handleNaoHouve(comp)}
-                  disabled={declarandoCompetencia === comp}
-                >
-                  {declarandoCompetencia === comp ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <XCircle className="h-3 w-3" />
-                  )}
-                  Não houve
-                </Button>
+                <div className="flex gap-2 shrink-0">
+                  <Link to={`/distribuicoes/nova?competencia=${comp}`}>
+                    <Button variant="default" size="sm" className="gap-1 text-xs">
+                      <PlusCircle className="h-3 w-3" />
+                      Lançar
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-xs"
+                    onClick={() => handleNaoHouve(comp)}
+                    disabled={declarandoCompetencia === comp}
+                  >
+                    {declarandoCompetencia === comp ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <XCircle className="h-3 w-3" />
+                    )}
+                    Não houve
+                  </Button>
+                </div>
               </div>
             ))}
             {olderPendingMonths.length > 6 && (
