@@ -622,20 +622,28 @@ function PendenciasUnificadasCard({ clienteId, olderPendingMonths, declarandoCom
                     <p className="text-xs text-muted-foreground">Sem informação de distribuição</p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1 text-xs shrink-0"
-                  onClick={() => handleNaoHouve(comp)}
-                  disabled={declarandoCompetencia === comp}
-                >
-                  {declarandoCompetencia === comp ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <XCircle className="h-3 w-3" />
-                  )}
-                  Não houve
-                </Button>
+                <div className="flex gap-2 shrink-0">
+                  <Link to={`/distribuicoes/nova?competencia=${comp}`}>
+                    <Button variant="default" size="sm" className="gap-1 text-xs">
+                      <PlusCircle className="h-3 w-3" />
+                      Lançar
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-xs"
+                    onClick={() => handleNaoHouve(comp)}
+                    disabled={declarandoCompetencia === comp}
+                  >
+                    {declarandoCompetencia === comp ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <XCircle className="h-3 w-3" />
+                    )}
+                    Não houve
+                  </Button>
+                </div>
               </div>
             ))}
             {olderPendingMonths.length > 6 && (
