@@ -146,7 +146,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Link to="/distribuicoes/nova" className="flex-1 sm:flex-none">
+              <Link to={`/distribuicoes/nova?competencia=${mostRecentPending}`} className="flex-1 sm:flex-none">
                 <Button className="w-full gap-2">
                   <PlusCircle className="h-4 w-4" />
                   {t('dashboard.happened')}
