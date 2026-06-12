@@ -28,6 +28,7 @@ import {
 import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, useBatchUpdateStatus, type StatusDistribuicao, type Distribuicao } from '@/hooks/useDistribuicoes';
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
+import { useConfirmacoes } from '@/hooks/useConfirmacoes';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatDate, formatCompetencia } from '@/lib/format';
 import { toast } from 'sonner';
@@ -115,6 +116,7 @@ export default function DistribuicoesPage() {
   const { data: distribuicoes, isLoading } = useDistribuicoes(
     filterClienteId
   );
+  const { data: confirmacoes } = useConfirmacoes(filterClienteId);
   const [search, setSearch] = useUrlParam('busca');
   // Debounce search to avoid re-running the heavy filter on every keystroke.
   const [searchInput, setSearchInput] = useState(search);
@@ -478,18 +480,66 @@ export default function DistribuicoesPage() {
                 </div>
               </>
             ) : (
-              <div className="empty-state py-12">
-                <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">{t('distributions.noResults')}</p>
-                {!isAdmin && (
-                  <Link to="/distribuicoes/nova">
-                    <Button variant="outline" className="mt-4 gap-2">
-                      <Plus className="h-4 w-4" />
-                      {t('distributions.registerFirst')}
-                    </Button>
-                  </Link>
-                )}
-              </div>
+              (() => {
+                const naoHouveList = (confirmacoes || [])
+                  .filter((c) => c.resposta === 'NAO_HOUVE')
+                  .filter((c) => !selectedCompetencia || c.competencia === selectedCompetencia)
+                  .sort((a, b) => b.competencia.localeCompare(a.competencia));
+
+                if (filterClienteId && naoHouveList.length > 0) {
+                  return (
+                    <div className="empty-state py-10">
+                      <div className="h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center mb-4">
+                        <AlertTriangle className="h-6 w-6 text-amber-600" />
+                      </div>
+                      <p className="font-semibold text-base">
+                        {selectedCompetencia
+                          ? `O cliente declarou que NÃO HOUVE distribuição de lucros em ${formatCompetencia(selectedCompetencia)}.`
+                          : 'O cliente declarou que NÃO HOUVE distribuição de lucros nos meses abaixo.'}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1 max-w-xl">
+                        Não é necessário cobrar o envio destes meses — a informação já foi confirmada pelo cliente.
+                      </p>
+                      <div className="mt-4 flex flex-wrap justify-center gap-2 max-w-xl">
+                        {naoHouveList.map((c) => (
+                          <Badge
+                            key={c.id}
+                            variant="outline"
+                            className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 gap-1.5 px-2.5 py-1"
+                            title={c.observacao || undefined}
+                          >
+                            <span className="font-medium">{formatCompetencia(c.competencia)}</span>
+                            <span className="text-[10px] uppercase tracking-wide opacity-80">Não houve</span>
+                          </Badge>
+                        ))}
+                      </div>
+                      {!isAdmin && (
+                        <Link to="/distribuicoes/nova">
+                          <Button variant="outline" className="mt-6 gap-2">
+                            <Plus className="h-4 w-4" />
+                            {t('distributions.new')}
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="empty-state py-12">
+                    <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground">{t('distributions.noResults')}</p>
+                    {!isAdmin && (
+                      <Link to="/distribuicoes/nova">
+                        <Button variant="outline" className="mt-4 gap-2">
+                          <Plus className="h-4 w-4" />
+                          {t('distributions.registerFirst')}
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                );
+              })()
             )}
           </CardContent>
         </Card>
