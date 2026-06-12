@@ -116,6 +116,7 @@ export default function DistribuicoesPage() {
   const { data: distribuicoes, isLoading } = useDistribuicoes(
     filterClienteId
   );
+  const { data: confirmacoes } = useConfirmacoes(filterClienteId);
   const [search, setSearch] = useUrlParam('busca');
   // Debounce search to avoid re-running the heavy filter on every keystroke.
   const [searchInput, setSearchInput] = useState(search);
