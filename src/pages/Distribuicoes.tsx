@@ -28,6 +28,7 @@ import {
 import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, useBatchUpdateStatus, type StatusDistribuicao, type Distribuicao } from '@/hooks/useDistribuicoes';
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
+import { useConfirmacoes } from '@/hooks/useConfirmacoes';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatDate, formatCompetencia } from '@/lib/format';
 import { toast } from 'sonner';
