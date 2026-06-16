@@ -52,9 +52,16 @@ export default function NovaDistribuicaoPage() {
 
   const currentCompetencia = getCurrentCompetencia();
 
-  // If ?competencia=YYYY-MM is provided, default the date to the last day of that month
-  // (or today if that month is the current month). Otherwise default to today.
+  // Pre-fill support: when opened from a detected extrato entry or a 2M log,
+  // the form arrives populated and the user only reviews & confirms.
+  const isPrefilled = searchParams.get('prefill') === '1';
+  const naturezaParam = (searchParams.get('natureza') || '').toUpperCase() as NaturezaRepasse;
+  const validNaturezas: NaturezaRepasse[] = ['LUCRO', 'REEMBOLSO', 'EMPRESTIMO_MUTUO', 'PRO_LABORE', 'DEVOLUCAO'];
+  const initialNatureza: NaturezaRepasse | '' = validNaturezas.includes(naturezaParam) ? naturezaParam : '';
+
   const initialDate = (() => {
+    const dataParam = searchParams.get('data');
+    if (dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam)) return dataParam;
     const comp = searchParams.get('competencia');
     if (comp && /^\d{4}-\d{2}$/.test(comp)) {
       const [y, m] = comp.split('-').map(Number);
@@ -62,7 +69,6 @@ export default function NovaDistribuicaoPage() {
       if (today.getFullYear() === y && today.getMonth() + 1 === m) {
         return today.toISOString().split('T')[0];
       }
-      // Last day of the requested month
       const lastDay = new Date(y, m, 0);
       const yyyy = lastDay.getFullYear();
       const mm = String(lastDay.getMonth() + 1).padStart(2, '0');
@@ -71,6 +77,23 @@ export default function NovaDistribuicaoPage() {
     }
     return new Date().toISOString().split('T')[0];
   })();
+
+  const initialRateio: RateioItem[] = (() => {
+    const itensParam = searchParams.get('itens');
+    if (itensParam) {
+      try {
+        const decoded = JSON.parse(atob(itensParam)) as { socio_id: string; valor: number }[];
+        if (Array.isArray(decoded) && decoded.length > 0) {
+          return decoded.map((it) => ({
+            socio_id: String(it.socio_id || ''),
+            valor: Number(it.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          }));
+        }
+      } catch { /* ignore */ }
+    }
+    return [{ socio_id: '', valor: '' }];
+  })();
+
 
   const [formData, setFormData] = useState({
     data_distribuicao: initialDate,
