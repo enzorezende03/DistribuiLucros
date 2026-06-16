@@ -35,6 +35,22 @@ export default function AlertasPage() {
   
   const { data: alertas, isLoading } = useAlertas(undefined, selectedTipo || undefined, showResolvidos ? undefined : false);
   const resolverAlerta = useResolverAlerta();
+  const createConfirmacao = useCreateConfirmacao();
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
+
+  const handleNaoHouve = async (alerta: Alerta) => {
+    if (!alerta.cliente_id || !alerta.competencia) return;
+    setConfirmandoId(alerta.id);
+    try {
+      await createConfirmacao.mutateAsync({
+        cliente_id: alerta.cliente_id,
+        competencia: alerta.competencia,
+        resposta: 'NAO_HOUVE',
+      });
+    } finally {
+      setConfirmandoId(null);
+    }
+  };
 
   const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; className: string }> = {
     ALERTA_50K: {
@@ -43,11 +59,12 @@ export default function AlertasPage() {
       className: 'alert-50k',
     },
     PENDENTE_MES: {
-      label: t('alerts.monthlyPending'),
+      label: 'A confirmar',
       icon: <Clock className="h-4 w-4" />,
       className: 'alert-pendente',
     },
   };
+
 
   const openResolveDialog = (alerta: Alerta) => {
     setResolveDialog(alerta);
