@@ -251,6 +251,7 @@ export type Database = {
           data_distribuicao: string
           forma_pagamento: string
           id: string
+          natureza: Database["public"]["Enums"]["natureza_repasse"]
           recibo_numero: string | null
           recibo_pdf_url: string | null
           solicitante_email: string
@@ -266,6 +267,7 @@ export type Database = {
           data_distribuicao: string
           forma_pagamento: string
           id?: string
+          natureza: Database["public"]["Enums"]["natureza_repasse"]
           recibo_numero?: string | null
           recibo_pdf_url?: string | null
           solicitante_email: string
@@ -281,6 +283,7 @@ export type Database = {
           data_distribuicao?: string
           forma_pagamento?: string
           id?: string
+          natureza?: Database["public"]["Enums"]["natureza_repasse"]
           recibo_numero?: string | null
           recibo_pdf_url?: string | null
           solicitante_email?: string
@@ -620,6 +623,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "cliente"
+      natureza_repasse:
+        | "LUCRO"
+        | "REEMBOLSO"
+        | "EMPRESTIMO_MUTUO"
+        | "PRO_LABORE"
+        | "DEVOLUCAO"
       resposta_confirmacao: "NAO_HOUVE" | "HOUVE"
       status_cliente: "ativo" | "suspenso" | "arquivado"
       status_distribuicao:
@@ -757,6 +766,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "cliente"],
+      natureza_repasse: [
+        "LUCRO",
+        "REEMBOLSO",
+        "EMPRESTIMO_MUTUO",
+        "PRO_LABORE",
+        "DEVOLUCAO",
+      ],
       resposta_confirmacao: ["NAO_HOUVE", "HOUVE"],
       status_cliente: ["ativo", "suspenso", "arquivado"],
       status_distribuicao: [
