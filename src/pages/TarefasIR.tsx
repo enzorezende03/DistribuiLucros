@@ -15,7 +15,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { useTarefasIR, useAtualizarTarefaIR, type TarefaIR, type StatusTarefa } from '@/hooks/useTarefasIR';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatCompetencia } from '@/lib/format';
 import { Loader2, CheckCircle2, Clock, FileText, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
