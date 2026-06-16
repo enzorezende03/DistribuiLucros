@@ -113,7 +113,7 @@ export function useDistribuicao(id: string | null) {
         .single();
 
       if (error) throw error;
-      return data as Distribuicao;
+      return data as unknown as Distribuicao;
     },
     enabled: !!id,
   });
