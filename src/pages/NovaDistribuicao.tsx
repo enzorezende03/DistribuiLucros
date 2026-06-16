@@ -11,14 +11,15 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
-import { useCreateDistribuicao, useDistribuicoes } from '@/hooks/useDistribuicoes';
-import { formatCurrency, getCurrentCompetencia, formatCPF } from '@/lib/format';
+import { useCreateDistribuicao, useDistribuicoes, NATUREZA_LABELS, type NaturezaRepasse } from '@/hooks/useDistribuicoes';
+import { formatCurrency, getCurrentCompetencia, formatCPF, formatMesNome } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getExcessColor } from '@/lib/excessColor';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+
 
 interface RateioItem {
   socio_id: string;
