@@ -17,7 +17,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlertas } from '@/hooks/useAlertas';
 import { useCliente } from '@/hooks/useClientes';
 import { useConfirmacoes, useCreateConfirmacao } from '@/hooks/useConfirmacoes';
-import { formatCurrency, breakableCurrency, getCompetenciaAnterior, getCurrentCompetencia, formatDate, formatCompetencia, getCompetenciasSince } from '@/lib/format';
+import { formatCurrency, breakableCurrency, getCompetenciaAnterior, getCurrentCompetencia, formatDate, formatCompetencia, formatMesNome, getCompetenciasSince } from '@/lib/format';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import {
@@ -129,29 +129,67 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
     }
   };
 
+  // Greeting name + último mês confirmado
+  const { user } = useAuth();
+  const nomeUsuario = (user?.user_metadata as any)?.nome
+    || (cliente?.razao_social ? cliente.razao_social.split(' ')[0] : '')
+    || (user?.email ? user.email.split('@')[0] : '');
+
+  const ultimoMesConfirmado = (() => {
+    const confs = (confirmacoes || []).map(c => c.competencia);
+    const dists = (distribuicoesAtivas || []).map(d => d.competencia);
+    const all = [...confs, ...dists].sort();
+    return all.length ? all[all.length - 1] : null;
+  })();
+
+  // Imposto evitado no ano (10% do excedente abatido por ata)
+  const anoAtual = String(new Date().getFullYear());
+  const { data: impostoEvitado = 0 } = useQuery({
+    queryKey: ['imposto-evitado', clienteId, anoAtual],
+    enabled: !!clienteId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('movimentacoes_lucros')
+        .select('valor, competencia, tipo')
+        .eq('cliente_id', clienteId!)
+        .eq('tipo', 'SAIDA');
+      if (error) throw error;
+      const totalAbatido = (data || [])
+        .filter((m: any) => (m.competencia || '').startsWith(anoAtual))
+        .reduce((sum: number, m: any) => sum + Number(m.valor || 0), 0);
+      return totalAbatido * 0.10;
+    },
+  });
+
   return (
     <>
+      {/* Saudação */}
+      <div>
+        <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
+          Olá, {nomeUsuario || 'bem-vindo'}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {mostRecentPending
+            ? `Falta confirmar ${formatMesNome(mostRecentPending)}.`
+            : 'Suas distribuições estão em dia.'}
+        </p>
+      </div>
+
       {mostRecentPending && (
-        <Card className="border-warning/50 bg-warning/5">
+        <Card className="border-emerald-500/50 bg-emerald-500/5">
           <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6">
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
-                <AlertTriangle className="h-5 w-5 text-warning" />
+              <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <h3 className="font-semibold">{t('dashboard.actionRequired')} {formatCompetencia(mostRecentPending)}</h3>
+                <h3 className="font-semibold">Falta confirmar {formatMesNome(mostRecentPending)}</h3>
                 <p className="text-sm text-muted-foreground">
-                  É só um clique: houve repasse, ou não houve?
+                  Houve repasse de lucros aos sócios em {formatMesNome(mostRecentPending)}? Um clique resolve.
                 </p>
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Link to={`/distribuicoes/nova?competencia=${mostRecentPending}`} className="flex-1 sm:flex-none">
-                <Button className="w-full gap-2">
-                  <PlusCircle className="h-4 w-4" />
-                  {t('dashboard.happened')}
-                </Button>
-              </Link>
               <Button
                 variant="outline"
                 className="flex-1 sm:flex-none gap-2"
@@ -163,14 +201,34 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                 ) : (
                   <XCircle className="h-4 w-4" />
                 )}
-                {t('dashboard.didNotHappen')}
+                Não houve
               </Button>
+              <Link to={`/distribuicoes/nova?competencia=${mostRecentPending}`} className="flex-1 sm:flex-none">
+                <Button className="w-full gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  Sim, houve
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
       )}
 
       <div className="dashboard-grid">
+        {/* NOVO: Imposto evitado no ano */}
+        <Card className="stat-card border-emerald-500/40 bg-emerald-500/5">
+          <div className="stat-card-accent bg-emerald-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+              Imposto que você evitou em {anoAtual}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="money-value-lg text-emerald-700 dark:text-emerald-400">{breakableCurrency(impostoEvitado || 0)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Economia por isenções e classificações</p>
+          </CardContent>
+        </Card>
+
         <Card className="stat-card">
           <div className="stat-card-accent bg-primary" />
           <CardHeader className="pb-2">
@@ -187,7 +245,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <div className="stat-card-accent bg-accent" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('dashboard.totalYear')}
+              Distribuído em {anoAtual}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -200,7 +258,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <div className="stat-card-accent bg-info" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('dashboard.totalMonth')}
+              Repasses de {formatMesNome(competenciaAtual)}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -209,17 +267,36 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardContent>
         </Card>
 
-        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/alertas')}>
-          <div className="stat-card-accent bg-warning" />
+        {/* Situação substitui o card "Alertas" */}
+        <Card
+          className={cn(
+            'stat-card cursor-pointer hover:shadow-md transition-shadow',
+            pendingMonths.length === 0 ? 'border-emerald-500/40' : 'border-warning/40'
+          )}
+          onClick={() => navigate(pendingMonths.length === 0 ? '/distribuicoes' : '/alertas')}
+        >
+          <div className={cn('stat-card-accent', pendingMonths.length === 0 ? 'bg-emerald-500' : 'bg-warning')} />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('alerts.title')}
+              Situação
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{alertas?.length || 0}</p>
-            {(alertas?.length || 0) > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">{t('dashboard.clickDetails')}</p>
+            {pendingMonths.length === 0 ? (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">Em dia</p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-6 w-6 text-warning" />
+                <p className="text-2xl font-bold text-warning">{pendingMonths.length} a confirmar</p>
+              </div>
+            )}
+            {ultimoMesConfirmado && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatMesNome(ultimoMesConfirmado)} confirmado
+              </p>
             )}
           </CardContent>
         </Card>
@@ -229,7 +306,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             <div className="stat-card-accent bg-emerald-500" />
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Saldo Lucros Acumulados
+                Saldo de lucros disponível
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -239,6 +316,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </Card>
         )}
       </div>
+
 
       <Dialog open={totalMesDialogOpen} onOpenChange={setTotalMesDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
