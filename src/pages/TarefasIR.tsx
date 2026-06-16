@@ -15,7 +15,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { useTarefasIR, useAtualizarTarefaIR, type TarefaIR, type StatusTarefa } from '@/hooks/useTarefasIR';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatCompetencia } from '@/lib/format';
 import { Loader2, CheckCircle2, Clock, FileText, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -160,7 +160,7 @@ export default function TarefasIRPage() {
                           <Badge variant="outline" className={cn('gap-1', config.className)}>
                             {config.icon} {config.label}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">{tarefa.competencia}</span>
+                          <span className="text-xs text-muted-foreground">{formatCompetencia(tarefa.competencia)}</span>
                         </div>
                         <div>
                           <p className="font-medium text-sm">{tarefa.cliente?.razao_social}</p>
@@ -213,7 +213,7 @@ export default function TarefasIRPage() {
                             </TableCell>
                             <TableCell className="font-medium">{tarefa.cliente?.razao_social}</TableCell>
                             <TableCell className="hidden md:table-cell">{tarefa.socio?.nome || '-'}</TableCell>
-                            <TableCell>{tarefa.competencia}</TableCell>
+                            <TableCell>{formatCompetencia(tarefa.competencia)}</TableCell>
                             <TableCell className="max-w-[250px] truncate hidden md:table-cell">{tarefa.descricao || '-'}</TableCell>
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(tarefa.created_at)}</TableCell>
                             <TableCell>
@@ -260,7 +260,7 @@ export default function TarefasIRPage() {
             <p className="text-sm">
               <strong>{actionDialog?.cliente?.razao_social}</strong>
               {actionDialog?.socio?.nome ? ` — ${actionDialog.socio.nome}` : ''}
-              {' • '}{actionDialog?.competencia}
+              {' • '}{actionDialog?.competencia ? formatCompetencia(actionDialog.competencia) : ''}
             </p>
             <Textarea
               placeholder="Observação (opcional)..."

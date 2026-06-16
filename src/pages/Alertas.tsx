@@ -17,7 +17,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { useAlertas, useResolverAlerta, type TipoAlerta, type Alerta, type ResolucaoTipo } from '@/hooks/useAlertas';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatCompetencia } from '@/lib/format';
 import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign, FileText, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -280,7 +280,7 @@ export default function AlertasPage() {
               {resolveDialog?.cliente?.razao_social}
               {resolveDialog?.socio?.nome ? ` — ${resolveDialog.socio.nome}` : ''}
               {' • '}
-              {resolveDialog?.competencia}
+              {resolveDialog?.competencia ? formatCompetencia(resolveDialog.competencia) : ''}
             </DialogDescription>
           </DialogHeader>
 

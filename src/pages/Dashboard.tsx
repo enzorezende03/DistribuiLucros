@@ -139,9 +139,9 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                 <AlertTriangle className="h-5 w-5 text-warning" />
               </div>
               <div>
-                <h3 className="font-semibold">{t('dashboard.actionRequired')}</h3>
+                <h3 className="font-semibold">{t('dashboard.actionRequired')} {formatCompetencia(mostRecentPending)}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Informe se houve distribuição de lucros em <strong>{formatCompetencia(mostRecentPending)}</strong>.
+                  É só um clique: houve repasse, ou não houve?
                 </p>
               </div>
             </div>
@@ -619,7 +619,7 @@ function PendenciasUnificadasCard({ clienteId, olderPendingMonths, declarandoCom
                   <Calendar className="h-4 w-4 text-warning" />
                   <div>
                     <p className="font-medium text-sm">{formatCompetencia(comp)}</p>
-                    <p className="text-xs text-muted-foreground">Sem informação de distribuição</p>
+                    <p className="text-xs text-muted-foreground">A confirmar</p>
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
