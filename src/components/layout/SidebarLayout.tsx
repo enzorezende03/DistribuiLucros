@@ -31,6 +31,7 @@ import {
   Bell,
   Globe,
   HelpCircle,
+  Activity,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import logo2m from '@/assets/logo-2m.png';
@@ -51,6 +52,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard', label: 'nav.dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
   { href: '/clientes', label: 'nav.clientes', icon: <Building2 className="h-5 w-5" />, adminOnly: true },
   { href: '/admin-usuarios', label: 'nav.adminUsuarios', icon: <Users className="h-5 w-5" />, adminOnly: true },
+  { href: '/adesao', label: 'Adesão dos Clientes', icon: <Activity className="h-5 w-5" />, adminOnly: true },
   { href: '/distribuicoes', label: 'nav.distribuicoes', icon: <FileText className="h-5 w-5" /> },
   { href: '/alertas', label: 'nav.alertas', icon: <AlertTriangle className="h-5 w-5" /> },
   { href: '/tarefas-ir', label: 'nav.tarefasIR', icon: <FileText className="h-5 w-5" />, adminOnly: true },
