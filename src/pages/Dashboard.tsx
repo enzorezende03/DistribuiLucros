@@ -215,6 +215,20 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
       )}
 
       <div className="dashboard-grid">
+        {/* NOVO: Imposto evitado no ano */}
+        <Card className="stat-card border-emerald-500/40 bg-emerald-500/5">
+          <div className="stat-card-accent bg-emerald-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+              Imposto que você evitou em {anoAtual}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="money-value-lg text-emerald-700 dark:text-emerald-400">{breakableCurrency(impostoEvitado || 0)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Economia por isenções e classificações</p>
+          </CardContent>
+        </Card>
+
         <Card className="stat-card">
           <div className="stat-card-accent bg-primary" />
           <CardHeader className="pb-2">
@@ -231,7 +245,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <div className="stat-card-accent bg-accent" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('dashboard.totalYear')}
+              Distribuído em {anoAtual}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -244,7 +258,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           <div className="stat-card-accent bg-info" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('dashboard.totalMonth')}
+              Repasses de {formatMesNome(competenciaAtual)}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -253,17 +267,36 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardContent>
         </Card>
 
-        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/alertas')}>
-          <div className="stat-card-accent bg-warning" />
+        {/* Situação substitui o card "Alertas" */}
+        <Card
+          className={cn(
+            'stat-card cursor-pointer hover:shadow-md transition-shadow',
+            pendingMonths.length === 0 ? 'border-emerald-500/40' : 'border-warning/40'
+          )}
+          onClick={() => navigate(pendingMonths.length === 0 ? '/distribuicoes' : '/alertas')}
+        >
+          <div className={cn('stat-card-accent', pendingMonths.length === 0 ? 'bg-emerald-500' : 'bg-warning')} />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('alerts.title')}
+              Situação
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{alertas?.length || 0}</p>
-            {(alertas?.length || 0) > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">{t('dashboard.clickDetails')}</p>
+            {pendingMonths.length === 0 ? (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">Em dia</p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-6 w-6 text-warning" />
+                <p className="text-2xl font-bold text-warning">{pendingMonths.length} a confirmar</p>
+              </div>
+            )}
+            {ultimoMesConfirmado && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatMesNome(ultimoMesConfirmado)} confirmado
+              </p>
             )}
           </CardContent>
         </Card>
@@ -273,7 +306,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
             <div className="stat-card-accent bg-emerald-500" />
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Saldo Lucros Acumulados
+                Saldo de lucros disponível
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -283,6 +316,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </Card>
         )}
       </div>
+
 
       <Dialog open={totalMesDialogOpen} onOpenChange={setTotalMesDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
