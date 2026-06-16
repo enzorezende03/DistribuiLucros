@@ -11,9 +11,9 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
-import { useDistribuicao, useDistribuicoes } from '@/hooks/useDistribuicoes';
+import { useDistribuicao, useDistribuicoes, NATUREZA_LABELS, type NaturezaRepasse } from '@/hooks/useDistribuicoes';
 import { supabase } from '@/integrations/supabase/client';
-import { formatCurrency, formatCPF } from '@/lib/format';
+import { formatCurrency, formatCPF, formatMesNome } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -56,6 +56,7 @@ export default function EditarDistribuicaoPage() {
   const { data: existingDistribuicoes } = useDistribuicoes(clienteId);
 
   const [formData, setFormData] = useState({ data_distribuicao: '' });
+  const [natureza, setNatureza] = useState<NaturezaRepasse | ''>('');
   const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
   const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -65,6 +66,7 @@ export default function EditarDistribuicaoPage() {
   useEffect(() => {
     if (distribuicao && !initialized) {
       setFormData({ data_distribuicao: distribuicao.data_distribuicao });
+      setNatureza((distribuicao.natureza as NaturezaRepasse) || 'LUCRO');
       if (distribuicao.itens && distribuicao.itens.length > 0) {
         setRateio(
           distribuicao.itens.map((item) => ({
@@ -76,6 +78,7 @@ export default function EditarDistribuicaoPage() {
       setInitialized(true);
     }
   }, [distribuicao, initialized]);
+
 
   const shouldRedirect = distribuicao && distribuicao.status !== 'ENVIADA_AO_CONTADOR';
 
@@ -117,6 +120,7 @@ export default function EditarDistribuicaoPage() {
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
+    if (!natureza) newErrors.push('Selecione a natureza do repasse.');
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
     const sociosDuplicados = rateio.map((item) => item.socio_id).filter((sid, index, arr) => sid && arr.indexOf(sid) !== index);
@@ -131,7 +135,7 @@ export default function EditarDistribuicaoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !id || !clienteId) return;
+    if (!validateForm() || !id || !clienteId || !natureza) return;
     setSaving(true);
     try {
       const competencia = getCompetenciaFromDate(formData.data_distribuicao);
@@ -145,9 +149,11 @@ export default function EditarDistribuicaoPage() {
           data_distribuicao: formData.data_distribuicao,
           competencia,
           valor_total: newValorTotal,
+          natureza,
         })
         .eq('id', id);
       if (updateError) throw updateError;
+
 
       // Delete old items and insert new
       const { error: deleteError } = await supabase
@@ -222,13 +228,25 @@ export default function EditarDistribuicaoPage() {
           <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">{t('newDist.distributionData')}</CardTitle>
-                <CardDescription>{t('newDist.distributionDataDesc')}</CardDescription>
+                <CardTitle className="text-lg">Confirmar repasse de {formatMesNome(competenciaAtual || distribuicao?.competencia || '')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
                   <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />
+                </div>
+
+                <div className="space-y-2 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
+                  <Label htmlFor="natureza" className="text-base font-semibold">Natureza do repasse *</Label>
+                  <Select value={natureza} onValueChange={(v) => setNatureza(v as NaturezaRepasse)}>
+                    <SelectTrigger id="natureza"><SelectValue placeholder="Selecione a natureza" /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(NATUREZA_LABELS) as NaturezaRepasse[]).map((k) => (
+                        <SelectItem key={k} value={k}>{NATUREZA_LABELS[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Só "Lucro" conta para o limite de R$ 50 mil e para o IR.</p>
                 </div>
               </CardContent>
             </Card>
@@ -237,9 +255,9 @@ export default function EditarDistribuicaoPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">{t('newDist.partnerAllocation')}</CardTitle>
-                    <CardDescription>{t('newDist.partnerAllocationDesc')}</CardDescription>
+                    <CardTitle className="text-lg">Valor por sócio</CardTitle>
                   </div>
+
                   <Button type="button" variant="outline" size="sm" onClick={addRateioItem} disabled={rateio.length >= sociosAtivos.length} className="gap-2">
                     <Plus className="h-4 w-4" />{t('newDist.addPartner')}
                   </Button>

@@ -4,6 +4,16 @@ import { toast } from 'sonner';
 
 export type StatusDistribuicao = 'ENVIADA_AO_CONTADOR' | 'APROVADA' | 'AJUSTE_SOLICITADO' | 'CANCELADA';
 
+export type NaturezaRepasse = 'LUCRO' | 'REEMBOLSO' | 'EMPRESTIMO_MUTUO' | 'PRO_LABORE' | 'DEVOLUCAO';
+
+export const NATUREZA_LABELS: Record<NaturezaRepasse, string> = {
+  LUCRO: 'Lucro',
+  REEMBOLSO: 'Reembolso',
+  EMPRESTIMO_MUTUO: 'Empréstimo/Mútuo',
+  PRO_LABORE: 'Pró-labore',
+  DEVOLUCAO: 'Devolução',
+};
+
 export interface DistribuicaoItem {
   id: string;
   distribuicao_id: string;
@@ -23,6 +33,7 @@ export interface Distribuicao {
   data_distribuicao: string;
   valor_total: number;
   forma_pagamento: string;
+  natureza: NaturezaRepasse;
   solicitante_nome: string;
   solicitante_email: string;
   status: StatusDistribuicao;
@@ -43,10 +54,12 @@ export interface CreateDistribuicaoData {
   data_distribuicao: string;
   valor_total: number;
   forma_pagamento: string;
+  natureza: NaturezaRepasse;
   solicitante_nome: string;
   solicitante_email: string;
   itens: { socio_id: string; valor: number }[];
 }
+
 
 export function useDistribuicoes(clienteId?: string | null, competencia?: string) {
   return useQuery({
@@ -76,7 +89,7 @@ export function useDistribuicoes(clienteId?: string | null, competencia?: string
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as Distribuicao[];
+      return (data ?? []) as unknown as Distribuicao[];
     },
   });
 }
@@ -100,7 +113,7 @@ export function useDistribuicao(id: string | null) {
         .single();
 
       if (error) throw error;
-      return data as Distribuicao;
+      return data as unknown as Distribuicao;
     },
     enabled: !!id,
   });

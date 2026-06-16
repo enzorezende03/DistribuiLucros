@@ -11,14 +11,15 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
-import { useCreateDistribuicao, useDistribuicoes } from '@/hooks/useDistribuicoes';
-import { formatCurrency, getCurrentCompetencia, formatCPF } from '@/lib/format';
+import { useCreateDistribuicao, useDistribuicoes, NATUREZA_LABELS, type NaturezaRepasse } from '@/hooks/useDistribuicoes';
+import { formatCurrency, getCurrentCompetencia, formatCPF, formatMesNome } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getExcessColor } from '@/lib/excessColor';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+
 
 interface RateioItem {
   socio_id: string;
@@ -51,9 +52,16 @@ export default function NovaDistribuicaoPage() {
 
   const currentCompetencia = getCurrentCompetencia();
 
-  // If ?competencia=YYYY-MM is provided, default the date to the last day of that month
-  // (or today if that month is the current month). Otherwise default to today.
+  // Pre-fill support: when opened from a detected extrato entry or a 2M log,
+  // the form arrives populated and the user only reviews & confirms.
+  const isPrefilled = searchParams.get('prefill') === '1';
+  const naturezaParam = (searchParams.get('natureza') || '').toUpperCase() as NaturezaRepasse;
+  const validNaturezas: NaturezaRepasse[] = ['LUCRO', 'REEMBOLSO', 'EMPRESTIMO_MUTUO', 'PRO_LABORE', 'DEVOLUCAO'];
+  const initialNatureza: NaturezaRepasse | '' = validNaturezas.includes(naturezaParam) ? naturezaParam : '';
+
   const initialDate = (() => {
+    const dataParam = searchParams.get('data');
+    if (dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam)) return dataParam;
     const comp = searchParams.get('competencia');
     if (comp && /^\d{4}-\d{2}$/.test(comp)) {
       const [y, m] = comp.split('-').map(Number);
@@ -61,7 +69,6 @@ export default function NovaDistribuicaoPage() {
       if (today.getFullYear() === y && today.getMonth() + 1 === m) {
         return today.toISOString().split('T')[0];
       }
-      // Last day of the requested month
       const lastDay = new Date(y, m, 0);
       const yyyy = lastDay.getFullYear();
       const mm = String(lastDay.getMonth() + 1).padStart(2, '0');
@@ -70,6 +77,23 @@ export default function NovaDistribuicaoPage() {
     }
     return new Date().toISOString().split('T')[0];
   })();
+
+  const initialRateio: RateioItem[] = (() => {
+    const itensParam = searchParams.get('itens');
+    if (itensParam) {
+      try {
+        const decoded = JSON.parse(atob(itensParam)) as { socio_id: string; valor: number }[];
+        if (Array.isArray(decoded) && decoded.length > 0) {
+          return decoded.map((it) => ({
+            socio_id: String(it.socio_id || ''),
+            valor: Number(it.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          }));
+        }
+      } catch { /* ignore */ }
+    }
+    return [{ socio_id: '', valor: '' }];
+  })();
+
 
   const [formData, setFormData] = useState({
     data_distribuicao: initialDate,
@@ -83,7 +107,8 @@ export default function NovaDistribuicaoPage() {
     return `${year}-${month}`;
   };
 
-  const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
+  const [rateio, setRateio] = useState<RateioItem[]>(initialRateio);
+  const [natureza, setNatureza] = useState<NaturezaRepasse | ''>(initialNatureza);
   const [errors, setErrors] = useState<string[]>([]);
 
   const sociosAtivos = socios?.filter((s) => s.ativo) || [];
@@ -115,7 +140,8 @@ export default function NovaDistribuicaoPage() {
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
-    
+    if (!natureza) newErrors.push('Selecione a natureza do repasse.');
+
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
     const sociosDuplicados = rateio.map((item) => item.socio_id).filter((id, index, arr) => id && arr.indexOf(id) !== index);
@@ -130,15 +156,16 @@ export default function NovaDistribuicaoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !clienteId) return;
+    if (!validateForm() || !clienteId || !natureza) return;
     const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
       cliente_id: clienteId, competencia: getCompetenciaFromDate(formData.data_distribuicao), data_distribuicao: formData.data_distribuicao,
-      valor_total: valorTotal, forma_pagamento: 'N/A',
+      valor_total: valorTotal, forma_pagamento: 'N/A', natureza,
       solicitante_nome: user?.email || 'Sistema', solicitante_email: user?.email || '', itens,
     });
     navigate('/distribuicoes');
   };
+
 
   return (
     <SidebarLayout>
@@ -180,29 +207,42 @@ export default function NovaDistribuicaoPage() {
           <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">{t('newDist.distributionData')}</CardTitle>
-                <CardDescription>{t('newDist.distributionDataDesc')}</CardDescription>
+                <CardTitle className="text-lg">Confirmar repasse de {formatMesNome(competenciaAtual)}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
                   <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />
                 </div>
+
+                <div className="space-y-2 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
+                  <Label htmlFor="natureza" className="text-base font-semibold">Natureza do repasse *</Label>
+                  <Select value={natureza} onValueChange={(v) => setNatureza(v as NaturezaRepasse)}>
+                    <SelectTrigger id="natureza"><SelectValue placeholder="Selecione a natureza" /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(NATUREZA_LABELS) as NaturezaRepasse[]).map((k) => (
+                        <SelectItem key={k} value={k}>{NATUREZA_LABELS[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Só "Lucro" conta para o limite de R$ 50 mil e para o IR.</p>
+                </div>
               </CardContent>
             </Card>
+
 
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">{t('newDist.partnerAllocation')}</CardTitle>
-                    <CardDescription>{t('newDist.partnerAllocationDesc')}</CardDescription>
+                    <CardTitle className="text-lg">Valor por sócio</CardTitle>
                   </div>
                   <Button type="button" variant="outline" size="sm" onClick={addRateioItem} disabled={rateio.length >= sociosAtivos.length} className="gap-2">
                     <Plus className="h-4 w-4" />{t('newDist.addPartner')}
                   </Button>
                 </div>
               </CardHeader>
+
               <CardContent className="space-y-4">
                 {sociosAtivos.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
@@ -373,7 +413,7 @@ export default function NovaDistribuicaoPage() {
               <Button type="button" variant="outline" onClick={() => navigate(-1)}>{t('common.cancel')}</Button>
               <Button type="submit" disabled={createDistribuicao.isPending || valorTotal <= 0} className="gap-2">
                 {createDistribuicao.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {t('newDist.register')}
+                {isPrefilled ? 'Confirmar' : t('newDist.register')}
               </Button>
             </div>
           </div>
