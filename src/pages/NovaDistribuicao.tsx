@@ -107,7 +107,8 @@ export default function NovaDistribuicaoPage() {
     return `${year}-${month}`;
   };
 
-  const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
+  const [rateio, setRateio] = useState<RateioItem[]>(initialRateio);
+  const [natureza, setNatureza] = useState<NaturezaRepasse | ''>(initialNatureza);
   const [errors, setErrors] = useState<string[]>([]);
 
   const sociosAtivos = socios?.filter((s) => s.ativo) || [];
