@@ -160,7 +160,7 @@ export default function TarefasIRPage() {
                           <Badge variant="outline" className={cn('gap-1', config.className)}>
                             {config.icon} {config.label}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">{tarefa.competencia}</span>
+                          <span className="text-xs text-muted-foreground">{formatCompetencia(tarefa.competencia)}</span>
                         </div>
                         <div>
                           <p className="font-medium text-sm">{tarefa.cliente?.razao_social}</p>
