@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { formatCurrency } from '@/lib/format';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -17,10 +18,12 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { useAlertas, useResolverAlerta, type TipoAlerta, type Alerta, type ResolucaoTipo } from '@/hooks/useAlertas';
-import { formatDate, formatCompetencia } from '@/lib/format';
-import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign, FileText, XCircle } from 'lucide-react';
+import { useCreateConfirmacao } from '@/hooks/useConfirmacoes';
+import { formatDate, formatCompetencia, formatMesNome } from '@/lib/format';
+import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign, FileText, XCircle, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+
 
 export default function AlertasPage() {
   const { t } = useLanguage();
