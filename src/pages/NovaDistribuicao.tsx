@@ -413,7 +413,7 @@ export default function NovaDistribuicaoPage() {
               <Button type="button" variant="outline" onClick={() => navigate(-1)}>{t('common.cancel')}</Button>
               <Button type="submit" disabled={createDistribuicao.isPending || valorTotal <= 0} className="gap-2">
                 {createDistribuicao.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {t('newDist.register')}
+                {isPrefilled ? 'Confirmar' : t('newDist.register')}
               </Button>
             </div>
           </div>
