@@ -129,29 +129,67 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
     }
   };
 
+  // Greeting name + último mês confirmado
+  const { user } = useAuth();
+  const nomeUsuario = (user?.user_metadata as any)?.nome
+    || (cliente?.razao_social ? cliente.razao_social.split(' ')[0] : '')
+    || (user?.email ? user.email.split('@')[0] : '');
+
+  const ultimoMesConfirmado = (() => {
+    const confs = (confirmacoes || []).map(c => c.competencia);
+    const dists = (distribuicoesAtivas || []).map(d => d.competencia);
+    const all = [...confs, ...dists].sort();
+    return all.length ? all[all.length - 1] : null;
+  })();
+
+  // Imposto evitado no ano (10% do excedente abatido por ata)
+  const anoAtual = String(new Date().getFullYear());
+  const { data: impostoEvitado = 0 } = useQuery({
+    queryKey: ['imposto-evitado', clienteId, anoAtual],
+    enabled: !!clienteId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('movimentacoes_lucros')
+        .select('valor, competencia, tipo')
+        .eq('cliente_id', clienteId!)
+        .eq('tipo', 'SAIDA');
+      if (error) throw error;
+      const totalAbatido = (data || [])
+        .filter((m: any) => (m.competencia || '').startsWith(anoAtual))
+        .reduce((sum: number, m: any) => sum + Number(m.valor || 0), 0);
+      return totalAbatido * 0.10;
+    },
+  });
+
   return (
     <>
+      {/* Saudação */}
+      <div>
+        <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
+          Olá, {nomeUsuario || 'bem-vindo'}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {mostRecentPending
+            ? `Falta confirmar ${formatMesNome(mostRecentPending)}.`
+            : 'Suas distribuições estão em dia.'}
+        </p>
+      </div>
+
       {mostRecentPending && (
-        <Card className="border-warning/50 bg-warning/5">
+        <Card className="border-emerald-500/50 bg-emerald-500/5">
           <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6">
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
-                <AlertTriangle className="h-5 w-5 text-warning" />
+              <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <h3 className="font-semibold">{t('dashboard.actionRequired')} {formatCompetencia(mostRecentPending)}</h3>
+                <h3 className="font-semibold">Falta confirmar {formatMesNome(mostRecentPending)}</h3>
                 <p className="text-sm text-muted-foreground">
-                  É só um clique: houve repasse, ou não houve?
+                  Houve repasse de lucros aos sócios em {formatMesNome(mostRecentPending)}? Um clique resolve.
                 </p>
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Link to={`/distribuicoes/nova?competencia=${mostRecentPending}`} className="flex-1 sm:flex-none">
-                <Button className="w-full gap-2">
-                  <PlusCircle className="h-4 w-4" />
-                  {t('dashboard.happened')}
-                </Button>
-              </Link>
               <Button
                 variant="outline"
                 className="flex-1 sm:flex-none gap-2"
@@ -163,8 +201,14 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
                 ) : (
                   <XCircle className="h-4 w-4" />
                 )}
-                {t('dashboard.didNotHappen')}
+                Não houve
               </Button>
+              <Link to={`/distribuicoes/nova?competencia=${mostRecentPending}`} className="flex-1 sm:flex-none">
+                <Button className="w-full gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  Sim, houve
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
