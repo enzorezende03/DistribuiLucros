@@ -547,7 +547,7 @@ const translations: Record<Language, Record<string, string>> = {
     'alerts.title': 'Alerts',
     'alerts.subtitle': 'Monitor high value alerts and pending issues',
     'alerts.value50k': 'Above R$50,000.00',
-    'alerts.monthlyPending': 'Monthly Pending',
+    'alerts.monthlyPending': 'To confirm',
     'alerts.alertsList': 'Alert List',
     'alerts.filterByType': 'Filter by type',
     'alerts.allTypes': 'All types',
