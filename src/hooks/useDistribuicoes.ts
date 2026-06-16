@@ -89,7 +89,7 @@ export function useDistribuicoes(clienteId?: string | null, competencia?: string
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as Distribuicao[];
+      return (data ?? []) as unknown as Distribuicao[];
     },
   });
 }
