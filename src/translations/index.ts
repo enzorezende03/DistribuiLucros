@@ -1221,7 +1221,7 @@ const translations: Record<Language, Record<string, string>> = {
     'newDist.distributionDate': 'Fecha de Distribución',
     'newDist.paymentMethod': 'Forma de Pago',
     'newDist.select': 'Seleccione',
-    'newDist.partnerAllocation': 'Distribución por Socio',
+    'newDist.partnerAllocation': 'Valor por socio',
     'newDist.partnerAllocationDesc': 'Ingrese el valor para cada socio',
     'newDist.addPartner': 'Agregar Socio',
     'newDist.partner': 'Socio',
