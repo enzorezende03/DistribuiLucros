@@ -11,9 +11,9 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useSocios } from '@/hooks/useSocios';
-import { useDistribuicao, useDistribuicoes } from '@/hooks/useDistribuicoes';
+import { useDistribuicao, useDistribuicoes, NATUREZA_LABELS, type NaturezaRepasse } from '@/hooks/useDistribuicoes';
 import { supabase } from '@/integrations/supabase/client';
-import { formatCurrency, formatCPF } from '@/lib/format';
+import { formatCurrency, formatCPF, formatMesNome } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Trash2, Loader2, ArrowLeft, Calculator, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
