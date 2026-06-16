@@ -584,6 +584,26 @@ export type Database = {
       }
       gerar_alertas_pendente_mes: { Args: never; Returns: undefined }
       gerar_numero_recibo: { Args: never; Returns: string }
+      get_adesao_clientes: {
+        Args: never
+        Returns: {
+          cliente_id: string
+          cnpj: string
+          meses_preenchidos_6m: number
+          razao_social: string
+          status: Database["public"]["Enums"]["status_cliente"]
+          tag: Database["public"]["Enums"]["tag_cliente"]
+          telefone: string
+          tem_distribuicao_mes_anterior: boolean
+          tem_distribuicao_mes_atual: boolean
+          tem_naohouve_mes_anterior: boolean
+          tem_naohouve_mes_atual: boolean
+          total_usuarios: number
+          ultimo_acesso: string
+          usuarios_aprovados: number
+          usuarios_pendentes: number
+        }[]
+      }
       get_user_cliente_id: { Args: { _user_id: string }; Returns: string }
       get_user_display_name: { Args: { _user_id: string }; Returns: string }
       get_user_email: { Args: { _user_id: string }; Returns: string }

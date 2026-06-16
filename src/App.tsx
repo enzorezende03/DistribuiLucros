@@ -28,6 +28,7 @@ import AdminUsuariosPage from "@/pages/AdminUsuarios";
 import LucrosAcumuladosPage from "@/pages/LucrosAcumulados";
 import TarefasIRPage from "@/pages/TarefasIR";
 import AjudaPage from "@/pages/Ajuda";
+import AdesaoPage from "@/pages/Adesao";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -89,6 +90,7 @@ function AppRoutes() {
         <Route path="/simulacao" element={<ProtectedRoute><SimulacaoPage /></ProtectedRoute>} />
         <Route path="/lucros-acumulados" element={<ProtectedRoute><LucrosAcumuladosPage /></ProtectedRoute>} />
         <Route path="/ajuda" element={<ProtectedRoute><AjudaPage /></ProtectedRoute>} />
+        <Route path="/adesao" element={<ProtectedRoute requireAdmin><AdesaoPage /></ProtectedRoute>} />
 
         {/* Redirect root */}
         <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
