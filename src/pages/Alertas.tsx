@@ -280,7 +280,7 @@ export default function AlertasPage() {
               {resolveDialog?.cliente?.razao_social}
               {resolveDialog?.socio?.nome ? ` — ${resolveDialog.socio.nome}` : ''}
               {' • '}
-              {resolveDialog?.competencia}
+              {resolveDialog?.competencia ? formatCompetencia(resolveDialog.competencia) : ''}
             </DialogDescription>
           </DialogHeader>
 
