@@ -276,8 +276,14 @@ export default function AlertasPage() {
                             </TableCell>
                             <TableCell className="font-medium">{alerta.cliente?.razao_social}</TableCell>
                             <TableCell className="hidden md:table-cell">{alerta.socio?.nome || '-'}</TableCell>
-                            <TableCell className="max-w-[300px] hidden md:table-cell">
-                              <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
+                            <TableCell className="max-w-[360px] hidden md:table-cell">
+                              {alerta.tipo === 'PENDENTE_MES' && !alerta.resolvido ? (
+                                <span className="text-sm">
+                                  Falta confirmar <strong>{formatCompetencia(alerta.competencia)}</strong>. Foi lucro, ou não houve repasse?
+                                </span>
+                              ) : (
+                                <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
+                              )}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(alerta.created_at)}</TableCell>
                             <TableCell>
@@ -288,13 +294,34 @@ export default function AlertasPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              {!alerta.resolvido && (
+                              {!alerta.resolvido && alerta.tipo === 'PENDENTE_MES' && (
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleNaoHouve(alerta)}
+                                    disabled={confirmandoId === alerta.id}
+                                    className="gap-2"
+                                  >
+                                    {confirmandoId === alerta.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                                    Não houve
+                                  </Button>
+                                  <Link to={`/distribuicoes/nova?competencia=${alerta.competencia}`}>
+                                    <Button size="sm" className="gap-2">
+                                      <PlusCircle className="h-4 w-4" />
+                                      Sim, houve
+                                    </Button>
+                                  </Link>
+                                </div>
+                              )}
+                              {!alerta.resolvido && alerta.tipo !== 'PENDENTE_MES' && (
                                 <Button variant="ghost" size="sm" onClick={() => openResolveDialog(alerta)} className="gap-2">
                                   <CheckCircle2 className="h-4 w-4" />
                                   {t('alerts.resolve')}
                                 </Button>
                               )}
                             </TableCell>
+
                           </TableRow>
                         );
                       })}
