@@ -260,7 +260,7 @@ export default function AlertasPage() {
                         <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
                         <TableHead className="hidden md:table-cell">{t('alerts.date')}</TableHead>
                         <TableHead>{t('alerts.status')}</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
+                        <TableHead className="w-[260px] text-right"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
