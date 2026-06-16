@@ -625,7 +625,7 @@ const translations: Record<Language, Record<string, string>> = {
     'distributions.distributionDetails': 'Profit distribution details',
     'distributions.distributionDate': 'Distribution Date',
     'distributions.paymentMethod': 'Payment Method',
-    'distributions.partnerAllocation': 'Partner Allocation',
+    'distributions.partnerAllocation': 'Amount per partner',
     'distributions.requester': 'Requester',
     'distributions.errorGenerating': 'Error generating receipt',
     'distributions.alsoLinkedTo': 'Also linked to:',
