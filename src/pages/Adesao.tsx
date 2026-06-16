@@ -217,9 +217,9 @@ export default function AdesaoPage() {
 
   const openNotify = (c: AdesaoCliente) => {
     setNotifyCliente(c);
-    setNotifyTitulo('Lembrete: distribuição de lucros');
+    setNotifyTitulo('Falta confirmar o mês');
     setNotifyMensagem(
-      `Olá! Identificamos que ainda não houve registro de distribuição (ou declaração de "não houve") para o mês atual. Por favor, acesse o portal e regularize.`
+      `Olá! Ainda falta confirmar o mês atual no portal. É só um clique: houve repasse, ou não houve?`
     );
   };
 
