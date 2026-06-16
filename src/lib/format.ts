@@ -50,6 +50,12 @@ export function formatCompetencia(competencia: string): string {
   return `${months[parseInt(month) - 1]}/${year}`;
 }
 
+export function formatMesNome(competencia: string): string {
+  const [, m] = competencia.split('-');
+  const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return months[parseInt(m) - 1] || competencia;
+}
+
 export function getCompetenciaAnterior(): string {
   const now = new Date();
   const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
