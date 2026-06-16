@@ -120,6 +120,7 @@ export default function EditarDistribuicaoPage() {
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
+    if (!natureza) newErrors.push('Selecione a natureza do repasse.');
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
     const sociosDuplicados = rateio.map((item) => item.socio_id).filter((sid, index, arr) => sid && arr.indexOf(sid) !== index);
@@ -134,7 +135,7 @@ export default function EditarDistribuicaoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !id || !clienteId) return;
+    if (!validateForm() || !id || !clienteId || !natureza) return;
     setSaving(true);
     try {
       const competencia = getCompetenciaFromDate(formData.data_distribuicao);
@@ -148,9 +149,11 @@ export default function EditarDistribuicaoPage() {
           data_distribuicao: formData.data_distribuicao,
           competencia,
           valor_total: newValorTotal,
+          natureza,
         })
         .eq('id', id);
       if (updateError) throw updateError;
+
 
       // Delete old items and insert new
       const { error: deleteError } = await supabase
