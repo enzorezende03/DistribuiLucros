@@ -225,6 +225,9 @@ export default function LoginPage() {
                     className="h-11"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Use o CNPJ da empresa. A senha você define no primeiro acesso.
+                </p>
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="primeiro_acesso"
@@ -233,9 +236,10 @@ export default function LoginPage() {
                     disabled={loading}
                   />
                   <Label htmlFor="primeiro_acesso" className="text-sm font-normal cursor-pointer">
-                    Primeiro acesso (senha padrão)
+                    É meu primeiro acesso
                   </Label>
                 </div>
+
                 {!primeiroAcesso && (
                   <div className="space-y-2">
                     <Label htmlFor="cliente-password">{t('login.password')}</Label>
