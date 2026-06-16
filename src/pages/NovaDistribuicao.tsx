@@ -140,7 +140,8 @@ export default function NovaDistribuicaoPage() {
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
-    
+    if (!natureza) newErrors.push('Selecione a natureza do repasse.');
+
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
     const sociosDuplicados = rateio.map((item) => item.socio_id).filter((id, index, arr) => id && arr.indexOf(id) !== index);
@@ -155,15 +156,16 @@ export default function NovaDistribuicaoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !clienteId) return;
+    if (!validateForm() || !clienteId || !natureza) return;
     const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
       cliente_id: clienteId, competencia: getCompetenciaFromDate(formData.data_distribuicao), data_distribuicao: formData.data_distribuicao,
-      valor_total: valorTotal, forma_pagamento: 'N/A',
+      valor_total: valorTotal, forma_pagamento: 'N/A', natureza,
       solicitante_nome: user?.email || 'Sistema', solicitante_email: user?.email || '', itens,
     });
     navigate('/distribuicoes');
   };
+
 
   return (
     <SidebarLayout>
