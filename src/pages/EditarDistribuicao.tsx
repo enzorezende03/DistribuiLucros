@@ -56,6 +56,7 @@ export default function EditarDistribuicaoPage() {
   const { data: existingDistribuicoes } = useDistribuicoes(clienteId);
 
   const [formData, setFormData] = useState({ data_distribuicao: '' });
+  const [natureza, setNatureza] = useState<NaturezaRepasse | ''>('');
   const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
   const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -65,6 +66,7 @@ export default function EditarDistribuicaoPage() {
   useEffect(() => {
     if (distribuicao && !initialized) {
       setFormData({ data_distribuicao: distribuicao.data_distribuicao });
+      setNatureza((distribuicao.natureza as NaturezaRepasse) || 'LUCRO');
       if (distribuicao.itens && distribuicao.itens.length > 0) {
         setRateio(
           distribuicao.itens.map((item) => ({
@@ -76,6 +78,7 @@ export default function EditarDistribuicaoPage() {
       setInitialized(true);
     }
   }, [distribuicao, initialized]);
+
 
   const shouldRedirect = distribuicao && distribuicao.status !== 'ENVIADA_AO_CONTADOR';
 
