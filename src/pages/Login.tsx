@@ -181,9 +181,13 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-primary-foreground mb-2">
             DistribuiLucros
           </h1>
-          <p className="text-primary-foreground/70 text-lg leading-relaxed">
-            Gerencie distribuições, acompanhe saldos e mantenha sua empresa em conformidade com segurança e praticidade.
+          <p className="text-primary-foreground/90 text-xl leading-relaxed font-medium">
+            A 2M cuida para você pagar imposto só sobre o que é realmente lucro.
           </p>
+          <p className="text-primary-foreground/70 text-base mt-3">
+            Confirme seu mês em um clique.
+          </p>
+
         </div>
 
         <div className="absolute bottom-8 text-primary-foreground/40 text-sm">
@@ -221,6 +225,9 @@ export default function LoginPage() {
                     className="h-11"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Use o CNPJ da empresa. A senha você define no primeiro acesso.
+                </p>
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="primeiro_acesso"
@@ -229,9 +236,10 @@ export default function LoginPage() {
                     disabled={loading}
                   />
                   <Label htmlFor="primeiro_acesso" className="text-sm font-normal cursor-pointer">
-                    Primeiro acesso (senha padrão)
+                    É meu primeiro acesso
                   </Label>
                 </div>
+
                 {!primeiroAcesso && (
                   <div className="space-y-2">
                     <Label htmlFor="cliente-password">{t('login.password')}</Label>
