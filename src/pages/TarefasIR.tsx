@@ -260,7 +260,7 @@ export default function TarefasIRPage() {
             <p className="text-sm">
               <strong>{actionDialog?.cliente?.razao_social}</strong>
               {actionDialog?.socio?.nome ? ` — ${actionDialog.socio.nome}` : ''}
-              {' • '}{actionDialog?.competencia}
+              {' • '}{actionDialog?.competencia ? formatCompetencia(actionDialog.competencia) : ''}
             </p>
             <Textarea
               placeholder="Observação (opcional)..."
