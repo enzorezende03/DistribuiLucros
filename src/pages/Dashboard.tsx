@@ -619,7 +619,7 @@ function PendenciasUnificadasCard({ clienteId, olderPendingMonths, declarandoCom
                   <Calendar className="h-4 w-4 text-warning" />
                   <div>
                     <p className="font-medium text-sm">{formatCompetencia(comp)}</p>
-                    <p className="text-xs text-muted-foreground">Sem informação de distribuição</p>
+                    <p className="text-xs text-muted-foreground">A confirmar</p>
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
