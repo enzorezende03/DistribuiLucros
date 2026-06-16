@@ -92,10 +92,8 @@ export default function AlertasPage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
         <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('alerts.title')}</h1>
-            <p className="text-muted-foreground">
-              {t('alerts.subtitle')}
-            </p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Acompanhamento</h1>
+            <p className="text-muted-foreground">o que precisa da sua atenção</p>
           </div>
         </div>
 
@@ -115,12 +113,12 @@ export default function AlertasPage() {
             </CardContent>
           </Card>
 
-          <Card className={cn('stat-card', alertasPendentes.length > 0 && 'border-warning/30')}>
-            <div className="stat-card-accent bg-warning" />
+          <Card className={cn('stat-card', alertasPendentes.length > 0 && 'border-info/30')}>
+            <div className="stat-card-accent bg-info" />
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                {t('alerts.monthlyPending')}
+                Meses a confirmar
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -128,6 +126,7 @@ export default function AlertasPage() {
               <p className="text-sm text-muted-foreground">{t('alerts.pendingClients')}</p>
             </CardContent>
           </Card>
+
         </div>
 
         {/* Alerts List */}
