@@ -772,7 +772,7 @@ const translations: Record<Language, Record<string, string>> = {
     'newDist.distributionDate': 'Distribution Date',
     'newDist.paymentMethod': 'Payment Method',
     'newDist.select': 'Select',
-    'newDist.partnerAllocation': 'Partner Allocation',
+    'newDist.partnerAllocation': 'Amount per partner',
     'newDist.partnerAllocationDesc': 'Enter the value for each partner',
     'newDist.addPartner': 'Add Partner',
     'newDist.partner': 'Partner',
