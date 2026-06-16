@@ -207,16 +207,29 @@ export default function NovaDistribuicaoPage() {
           <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">{t('newDist.distributionData')}</CardTitle>
-                <CardDescription>{t('newDist.distributionDataDesc')}</CardDescription>
+                <CardTitle className="text-lg">Confirmar repasse de {formatMesNome(competenciaAtual)}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
                   <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />
                 </div>
+
+                <div className="space-y-2 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
+                  <Label htmlFor="natureza" className="text-base font-semibold">Natureza do repasse *</Label>
+                  <Select value={natureza} onValueChange={(v) => setNatureza(v as NaturezaRepasse)}>
+                    <SelectTrigger id="natureza"><SelectValue placeholder="Selecione a natureza" /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(NATUREZA_LABELS) as NaturezaRepasse[]).map((k) => (
+                        <SelectItem key={k} value={k}>{NATUREZA_LABELS[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Só "Lucro" conta para o limite de R$ 50 mil e para o IR.</p>
+                </div>
               </CardContent>
             </Card>
+
 
             <Card>
               <CardHeader>
