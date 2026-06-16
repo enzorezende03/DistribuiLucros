@@ -204,7 +204,35 @@ export default function AlertasPage() {
                             {alerta.resolucao_justificativa}
                           </p>
                         )}
-                        {!alerta.resolvido && (
+                        {!alerta.resolvido && alerta.tipo === 'PENDENTE_MES' && (
+                          <>
+                            <p className="text-sm">
+                              Falta confirmar <strong>{formatCompetencia(alerta.competencia)}</strong>. Foi lucro, ou não houve repasse?
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 gap-2"
+                                onClick={() => handleNaoHouve(alerta)}
+                                disabled={confirmandoId === alerta.id}
+                              >
+                                {confirmandoId === alerta.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                                Não houve
+                              </Button>
+                              <Link
+                                to={`/distribuicoes/nova?competencia=${alerta.competencia}`}
+                                className="flex-1"
+                              >
+                                <Button size="sm" className="w-full gap-2">
+                                  <PlusCircle className="h-4 w-4" />
+                                  Sim, houve
+                                </Button>
+                              </Link>
+                            </div>
+                          </>
+                        )}
+                        {!alerta.resolvido && alerta.tipo !== 'PENDENTE_MES' && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -215,6 +243,7 @@ export default function AlertasPage() {
                             {t('alerts.resolve')}
                           </Button>
                         )}
+
                       </div>
                     );
                   })}
