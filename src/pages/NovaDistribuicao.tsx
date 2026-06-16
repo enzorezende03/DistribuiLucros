@@ -235,14 +235,14 @@ export default function NovaDistribuicaoPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">{t('newDist.partnerAllocation')}</CardTitle>
-                    <CardDescription>{t('newDist.partnerAllocationDesc')}</CardDescription>
+                    <CardTitle className="text-lg">Valor por sócio</CardTitle>
                   </div>
                   <Button type="button" variant="outline" size="sm" onClick={addRateioItem} disabled={rateio.length >= sociosAtivos.length} className="gap-2">
                     <Plus className="h-4 w-4" />{t('newDist.addPartner')}
                   </Button>
                 </div>
               </CardHeader>
+
               <CardContent className="space-y-4">
                 {sociosAtivos.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
