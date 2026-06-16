@@ -213,7 +213,7 @@ export default function TarefasIRPage() {
                             </TableCell>
                             <TableCell className="font-medium">{tarefa.cliente?.razao_social}</TableCell>
                             <TableCell className="hidden md:table-cell">{tarefa.socio?.nome || '-'}</TableCell>
-                            <TableCell>{tarefa.competencia}</TableCell>
+                            <TableCell>{formatCompetencia(tarefa.competencia)}</TableCell>
                             <TableCell className="max-w-[250px] truncate hidden md:table-cell">{tarefa.descricao || '-'}</TableCell>
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(tarefa.created_at)}</TableCell>
                             <TableCell>
