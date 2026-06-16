@@ -1017,7 +1017,7 @@ const translations: Record<Language, Record<string, string>> = {
     'alerts.activeAlerts': 'alertas activas',
     'alerts.pendingClients': 'clientes pendientes',
     'alerts.value50kAlerts': 'Alertas Arriba de R$50.000,00',
-    'alerts.monthlyPendings': 'Pendencias Mensuales',
+    'alerts.monthlyPendings': 'Por confirmar',
     'alerts.activePendings': 'pendencias activas',
     'alerts.total': 'Total',
     'alerts.excess': 'Excedente',
