@@ -183,8 +183,9 @@
   }
   
   .alert-pendente {
-    @apply bg-warning/10 text-warning border-warning/30;
+    @apply bg-info/10 text-info border-info/30;
   }
+
 
   /* Card with hover effect */
   .card-interactive {

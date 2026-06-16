@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { formatCurrency } from '@/lib/format';
 import { AlertaDescricao } from '@/components/AlertaDescricao';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -17,10 +18,12 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { useAlertas, useResolverAlerta, type TipoAlerta, type Alerta, type ResolucaoTipo } from '@/hooks/useAlertas';
-import { formatDate, formatCompetencia } from '@/lib/format';
-import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign, FileText, XCircle } from 'lucide-react';
+import { useCreateConfirmacao } from '@/hooks/useConfirmacoes';
+import { formatDate, formatCompetencia, formatMesNome } from '@/lib/format';
+import { AlertTriangle, Loader2, CheckCircle2, Clock, DollarSign, FileText, XCircle, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+
 
 export default function AlertasPage() {
   const { t } = useLanguage();
@@ -32,6 +35,22 @@ export default function AlertasPage() {
   
   const { data: alertas, isLoading } = useAlertas(undefined, selectedTipo || undefined, showResolvidos ? undefined : false);
   const resolverAlerta = useResolverAlerta();
+  const createConfirmacao = useCreateConfirmacao();
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
+
+  const handleNaoHouve = async (alerta: Alerta) => {
+    if (!alerta.cliente_id || !alerta.competencia) return;
+    setConfirmandoId(alerta.id);
+    try {
+      await createConfirmacao.mutateAsync({
+        cliente_id: alerta.cliente_id,
+        competencia: alerta.competencia,
+        resposta: 'NAO_HOUVE',
+      });
+    } finally {
+      setConfirmandoId(null);
+    }
+  };
 
   const tipoConfig: Record<TipoAlerta, { label: string; icon: React.ReactNode; className: string }> = {
     ALERTA_50K: {
@@ -40,11 +59,12 @@ export default function AlertasPage() {
       className: 'alert-50k',
     },
     PENDENTE_MES: {
-      label: t('alerts.monthlyPending'),
+      label: 'A confirmar',
       icon: <Clock className="h-4 w-4" />,
       className: 'alert-pendente',
     },
   };
+
 
   const openResolveDialog = (alerta: Alerta) => {
     setResolveDialog(alerta);
@@ -72,10 +92,8 @@ export default function AlertasPage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
         <div className="page-header">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('alerts.title')}</h1>
-            <p className="text-muted-foreground">
-              {t('alerts.subtitle')}
-            </p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Acompanhamento</h1>
+            <p className="text-muted-foreground">o que precisa da sua atenção</p>
           </div>
         </div>
 
@@ -95,12 +113,12 @@ export default function AlertasPage() {
             </CardContent>
           </Card>
 
-          <Card className={cn('stat-card', alertasPendentes.length > 0 && 'border-warning/30')}>
-            <div className="stat-card-accent bg-warning" />
+          <Card className={cn('stat-card', alertasPendentes.length > 0 && 'border-info/30')}>
+            <div className="stat-card-accent bg-info" />
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                {t('alerts.monthlyPending')}
+                Meses a confirmar
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -108,6 +126,7 @@ export default function AlertasPage() {
               <p className="text-sm text-muted-foreground">{t('alerts.pendingClients')}</p>
             </CardContent>
           </Card>
+
         </div>
 
         {/* Alerts List */}
@@ -185,7 +204,35 @@ export default function AlertasPage() {
                             {alerta.resolucao_justificativa}
                           </p>
                         )}
-                        {!alerta.resolvido && (
+                        {!alerta.resolvido && alerta.tipo === 'PENDENTE_MES' && (
+                          <>
+                            <p className="text-sm">
+                              Falta confirmar <strong>{formatCompetencia(alerta.competencia)}</strong>. Foi lucro, ou não houve repasse?
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 gap-2"
+                                onClick={() => handleNaoHouve(alerta)}
+                                disabled={confirmandoId === alerta.id}
+                              >
+                                {confirmandoId === alerta.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                                Não houve
+                              </Button>
+                              <Link
+                                to={`/distribuicoes/nova?competencia=${alerta.competencia}`}
+                                className="flex-1"
+                              >
+                                <Button size="sm" className="w-full gap-2">
+                                  <PlusCircle className="h-4 w-4" />
+                                  Sim, houve
+                                </Button>
+                              </Link>
+                            </div>
+                          </>
+                        )}
+                        {!alerta.resolvido && alerta.tipo !== 'PENDENTE_MES' && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -196,6 +243,7 @@ export default function AlertasPage() {
                             {t('alerts.resolve')}
                           </Button>
                         )}
+
                       </div>
                     );
                   })}
@@ -212,7 +260,7 @@ export default function AlertasPage() {
                         <TableHead className="hidden md:table-cell">{t('alerts.description')}</TableHead>
                         <TableHead className="hidden md:table-cell">{t('alerts.date')}</TableHead>
                         <TableHead>{t('alerts.status')}</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
+                        <TableHead className="w-[260px] text-right"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -228,8 +276,14 @@ export default function AlertasPage() {
                             </TableCell>
                             <TableCell className="font-medium">{alerta.cliente?.razao_social}</TableCell>
                             <TableCell className="hidden md:table-cell">{alerta.socio?.nome || '-'}</TableCell>
-                            <TableCell className="max-w-[300px] hidden md:table-cell">
-                              <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
+                            <TableCell className="max-w-[360px] hidden md:table-cell">
+                              {alerta.tipo === 'PENDENTE_MES' && !alerta.resolvido ? (
+                                <span className="text-sm">
+                                  Falta confirmar <strong>{formatCompetencia(alerta.competencia)}</strong>. Foi lucro, ou não houve repasse?
+                                </span>
+                              ) : (
+                                <AlertaDescricao descricao={alerta.descricao} tipo={alerta.tipo} />
+                              )}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground hidden md:table-cell">{formatDate(alerta.created_at)}</TableCell>
                             <TableCell>
@@ -240,13 +294,34 @@ export default function AlertasPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              {!alerta.resolvido && (
+                              {!alerta.resolvido && alerta.tipo === 'PENDENTE_MES' && (
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleNaoHouve(alerta)}
+                                    disabled={confirmandoId === alerta.id}
+                                    className="gap-2"
+                                  >
+                                    {confirmandoId === alerta.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                                    Não houve
+                                  </Button>
+                                  <Link to={`/distribuicoes/nova?competencia=${alerta.competencia}`}>
+                                    <Button size="sm" className="gap-2">
+                                      <PlusCircle className="h-4 w-4" />
+                                      Sim, houve
+                                    </Button>
+                                  </Link>
+                                </div>
+                              )}
+                              {!alerta.resolvido && alerta.tipo !== 'PENDENTE_MES' && (
                                 <Button variant="ghost" size="sm" onClick={() => openResolveDialog(alerta)} className="gap-2">
                                   <CheckCircle2 className="h-4 w-4" />
                                   {t('alerts.resolve')}
                                 </Button>
                               )}
                             </TableCell>
+
                           </TableRow>
                         );
                       })}
