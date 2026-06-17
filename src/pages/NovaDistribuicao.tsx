@@ -140,7 +140,7 @@ export default function NovaDistribuicaoPage() {
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
-    if (!natureza) newErrors.push('Selecione a natureza do repasse.');
+    
 
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
