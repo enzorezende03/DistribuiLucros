@@ -135,7 +135,7 @@ export default function EditarDistribuicaoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !id || !clienteId || !natureza) return;
+    if (!validateForm() || !id || !clienteId) return;
     setSaving(true);
     try {
       const competencia = getCompetenciaFromDate(formData.data_distribuicao);
