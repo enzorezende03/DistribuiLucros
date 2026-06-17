@@ -108,7 +108,7 @@ export default function NovaDistribuicaoPage() {
   };
 
   const [rateio, setRateio] = useState<RateioItem[]>(initialRateio);
-  const [natureza, setNatureza] = useState<NaturezaRepasse | ''>(initialNatureza);
+  const [natureza] = useState<NaturezaRepasse>(initialNatureza || 'LUCRO');
   const [errors, setErrors] = useState<string[]>([]);
 
   const sociosAtivos = socios?.filter((s) => s.ativo) || [];
@@ -140,7 +140,7 @@ export default function NovaDistribuicaoPage() {
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
-    if (!natureza) newErrors.push('Selecione a natureza do repasse.');
+    
 
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
@@ -156,7 +156,7 @@ export default function NovaDistribuicaoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !clienteId || !natureza) return;
+    if (!validateForm() || !clienteId) return;
     const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
       cliente_id: clienteId, competencia: getCompetenciaFromDate(formData.data_distribuicao), data_distribuicao: formData.data_distribuicao,
@@ -213,19 +213,6 @@ export default function NovaDistribuicaoPage() {
                 <div className="space-y-2">
                   <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
                   <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />
-                </div>
-
-                <div className="space-y-2 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
-                  <Label htmlFor="natureza" className="text-base font-semibold">Natureza do repasse *</Label>
-                  <Select value={natureza} onValueChange={(v) => setNatureza(v as NaturezaRepasse)}>
-                    <SelectTrigger id="natureza"><SelectValue placeholder="Selecione a natureza" /></SelectTrigger>
-                    <SelectContent>
-                      {(Object.keys(NATUREZA_LABELS) as NaturezaRepasse[]).map((k) => (
-                        <SelectItem key={k} value={k}>{NATUREZA_LABELS[k]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">Só "Lucro" conta para o limite de R$ 50 mil e para o IR.</p>
                 </div>
               </CardContent>
             </Card>

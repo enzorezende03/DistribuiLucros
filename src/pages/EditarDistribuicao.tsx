@@ -56,7 +56,7 @@ export default function EditarDistribuicaoPage() {
   const { data: existingDistribuicoes } = useDistribuicoes(clienteId);
 
   const [formData, setFormData] = useState({ data_distribuicao: '' });
-  const [natureza, setNatureza] = useState<NaturezaRepasse | ''>('');
+  const [natureza, setNatureza] = useState<NaturezaRepasse>('LUCRO');
   const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
   const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -120,7 +120,7 @@ export default function EditarDistribuicaoPage() {
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
     if (!formData.data_distribuicao) newErrors.push(t('newDist.informDate'));
-    if (!natureza) newErrors.push('Selecione a natureza do repasse.');
+    
     const validRateio = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0);
     if (validRateio.length === 0) newErrors.push(t('newDist.addPartnerWithValue'));
     const sociosDuplicados = rateio.map((item) => item.socio_id).filter((sid, index, arr) => sid && arr.indexOf(sid) !== index);
@@ -135,7 +135,7 @@ export default function EditarDistribuicaoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !id || !clienteId || !natureza) return;
+    if (!validateForm() || !id || !clienteId) return;
     setSaving(true);
     try {
       const competencia = getCompetenciaFromDate(formData.data_distribuicao);
@@ -234,19 +234,6 @@ export default function EditarDistribuicaoPage() {
                 <div className="space-y-2">
                   <Label htmlFor="data_distribuicao">{t('newDist.distributionDate')} *</Label>
                   <Input id="data_distribuicao" type="date" value={formData.data_distribuicao} onChange={(e) => setFormData({ ...formData, data_distribuicao: e.target.value })} required />
-                </div>
-
-                <div className="space-y-2 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
-                  <Label htmlFor="natureza" className="text-base font-semibold">Natureza do repasse *</Label>
-                  <Select value={natureza} onValueChange={(v) => setNatureza(v as NaturezaRepasse)}>
-                    <SelectTrigger id="natureza"><SelectValue placeholder="Selecione a natureza" /></SelectTrigger>
-                    <SelectContent>
-                      {(Object.keys(NATUREZA_LABELS) as NaturezaRepasse[]).map((k) => (
-                        <SelectItem key={k} value={k}>{NATUREZA_LABELS[k]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">Só "Lucro" conta para o limite de R$ 50 mil e para o IR.</p>
                 </div>
               </CardContent>
             </Card>
