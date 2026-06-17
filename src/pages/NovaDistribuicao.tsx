@@ -108,7 +108,7 @@ export default function NovaDistribuicaoPage() {
   };
 
   const [rateio, setRateio] = useState<RateioItem[]>(initialRateio);
-  const [natureza, setNatureza] = useState<NaturezaRepasse | ''>(initialNatureza);
+  const [natureza] = useState<NaturezaRepasse>(initialNatureza || 'LUCRO');
   const [errors, setErrors] = useState<string[]>([]);
 
   const sociosAtivos = socios?.filter((s) => s.ativo) || [];
