@@ -56,7 +56,7 @@ export default function EditarDistribuicaoPage() {
   const { data: existingDistribuicoes } = useDistribuicoes(clienteId);
 
   const [formData, setFormData] = useState({ data_distribuicao: '' });
-  const [natureza, setNatureza] = useState<NaturezaRepasse | ''>('');
+  const [natureza, setNatureza] = useState<NaturezaRepasse>('LUCRO');
   const [rateio, setRateio] = useState<RateioItem[]>([{ socio_id: '', valor: '' }]);
   const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
