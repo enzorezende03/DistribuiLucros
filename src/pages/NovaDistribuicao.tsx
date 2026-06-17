@@ -156,7 +156,7 @@ export default function NovaDistribuicaoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !clienteId || !natureza) return;
+    if (!validateForm() || !clienteId) return;
     const itens = rateio.filter((item) => item.socio_id && parseMaskedCurrency(item.valor) > 0).map((item) => ({ socio_id: item.socio_id, valor: parseMaskedCurrency(item.valor) }));
     await createDistribuicao.mutateAsync({
       cliente_id: clienteId, competencia: getCompetenciaFromDate(formData.data_distribuicao), data_distribuicao: formData.data_distribuicao,
