@@ -218,6 +218,10 @@ export default function DistribuicoesPage() {
     visibleRows.filter((r) => r.status !== 'CANCELADA').map((r) => r.id)
   ).size;
 
+  const totalSelecionado = (filteredDistribuicoes || [])
+    .filter((d) => selectedIds.has(d.id) && d.status !== 'CANCELADA')
+    .reduce((sum, d) => sum + Number(d.valor_total || 0), 0);
+
   return (
     <SidebarLayout>
       <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
