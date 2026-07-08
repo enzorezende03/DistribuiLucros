@@ -365,15 +365,34 @@ export default function DistribuicoesPage() {
             </div>
           </CardHeader>
           <CardContent className="px-2 sm:px-6">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-4 py-3">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 px-4 py-3">
               <div className="text-sm text-muted-foreground">
                 Total distribuído no período selecionado
                 <span className="ml-2 text-xs">
                   ({totalDistribuicoesUnicas} {totalDistribuicoesUnicas === 1 ? 'distribuição' : 'distribuições'}, não considera canceladas)
                 </span>
               </div>
-              <div className="text-xl font-semibold money-value text-emerald-600 dark:text-emerald-400">
-                {formatCurrency(totalPeriodo)}
+              <div className="flex items-center gap-4">
+                {isAdmin && selectedIds.size > 0 && (
+                  <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5">
+                    <span className="text-xs text-muted-foreground">
+                      Selecionadas ({selectedIds.size}):
+                    </span>
+                    <span className="text-base font-semibold money-value text-primary">
+                      {formatCurrency(totalSelecionado)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedIds(new Set())}
+                      className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                    >
+                      limpar
+                    </button>
+                  </div>
+                )}
+                <div className="text-xl font-semibold money-value text-emerald-600 dark:text-emerald-400">
+                  {formatCurrency(totalPeriodo)}
+                </div>
               </div>
             </div>
             {isLoading ? (
