@@ -361,7 +361,22 @@ export default function DistribuicoesPage() {
             </div>
           </CardHeader>
           <CardContent className="px-2 sm:px-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-4 py-3">
+              <div className="text-sm text-muted-foreground">
+                Total distribuído no período selecionado
+                <span className="ml-2 text-xs">
+                  ({totalDistribuicoesUnicas} {totalDistribuicoesUnicas === 1 ? 'distribuição' : 'distribuições'}, não considera canceladas)
+                </span>
+              </div>
+              <div className="text-xl font-semibold money-value text-emerald-600 dark:text-emerald-400">
+                {formatCurrency(totalPeriodo)}
+              </div>
+            </div>
             {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : visibleRows && visibleRows.length > 0 ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
