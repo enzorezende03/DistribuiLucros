@@ -377,10 +377,6 @@ export default function DistribuicoesPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : visibleRows && visibleRows.length > 0 ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : visibleRows && visibleRows.length > 0 ? (
               <>
                 {/* Mobile card layout */}
                 <div className="space-y-3 sm:hidden">
