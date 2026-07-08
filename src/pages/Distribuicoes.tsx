@@ -211,6 +211,13 @@ export default function DistribuicoesPage() {
     );
   }
 
+  const totalPeriodo = visibleRows
+    .filter((r) => r.status !== 'CANCELADA')
+    .reduce((sum, r) => sum + (r.rowValor || 0), 0);
+  const totalDistribuicoesUnicas = new Set(
+    visibleRows.filter((r) => r.status !== 'CANCELADA').map((r) => r.id)
+  ).size;
+
   return (
     <SidebarLayout>
       <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
