@@ -1,69 +1,59 @@
-# Painel de Adesão dos Clientes
 
-Nova página exclusiva do admin para acompanhar quais empresas estão usando o sistema, quem nunca acessou e quem está em dia com os preenchimentos mensais.
+## Objetivo
 
-## Rota e acesso
-- Nova rota `/adesao` protegida com `requireAdmin`.
-- Item de menu no `SidebarLayout` (visível apenas para admin), ícone de gráfico/usuários.
+Unificar a experiência: quando o cliente informa "Não houve distribuição" no mês, esse registro passa a se comportar exatamente como uma distribuição normal — vai para o contador com status **ENVIADA_AO_CONTADOR**, aparece na mesma listagem/painel, pode ser editado pelo cliente enquanto não aprovado, e fica bloqueado após **APROVADA**.
 
-## Cards de resumo (topo)
-1. **Empresas ativas** — total de clientes com `status = 'ativo'`.
-2. **Sem usuário vinculado** — clientes sem nenhum registro aprovado em `user_clientes`.
-3. **Nunca acessaram** — usuários vinculados aprovados cujo `auth.users.last_sign_in_at` é nulo.
-4. **Em dia no mês atual** — clientes com distribuição (não cancelada) ou confirmação `NAO_HOUVE` para a competência corrente.
-5. **Pendentes do mês anterior** — clientes sem distribuição nem confirmação no mês passado.
-6. **Engajamento médio (últimos 6 meses)** — % médio de meses preenchidos.
+## Mudanças
 
-## Tabela detalhada
-Colunas:
-- Cliente (razão social + CNPJ + tag 2M Saúde/Contabilidade)
-- Vínculo de usuário (badge: Sem usuário / Pendente aprovação / Ativo / Desativado)
-- Último acesso (data ou "Nunca acessou")
-- Mês atual (✓ Em dia / Pendente / NÃO HOUVE)
-- Mês anterior (mesmo formato)
-- Engajamento 6m (barra de progresso com % e "X de 6 meses")
-- Ações (menu)
+### 1. Banco de dados (migração)
 
-Filtros no topo da tabela:
-- Busca por razão social/CNPJ
-- Status de adesão: Todos / Sem login / Pendentes do mês / Em dia / Inativos
-- Tag de empresa (2M Saúde / 2M Contabilidade)
-- Ordenação: pior engajamento primeiro (padrão), alfabética, último acesso
+- Adicionar coluna `status` em `confirmacoes_mes` (mesmo enum `status_distribuicao`), default `ENVIADA_AO_CONTADOR`.
+- Adicionar `updated_at` + trigger de atualização.
+- Backfill: todas as confirmações `NAO_HOUVE` existentes recebem `status = ENVIADA_AO_CONTADOR` (para o contador revisar) — assim já ficam visíveis no fluxo antigo. (Alternativa que posso ajustar se preferir: marcar as antigas como `APROVADA`.)
+- Ajustar RLS/policies de `confirmacoes_mes`:
+  - Cliente pode INSERT/UPDATE/DELETE somente quando `status <> 'APROVADA'` e `status <> 'CANCELADA'`.
+  - Admin pode atualizar status livremente.
+- Ajustar o trigger existente `resolver_pendente_mes_on_confirmacao`: só resolve o alerta `PENDENTE_MES` quando `status = 'APROVADA'` (para manter o alerta ativo enquanto a contabilidade ainda não confirmou). Alternativamente, manter resolução imediata — decidir com o usuário (ver pergunta abaixo).
+- Notificação para admin ao criar/editar "Não houve" (mesmo padrão de `useCreateDistribuicao`).
 
-## Ações por linha
-Menu de ações contextual:
-- **Enviar lembrete WhatsApp** — usa template existente de cobrança (integração WhatsApp já configurada).
-- **Notificar in-app** — cria registro em `notificacoes` para o usuário vinculado.
-- **Resetar senha (CNPJ)** — reusa edge function `reset-password-cnpj`.
-- **Ver distribuições do cliente** — abre `/distribuicoes?clienteId=...`.
-- **Ver como cliente** — usa impersonação existente.
+### 2. Frontend
 
-Ação em massa (botão acima da tabela quando filtrado): **Enviar lembrete para todos os selecionados** com checkboxes por linha.
+**`useConfirmacoes.ts`**
+- Tipar `status` em `Confirmacao`.
+- `useConfirmacoesNaoHouve` passa a considerar status (mostrar todos, mas com badge).
+- Novos hooks: `useUpdateConfirmacaoStatus` (admin aprova/cancela), `useUpdateConfirmacao` (cliente edita observação enquanto não aprovado), `useDeleteConfirmacao` (cliente cancela enquanto não aprovado).
+- `useCreateConfirmacao`: cria com `status = ENVIADA_AO_CONTADOR` e dispara notificação de admin.
 
-## Detalhes técnicos
+**`Distribuicoes.tsx` (painel admin e cliente)**
+- Em vez de painel colapsável separado, mesclar as "Não houve" na mesma tabela de distribuições, como linhas com:
+  - Valor: "—" (ou "Sem distribuição")
+  - Badge visual "Não houve" (cinza/info) na coluna de identificação
+  - Coluna Status: mesmos badges (Enviada ao contador / Aprovada / Cancelada)
+  - Ações admin: Aprovar / Cancelar (batch inclusive)
+  - Ações cliente: Editar observação / Cancelar (somente se não aprovada)
+- Filtros e totais existentes ignoram linhas "Não houve" no cálculo de somatório (valor 0).
+- Remover o painel colapsável "Clientes que declararam Não houve" adicionado antes (agora redundante).
 
-### Backend
-- Nova RPC `get_adesao_clientes()` (SECURITY DEFINER, restrita a admin via `is_admin()`) que retorna por cliente:
-  - `cliente_id`, `razao_social`, `cnpj`, `tag`, `status`
-  - `total_usuarios`, `usuarios_aprovados`, `usuarios_pendentes`
-  - `ultimo_acesso` (max de `auth.users.last_sign_in_at` dos vínculos aprovados)
-  - `tem_distribuicao_mes_atual`, `tem_naohouve_mes_atual`
-  - `tem_distribuicao_mes_anterior`, `tem_naohouve_mes_anterior`
-  - `meses_preenchidos_6m` (int de 0 a 6)
-- Lê de `auth.users` (acessível via SECURITY DEFINER) cruzando com `user_clientes`, `distribuicoes`, `confirmacoes_mes`.
-- Sem mudanças de schema — apenas a função.
+**Fluxo do cliente ao marcar "Não houve"**
+- Toast + entrada aparece na listagem com status "Enviada ao contador", editável.
+- Se o cliente decidir depois registrar uma distribuição real no mesmo mês, ele pode cancelar a confirmação (enquanto não aprovada) e criar a distribuição normalmente.
 
-### Frontend
-- `src/hooks/useAdesao.ts` — React Query consumindo a RPC.
-- `src/pages/Adesao.tsx` — página com cards (`Card`), tabela responsiva (mesmo padrão das outras telas — desktop tabela / mobile cards), filtros via `useUrlState`.
-- `src/components/adesao/AcoesAdesao.tsx` — dropdown de ações reutilizando hooks/edge functions existentes.
-- Registro de rota em `src/App.tsx` e link em `src/components/layout/SidebarLayout.tsx`.
-- Traduções PT/EN/ES em `src/translations/index.ts`.
+### 3. Interações com regras existentes
 
-### Cálculo do engajamento 6m
-Para cada um dos 6 meses anteriores ao atual, conta como "preenchido" se houver ao menos uma `distribuicoes` não cancelada **ou** uma `confirmacoes_mes` com `resposta = 'NAO_HOUVE'`. Resultado = nº de meses preenchidos.
+- `gerar_alertas_pendente_mes`: mantém lógica atual (só ignora meses com confirmação NAO_HOUVE existente).
+- `get_adesao_clientes`: continua contando `NAO_HOUVE` como mês preenchido independentemente do status (o cliente cumpriu a obrigação de reportar).
 
-## Fora do escopo
-- Gráficos históricos por cliente (pode ser fase 2).
-- Exportação Excel do painel (pode ser adicionada depois se solicitado).
-- Notificações automáticas agendadas — apenas envio manual a partir do painel.
+## Pergunta antes de implementar
+
+O alerta `PENDENTE_MES` do mês deve ser resolvido:
+- (A) **assim que o cliente marca "Não houve"** (comportamento atual — cliente já cumpriu a obrigação), ou
+- (B) **somente após o contador aprovar** a confirmação (mais rigoroso)?
+
+Vou seguir com **(A)** se você não indicar o contrário, pois é consistente com "o cliente já reportou".
+
+## Arquivos afetados
+
+- migração SQL (nova)
+- `src/hooks/useConfirmacoes.ts`
+- `src/pages/Distribuicoes.tsx`
+- `src/hooks/useAlertas.ts` (nenhum, apenas se mudarmos a resolução)
