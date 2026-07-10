@@ -1053,6 +1053,97 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
   );
 }
 
+function NaoHouveActions({ row, isAdmin }: { row: { id: string; competencia: string; status: StatusDistribuicao; observacao: string | null }; isAdmin: boolean }) {
+  const { t } = useLanguage();
+  const updateStatus = useUpdateConfirmacaoStatus();
+  const updateConf = useUpdateConfirmacao();
+  const deleteConf = useDeleteConfirmacao();
+  const [editOpen, setEditOpen] = useState(false);
+  const [obsValue, setObsValue] = useState(row.observacao || '');
+  const canClientEdit = !isAdmin && row.status === 'ENVIADA_AO_CONTADOR';
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {isAdmin && (
+            <>
+              {(['ENVIADA_AO_CONTADOR', 'APROVADA', 'AJUSTE_SOLICITADO', 'CANCELADA'] as StatusDistribuicao[]).map((s) => (
+                <DropdownMenuItem
+                  key={s}
+                  disabled={row.status === s || updateStatus.isPending}
+                  onClick={() => updateStatus.mutate({ id: row.id, status: s })}
+                >
+                  {t('distributions.markAs')} {t(statusKeys[s])}
+                </DropdownMenuItem>
+              ))}
+            </>
+          )}
+          {canClientEdit && (
+            <>
+              <DropdownMenuItem onClick={() => { setObsValue(row.observacao || ''); setEditOpen(true); }}>
+                <FileText className="mr-2 h-4 w-4" />
+                Editar observação
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => {
+                  if (confirm('Remover esta declaração de "não houve"? Você poderá registrar uma distribuição depois.')) {
+                    deleteConf.mutate(row.id);
+                  }
+                }}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Cancelar declaração
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar observação</DialogTitle>
+            <DialogDescription>
+              Declaração de "não houve distribuição" — {formatCompetencia(row.competencia)}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              value={obsValue}
+              onChange={(e) => setObsValue(e.target.value)}
+              rows={3}
+              placeholder="Observação (opcional)"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditOpen(false)}>{t('common.cancel')}</Button>
+              <Button
+                onClick={async () => {
+                  await updateConf.mutateAsync({ id: row.id, observacao: obsValue || null });
+                  setEditOpen(false);
+                }}
+                disabled={updateConf.isPending}
+              >
+                {updateConf.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Salvar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+
+
 interface DistribuicaoDetailDialogProps {
   distribuicaoId: string | null;
   onClose: () => void;
