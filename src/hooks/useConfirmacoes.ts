@@ -57,11 +57,32 @@ export function useCreateConfirmacao() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['confirmacoes'] });
+      queryClient.invalidateQueries({ queryKey: ['confirmacoes-nao-houve'] });
       queryClient.invalidateQueries({ queryKey: ['alertas'] });
       toast.success('Confirmação registrada com sucesso!');
     },
     onError: (error) => {
       toast.error('Erro ao registrar confirmação: ' + error.message);
+    },
+  });
+}
+
+export interface ConfirmacaoComCliente extends Confirmacao {
+  cliente: { id: string; razao_social: string; cnpj: string } | null;
+}
+
+export function useConfirmacoesNaoHouve() {
+  return useQuery({
+    queryKey: ['confirmacoes-nao-houve'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('confirmacoes_mes')
+        .select('*, cliente:clientes(id, razao_social, cnpj)')
+        .eq('resposta', 'NAO_HOUVE')
+        .order('competencia', { ascending: false })
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as ConfirmacaoComCliente[];
     },
   });
 }
