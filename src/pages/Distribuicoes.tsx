@@ -397,6 +397,93 @@ export default function DistribuicoesPage() {
                 </div>
               </div>
             </div>
+
+            {isAdmin && (() => {
+              const list = (confirmacoesNaoHouve || [])
+                .filter((c) => !selectedCompetencia || c.competencia === selectedCompetencia)
+                .filter((c) => !selectedClienteId || c.cliente_id === selectedClienteId);
+              const totalNaoHouve = list.length;
+              const byCompetencia = list.reduce<Record<string, number>>((acc, c) => {
+                acc[c.competencia] = (acc[c.competencia] || 0) + 1;
+                return acc;
+              }, {});
+              return (
+                <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
+                  <button
+                    type="button"
+                    onClick={() => setShowNaoHouvePanel((s) => !s)}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-9 w-9 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm">
+                          Clientes que declararam "Não houve distribuição"
+                          {selectedCompetencia ? ` em ${formatCompetencia(selectedCompetencia)}` : ''}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {totalNaoHouve} confirmação{totalNaoHouve === 1 ? '' : 'ões'} registrada{totalNaoHouve === 1 ? '' : 's'}
+                          {!selectedCompetencia && Object.keys(byCompetencia).length > 1
+                            ? ` • ${Object.keys(byCompetencia).length} meses`
+                            : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {showNaoHouvePanel ? 'ocultar' : 'ver detalhes'}
+                    </span>
+                  </button>
+                  {showNaoHouvePanel && (
+                    <div className="px-4 pb-4 pt-1 border-t border-amber-500/20">
+                      {list.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-3">
+                          Nenhum cliente confirmou "Não houve" {selectedCompetencia ? `para ${formatCompetencia(selectedCompetencia)}` : 'no filtro atual'}.
+                        </p>
+                      ) : (
+                        <div className="mt-3 rounded-md border bg-background overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Competência</TableHead>
+                                <TableHead className="hidden md:table-cell">Data da confirmação</TableHead>
+                                <TableHead className="hidden md:table-cell">Observação</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {list.map((c) => (
+                                <TableRow key={c.id}>
+                                  <TableCell className="font-medium">
+                                    {c.cliente?.razao_social || '—'}
+                                    {c.cliente?.cnpj && (
+                                      <p className="text-xs text-muted-foreground font-mono">{c.cliente.cnpj}</p>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200">
+                                      {formatCompetencia(c.competencia)}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
+                                    {formatDate(c.created_at)}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
+                                    {c.observacao || '—'}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
