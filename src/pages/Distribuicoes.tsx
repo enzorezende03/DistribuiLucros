@@ -162,6 +162,14 @@ export default function DistribuicoesPage() {
     return Array.from(map.entries()).map(([id, nome]) => ({ id, nome })).sort((a, b) => a.nome.localeCompare(b.nome));
   })();
 
+  let filteredDistribuicoes = distribuicoes;
+  if (selectedStatus) {
+    filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.status === selectedStatus);
+  }
+  if (selectedCompetencia) {
+    filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.competencia === selectedCompetencia);
+  }
+
   // Unified row model: normal distribution items + "não houve" declarations
   type BaseRow = {
     rowKey: string;
