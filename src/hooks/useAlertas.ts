@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export type TipoAlerta = 'ALERTA_50K' | 'PENDENTE_MES';
-export type ResolucaoTipo = 'GERAR_GUIA_IR' | 'DISPENSADO';
+export type ResolucaoTipo = 'GERAR_GUIA_IR' | 'DISPENSADO' | 'NAO_HOUVE';
 
 export interface Alerta {
   id: string;
