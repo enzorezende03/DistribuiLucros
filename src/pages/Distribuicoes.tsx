@@ -28,7 +28,7 @@ import {
 import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, useBatchUpdateStatus, type StatusDistribuicao, type Distribuicao } from '@/hooks/useDistribuicoes';
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
-import { useConfirmacoes, useConfirmacoesNaoHouve } from '@/hooks/useConfirmacoes';
+import { useConfirmacoes, useConfirmacoesNaoHouve, useUpdateConfirmacaoStatus, useUpdateConfirmacao, useDeleteConfirmacao, type Confirmacao } from '@/hooks/useConfirmacoes';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatDate, formatCompetencia } from '@/lib/format';
 import { toast } from 'sonner';
@@ -118,7 +118,6 @@ export default function DistribuicoesPage() {
   );
   const { data: confirmacoes } = useConfirmacoes(filterClienteId);
   const { data: confirmacoesNaoHouve } = useConfirmacoesNaoHouve();
-  const [showNaoHouvePanel, setShowNaoHouvePanel] = useState(false);
   const [search, setSearch] = useUrlParam('busca');
   // Debounce search to avoid re-running the heavy filter on every keystroke.
   const [searchInput, setSearchInput] = useState(search);
@@ -171,21 +170,46 @@ export default function DistribuicoesPage() {
     filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.competencia === selectedCompetencia);
   }
 
-  // Explode each distribution into one row per partner item
-  type DistRow = Distribuicao & {
+  // Unified row model: normal distribution items + "não houve" declarations
+  type BaseRow = {
     rowKey: string;
-    item: NonNullable<Distribuicao['itens']>[number] | null;
+    kind: 'dist' | 'naohouve';
+    id: string;
+    cliente_id: string;
+    cliente?: { razao_social: string; cnpj: string };
+    competencia: string;
+    status: StatusDistribuicao;
     rowValor: number;
+  };
+  type DistRow = BaseRow & {
+    kind: 'dist';
+    dist: Distribuicao;
+    item: NonNullable<Distribuicao['itens']>[number] | null;
     reciboDisplay: string;
     multiSocios: boolean;
     socioIndex: number;
+    data_ref: string;
   };
-  const explodedRows: DistRow[] = (filteredDistribuicoes || []).flatMap((d) => {
+  type NaoHouveRow = BaseRow & {
+    kind: 'naohouve';
+    confirmacao: Confirmacao & { cliente?: { razao_social: string; cnpj: string } | null };
+    data_ref: string;
+    observacao: string | null;
+  };
+  type RowUnion = DistRow | NaoHouveRow;
+
+  const distRows: DistRow[] = (filteredDistribuicoes || []).flatMap((d) => {
     const itens = d.itens && d.itens.length > 0 ? d.itens : [null];
     const multi = (d.itens?.length || 0) > 1;
     return itens.map((item, idx) => ({
-      ...d,
-      rowKey: item ? `${d.id}-${item.id}` : d.id,
+      kind: 'dist' as const,
+      dist: d,
+      id: d.id,
+      cliente_id: d.cliente_id,
+      cliente: d.cliente,
+      competencia: d.competencia,
+      status: d.status,
+      rowKey: item ? `d-${d.id}-${item.id}` : `d-${d.id}`,
       item,
       rowValor: item ? Number(item.valor) : Number(d.valor_total),
       reciboDisplay: multi && item
@@ -193,32 +217,66 @@ export default function DistribuicoesPage() {
         : (d.recibo_numero || ''),
       multiSocios: multi,
       socioIndex: idx,
+      data_ref: d.data_distribuicao,
     }));
   });
 
-  let visibleRows = explodedRows;
+  // Não houve rows: filter by client visibility and competência
+  const naoHouveSource = (isAdmin ? (confirmacoesNaoHouve || []) : (confirmacoes || []).filter((c) => c.resposta === 'NAO_HOUVE'));
+  const naoHouveRows: NaoHouveRow[] = (naoHouveSource as any[])
+    .filter((c: any) => !filterClienteId || c.cliente_id === filterClienteId)
+    .filter((c: any) => !selectedCompetencia || c.competencia === selectedCompetencia)
+    .filter((c: any) => !selectedStatus || c.status === selectedStatus)
+    .map((c: any) => ({
+      kind: 'naohouve' as const,
+      confirmacao: c,
+      id: c.id,
+      cliente_id: c.cliente_id,
+      cliente: c.cliente ? { razao_social: c.cliente.razao_social, cnpj: c.cliente.cnpj } : undefined,
+      competencia: c.competencia,
+      status: (c.status || 'ENVIADA_AO_CONTADOR') as StatusDistribuicao,
+      rowKey: `n-${c.id}`,
+      rowValor: 0,
+      data_ref: c.created_at,
+      observacao: c.observacao,
+    }));
+
+  let visibleRows: RowUnion[] = [...distRows, ...naoHouveRows];
   if (selectedSocioId) {
-    visibleRows = visibleRows.filter((r) => r.item?.socio_id === selectedSocioId);
+    visibleRows = visibleRows.filter((r) => r.kind === 'dist' && (r as DistRow).item?.socio_id === selectedSocioId);
   }
   if (search) {
     const s = search.toLowerCase();
     const sDigits = s.replace(/\D/g, '');
-    visibleRows = visibleRows.filter(
-      (r) =>
-        r.reciboDisplay.toLowerCase().includes(s) ||
-        r.recibo_numero?.toLowerCase().includes(s) ||
+    visibleRows = visibleRows.filter((r) => {
+      if (r.kind === 'dist') {
+        const dr = r as DistRow;
+        return (
+          dr.reciboDisplay.toLowerCase().includes(s) ||
+          dr.dist.recibo_numero?.toLowerCase().includes(s) ||
+          dr.cliente?.razao_social?.toLowerCase().includes(s) ||
+          (sDigits && dr.cliente?.cnpj?.replace(/\D/g, '').includes(sDigits)) ||
+          dr.item?.socio?.nome?.toLowerCase().includes(s)
+        );
+      }
+      return (
         r.cliente?.razao_social?.toLowerCase().includes(s) ||
         (sDigits && r.cliente?.cnpj?.replace(/\D/g, '').includes(sDigits)) ||
-        r.item?.socio?.nome?.toLowerCase().includes(s)
-    );
+        'não houve'.includes(s) ||
+        'nao houve'.includes(s)
+      );
+    });
   }
+  // Sort by data_ref desc so newest are on top
+  visibleRows.sort((a, b) => (b.data_ref || '').localeCompare(a.data_ref || ''));
 
   const totalPeriodo = visibleRows
-    .filter((r) => r.status !== 'CANCELADA')
+    .filter((r) => r.kind === 'dist' && r.status !== 'CANCELADA')
     .reduce((sum, r) => sum + (r.rowValor || 0), 0);
   const totalDistribuicoesUnicas = new Set(
-    visibleRows.filter((r) => r.status !== 'CANCELADA').map((r) => r.id)
+    visibleRows.filter((r) => r.kind === 'dist' && r.status !== 'CANCELADA').map((r) => r.id)
   ).size;
+  const totalNaoHouveVisiveis = visibleRows.filter((r) => r.kind === 'naohouve' && r.status !== 'CANCELADA').length;
 
   const totalSelecionado = (filteredDistribuicoes || [])
     .filter((d) => selectedIds.has(d.id) && d.status !== 'CANCELADA')
@@ -392,97 +450,18 @@ export default function DistribuicoesPage() {
                     </button>
                   </div>
                 )}
-                <div className="text-xl font-semibold money-value text-emerald-600 dark:text-emerald-400">
-                  {formatCurrency(totalPeriodo)}
-                </div>
-              </div>
-            </div>
-
-            {isAdmin && (() => {
-              const list = (confirmacoesNaoHouve || [])
-                .filter((c) => !selectedCompetencia || c.competencia === selectedCompetencia)
-                .filter((c) => !selectedClienteId || c.cliente_id === selectedClienteId);
-              const totalNaoHouve = list.length;
-              const byCompetencia = list.reduce<Record<string, number>>((acc, c) => {
-                acc[c.competencia] = (acc[c.competencia] || 0) + 1;
-                return acc;
-              }, {});
-              return (
-                <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
-                  <button
-                    type="button"
-                    onClick={() => setShowNaoHouvePanel((s) => !s)}
-                    className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
-                        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm">
-                          Clientes que declararam "Não houve distribuição"
-                          {selectedCompetencia ? ` em ${formatCompetencia(selectedCompetencia)}` : ''}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {totalNaoHouve} confirmação{totalNaoHouve === 1 ? '' : 'ões'} registrada{totalNaoHouve === 1 ? '' : 's'}
-                          {!selectedCompetencia && Object.keys(byCompetencia).length > 1
-                            ? ` • ${Object.keys(byCompetencia).length} meses`
-                            : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {showNaoHouvePanel ? 'ocultar' : 'ver detalhes'}
-                    </span>
-                  </button>
-                  {showNaoHouvePanel && (
-                    <div className="px-4 pb-4 pt-1 border-t border-amber-500/20">
-                      {list.length === 0 ? (
-                        <p className="text-sm text-muted-foreground py-3">
-                          Nenhum cliente confirmou "Não houve" {selectedCompetencia ? `para ${formatCompetencia(selectedCompetencia)}` : 'no filtro atual'}.
-                        </p>
-                      ) : (
-                        <div className="mt-3 rounded-md border bg-background overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Competência</TableHead>
-                                <TableHead className="hidden md:table-cell">Data da confirmação</TableHead>
-                                <TableHead className="hidden md:table-cell">Observação</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {list.map((c) => (
-                                <TableRow key={c.id}>
-                                  <TableCell className="font-medium">
-                                    {c.cliente?.razao_social || '—'}
-                                    {c.cliente?.cnpj && (
-                                      <p className="text-xs text-muted-foreground font-mono">{c.cliente.cnpj}</p>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge variant="outline" className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200">
-                                      {formatCompetencia(c.competencia)}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
-                                    {formatDate(c.created_at)}
-                                  </TableCell>
-                                  <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
-                                    {c.observacao || '—'}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      )}
+                <div className="flex flex-col items-end">
+                  <div className="text-xl font-semibold money-value text-emerald-600 dark:text-emerald-400">
+                    {formatCurrency(totalPeriodo)}
+                  </div>
+                  {totalNaoHouveVisiveis > 0 && (
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      + {totalNaoHouveVisiveis} declaração{totalNaoHouveVisiveis === 1 ? '' : 'ões'} de "não houve"
                     </div>
                   )}
                 </div>
-              );
-            })()}
+              </div>
+            </div>
 
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -492,34 +471,65 @@ export default function DistribuicoesPage() {
               <>
                 {/* Mobile card layout */}
                 <div className="space-y-3 sm:hidden">
-                  {visibleRows.map((row) => (
-                    <div key={row.rowKey} className="rounded-lg border p-4 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                            <FileText className="h-4 w-4 text-accent" />
+                  {visibleRows.map((row) => {
+                    if (row.kind === 'naohouve') {
+                      return (
+                        <div key={row.rowKey} className="rounded-lg border border-amber-500/40 bg-amber-50/40 dark:bg-amber-950/10 p-4 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-sm font-semibold">Não houve distribuição</span>
+                                <p className="text-xs text-muted-foreground">{formatCompetencia(row.competencia)}</p>
+                              </div>
+                            </div>
+                            <NaoHouveActions row={row} isAdmin={isAdmin} />
                           </div>
-                          <span className="font-mono text-sm truncate">{row.reciboDisplay}</span>
+                          {isAdmin && (
+                            <p className="text-sm text-muted-foreground truncate">{row.cliente?.razao_social}</p>
+                          )}
+                          {row.observacao && (
+                            <p className="text-xs italic text-muted-foreground">{row.observacao}</p>
+                          )}
+                          <div className="flex items-center justify-between gap-2">
+                            <StatusBadge status={row.status} />
+                            <span className="text-xs text-muted-foreground">{formatDate(row.data_ref)}</span>
+                          </div>
                         </div>
-                        <DistribuicaoActions
-                          distribuicao={row}
-                          isAdmin={isAdmin}
-                          onView={() => setViewingDistribuicao(row.id)}
-                        />
+                      );
+                    }
+                    const dr = row as DistRow;
+                    return (
+                      <div key={dr.rowKey} className="rounded-lg border p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                              <FileText className="h-4 w-4 text-accent" />
+                            </div>
+                            <span className="font-mono text-sm truncate">{dr.reciboDisplay}</span>
+                          </div>
+                          <DistribuicaoActions
+                            distribuicao={dr.dist}
+                            isAdmin={isAdmin}
+                            onView={() => setViewingDistribuicao(dr.id)}
+                          />
+                        </div>
+                        {isAdmin && (
+                          <p className="text-sm text-muted-foreground truncate">{dr.cliente?.razao_social}</p>
+                        )}
+                        <p className="text-sm font-medium truncate">{dr.item?.socio?.nome || '—'}</p>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold money-value text-sm">{formatCurrency(dr.rowValor)}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <StatusBadgeWithHistory distribuicaoId={dr.id} status={dr.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
+                          <span className="text-xs text-muted-foreground">{formatDate(dr.data_ref)}</span>
+                        </div>
                       </div>
-                      {isAdmin && (
-                        <p className="text-sm text-muted-foreground truncate">{row.cliente?.razao_social}</p>
-                      )}
-                      <p className="text-sm font-medium truncate">{row.item?.socio?.nome || '—'}</p>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold money-value text-sm">{formatCurrency(row.rowValor)}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <StatusBadgeWithHistory distribuicaoId={row.id} status={row.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
-                        <span className="text-xs text-muted-foreground">{formatDate(row.data_distribuicao)}</span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Desktop table layout */}
@@ -533,12 +543,12 @@ export default function DistribuicoesPage() {
                               <input
                                 type="checkbox"
                                 checked={(() => {
-                                  const ids = Array.from(new Set(visibleRows.map((r) => r.id)));
+                                  const ids = Array.from(new Set(visibleRows.filter(r => r.kind === 'dist').map((r) => r.id)));
                                   return ids.length > 0 && ids.every((id) => selectedIds.has(id));
                                 })()}
                                 onChange={(e) => {
                                   if (e.target.checked) {
-                                    setSelectedIds(new Set(visibleRows.map((r) => r.id)));
+                                    setSelectedIds(new Set(visibleRows.filter(r => r.kind === 'dist').map((r) => r.id)));
                                   } else {
                                     setSelectedIds(new Set());
                                   }
@@ -559,52 +569,85 @@ export default function DistribuicoesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {visibleRows.map((row) => (
-                        <TableRow key={row.rowKey} className="table-row-interactive">
-                          {isAdmin && (
+                      {visibleRows.map((row) => {
+                        if (row.kind === 'naohouve') {
+                          return (
+                            <TableRow key={row.rowKey} className="table-row-interactive bg-amber-50/30 dark:bg-amber-950/10">
+                              {isAdmin && <TableCell />}
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                  </div>
+                                  <div>
+                                    <span className="text-sm font-semibold">Não houve distribuição</span>
+                                    <p className="text-xs text-muted-foreground">{formatCompetencia(row.competencia)}</p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              {isAdmin && (
+                                <TableCell className="font-medium hidden md:table-cell">{row.cliente?.razao_social}</TableCell>
+                              )}
+                              <TableCell className="text-sm text-muted-foreground">—</TableCell>
+                              <TableCell>{formatDate(row.data_ref)}</TableCell>
+                              <TableCell className="text-right text-sm text-muted-foreground">—</TableCell>
+                              <TableCell>
+                                <StatusBadge status={row.status} />
+                              </TableCell>
+                              <TableCell>
+                                <NaoHouveActions row={row} isAdmin={isAdmin} />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        }
+                        const dr = row as DistRow;
+                        return (
+                          <TableRow key={dr.rowKey} className="table-row-interactive">
+                            {isAdmin && (
+                              <TableCell>
+                                {dr.socioIndex === 0 ? (
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedIds.has(dr.id)}
+                                    onChange={(e) => {
+                                      const next = new Set(selectedIds);
+                                      if (e.target.checked) next.add(dr.id);
+                                      else next.delete(dr.id);
+                                      setSelectedIds(next);
+                                    }}
+                                    className="h-4 w-4 rounded border-input"
+                                  />
+                                ) : null}
+                              </TableCell>
+                            )}
                             <TableCell>
-                              {row.socioIndex === 0 ? (
-                                <input
-                                  type="checkbox"
-                                  checked={selectedIds.has(row.id)}
-                                  onChange={(e) => {
-                                    const next = new Set(selectedIds);
-                                    if (e.target.checked) next.add(row.id);
-                                    else next.delete(row.id);
-                                    setSelectedIds(next);
-                                  }}
-                                  className="h-4 w-4 rounded border-input"
-                                />
-                              ) : null}
+                              <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                                  <FileText className="h-4 w-4 text-accent" />
+                                </div>
+                                <div>
+                                  <span className="font-mono text-sm">{dr.reciboDisplay}</span>
+                                  {isAdmin && (
+                                    <p className="text-xs text-muted-foreground md:hidden">{dr.cliente?.razao_social}</p>
+                                  )}
+                                </div>
+                              </div>
                             </TableCell>
-                          )}
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                                <FileText className="h-4 w-4 text-accent" />
-                              </div>
-                              <div>
-                                <span className="font-mono text-sm">{row.reciboDisplay}</span>
-                                {isAdmin && (
-                                  <p className="text-xs text-muted-foreground md:hidden">{row.cliente?.razao_social}</p>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          {isAdmin && (
-                            <TableCell className="font-medium hidden md:table-cell">{row.cliente?.razao_social}</TableCell>
-                          )}
-                          <TableCell className="text-sm">{row.item?.socio?.nome || '—'}</TableCell>
-                          <TableCell>{formatDate(row.data_distribuicao)}</TableCell>
-                          <TableCell className="text-right font-semibold money-value">{formatCurrency(row.rowValor)}</TableCell>
-                          <TableCell>
-                            <StatusBadgeWithHistory distribuicaoId={row.id} status={row.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
-                          </TableCell>
-                          <TableCell>
-                            <DistribuicaoActions distribuicao={row} isAdmin={isAdmin} onView={() => setViewingDistribuicao(row.id)} />
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            {isAdmin && (
+                              <TableCell className="font-medium hidden md:table-cell">{dr.cliente?.razao_social}</TableCell>
+                            )}
+                            <TableCell className="text-sm">{dr.item?.socio?.nome || '—'}</TableCell>
+                            <TableCell>{formatDate(dr.data_ref)}</TableCell>
+                            <TableCell className="text-right font-semibold money-value">{formatCurrency(dr.rowValor)}</TableCell>
+                            <TableCell>
+                              <StatusBadgeWithHistory distribuicaoId={dr.id} status={dr.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
+                            </TableCell>
+                            <TableCell>
+                              <DistribuicaoActions distribuicao={dr.dist} isAdmin={isAdmin} onView={() => setViewingDistribuicao(dr.id)} />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -1009,6 +1052,97 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
     </>
   );
 }
+
+function NaoHouveActions({ row, isAdmin }: { row: { id: string; competencia: string; status: StatusDistribuicao; observacao: string | null }; isAdmin: boolean }) {
+  const { t } = useLanguage();
+  const updateStatus = useUpdateConfirmacaoStatus();
+  const updateConf = useUpdateConfirmacao();
+  const deleteConf = useDeleteConfirmacao();
+  const [editOpen, setEditOpen] = useState(false);
+  const [obsValue, setObsValue] = useState(row.observacao || '');
+  const canClientEdit = !isAdmin && row.status === 'ENVIADA_AO_CONTADOR';
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {isAdmin && (
+            <>
+              {(['ENVIADA_AO_CONTADOR', 'APROVADA', 'AJUSTE_SOLICITADO', 'CANCELADA'] as StatusDistribuicao[]).map((s) => (
+                <DropdownMenuItem
+                  key={s}
+                  disabled={row.status === s || updateStatus.isPending}
+                  onClick={() => updateStatus.mutate({ id: row.id, status: s })}
+                >
+                  {t('distributions.markAs')} {t(statusKeys[s])}
+                </DropdownMenuItem>
+              ))}
+            </>
+          )}
+          {canClientEdit && (
+            <>
+              <DropdownMenuItem onClick={() => { setObsValue(row.observacao || ''); setEditOpen(true); }}>
+                <FileText className="mr-2 h-4 w-4" />
+                Editar observação
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => {
+                  if (confirm('Remover esta declaração de "não houve"? Você poderá registrar uma distribuição depois.')) {
+                    deleteConf.mutate(row.id);
+                  }
+                }}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Cancelar declaração
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar observação</DialogTitle>
+            <DialogDescription>
+              Declaração de "não houve distribuição" — {formatCompetencia(row.competencia)}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              value={obsValue}
+              onChange={(e) => setObsValue(e.target.value)}
+              rows={3}
+              placeholder="Observação (opcional)"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditOpen(false)}>{t('common.cancel')}</Button>
+              <Button
+                onClick={async () => {
+                  await updateConf.mutateAsync({ id: row.id, observacao: obsValue || null });
+                  setEditOpen(false);
+                }}
+                disabled={updateConf.isPending}
+              >
+                {updateConf.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Salvar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+
 
 interface DistribuicaoDetailDialogProps {
   distribuicaoId: string | null;
