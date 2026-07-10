@@ -117,6 +117,8 @@ export default function DistribuicoesPage() {
     filterClienteId
   );
   const { data: confirmacoes } = useConfirmacoes(filterClienteId);
+  const { data: confirmacoesNaoHouve } = useConfirmacoesNaoHouve();
+  const [showNaoHouvePanel, setShowNaoHouvePanel] = useState(false);
   const [search, setSearch] = useUrlParam('busca');
   // Debounce search to avoid re-running the heavy filter on every keystroke.
   const [searchInput, setSearchInput] = useState(search);
