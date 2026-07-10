@@ -162,29 +162,46 @@ export default function DistribuicoesPage() {
     return Array.from(map.entries()).map(([id, nome]) => ({ id, nome })).sort((a, b) => a.nome.localeCompare(b.nome));
   })();
 
-  let filteredDistribuicoes = distribuicoes;
-  if (selectedStatus) {
-    filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.status === selectedStatus);
-  }
-  if (selectedCompetencia) {
-    filteredDistribuicoes = filteredDistribuicoes?.filter((d) => d.competencia === selectedCompetencia);
-  }
-
-  // Explode each distribution into one row per partner item
-  type DistRow = Distribuicao & {
+  // Unified row model: normal distribution items + "não houve" declarations
+  type BaseRow = {
     rowKey: string;
-    item: NonNullable<Distribuicao['itens']>[number] | null;
+    kind: 'dist' | 'naohouve';
+    id: string;
+    cliente_id: string;
+    cliente?: { razao_social: string; cnpj: string };
+    competencia: string;
+    status: StatusDistribuicao;
     rowValor: number;
+  };
+  type DistRow = BaseRow & {
+    kind: 'dist';
+    dist: Distribuicao;
+    item: NonNullable<Distribuicao['itens']>[number] | null;
     reciboDisplay: string;
     multiSocios: boolean;
     socioIndex: number;
+    data_ref: string;
   };
-  const explodedRows: DistRow[] = (filteredDistribuicoes || []).flatMap((d) => {
+  type NaoHouveRow = BaseRow & {
+    kind: 'naohouve';
+    confirmacao: Confirmacao & { cliente?: { razao_social: string; cnpj: string } | null };
+    data_ref: string;
+    observacao: string | null;
+  };
+  type RowUnion = DistRow | NaoHouveRow;
+
+  const distRows: DistRow[] = (filteredDistribuicoes || []).flatMap((d) => {
     const itens = d.itens && d.itens.length > 0 ? d.itens : [null];
     const multi = (d.itens?.length || 0) > 1;
     return itens.map((item, idx) => ({
-      ...d,
-      rowKey: item ? `${d.id}-${item.id}` : d.id,
+      kind: 'dist' as const,
+      dist: d,
+      id: d.id,
+      cliente_id: d.cliente_id,
+      cliente: d.cliente,
+      competencia: d.competencia,
+      status: d.status,
+      rowKey: item ? `d-${d.id}-${item.id}` : `d-${d.id}`,
       item,
       rowValor: item ? Number(item.valor) : Number(d.valor_total),
       reciboDisplay: multi && item
@@ -192,32 +209,66 @@ export default function DistribuicoesPage() {
         : (d.recibo_numero || ''),
       multiSocios: multi,
       socioIndex: idx,
+      data_ref: d.data_distribuicao,
     }));
   });
 
-  let visibleRows = explodedRows;
+  // Não houve rows: filter by client visibility and competência
+  const naoHouveSource = (isAdmin ? (confirmacoesNaoHouve || []) : (confirmacoes || []).filter((c) => c.resposta === 'NAO_HOUVE'));
+  const naoHouveRows: NaoHouveRow[] = (naoHouveSource as any[])
+    .filter((c: any) => !filterClienteId || c.cliente_id === filterClienteId)
+    .filter((c: any) => !selectedCompetencia || c.competencia === selectedCompetencia)
+    .filter((c: any) => !selectedStatus || c.status === selectedStatus)
+    .map((c: any) => ({
+      kind: 'naohouve' as const,
+      confirmacao: c,
+      id: c.id,
+      cliente_id: c.cliente_id,
+      cliente: c.cliente ? { razao_social: c.cliente.razao_social, cnpj: c.cliente.cnpj } : undefined,
+      competencia: c.competencia,
+      status: (c.status || 'ENVIADA_AO_CONTADOR') as StatusDistribuicao,
+      rowKey: `n-${c.id}`,
+      rowValor: 0,
+      data_ref: c.created_at,
+      observacao: c.observacao,
+    }));
+
+  let visibleRows: RowUnion[] = [...distRows, ...naoHouveRows];
   if (selectedSocioId) {
-    visibleRows = visibleRows.filter((r) => r.item?.socio_id === selectedSocioId);
+    visibleRows = visibleRows.filter((r) => r.kind === 'dist' && (r as DistRow).item?.socio_id === selectedSocioId);
   }
   if (search) {
     const s = search.toLowerCase();
     const sDigits = s.replace(/\D/g, '');
-    visibleRows = visibleRows.filter(
-      (r) =>
-        r.reciboDisplay.toLowerCase().includes(s) ||
-        r.recibo_numero?.toLowerCase().includes(s) ||
+    visibleRows = visibleRows.filter((r) => {
+      if (r.kind === 'dist') {
+        const dr = r as DistRow;
+        return (
+          dr.reciboDisplay.toLowerCase().includes(s) ||
+          dr.dist.recibo_numero?.toLowerCase().includes(s) ||
+          dr.cliente?.razao_social?.toLowerCase().includes(s) ||
+          (sDigits && dr.cliente?.cnpj?.replace(/\D/g, '').includes(sDigits)) ||
+          dr.item?.socio?.nome?.toLowerCase().includes(s)
+        );
+      }
+      return (
         r.cliente?.razao_social?.toLowerCase().includes(s) ||
         (sDigits && r.cliente?.cnpj?.replace(/\D/g, '').includes(sDigits)) ||
-        r.item?.socio?.nome?.toLowerCase().includes(s)
-    );
+        'não houve'.includes(s) ||
+        'nao houve'.includes(s)
+      );
+    });
   }
+  // Sort by data_ref desc so newest are on top
+  visibleRows.sort((a, b) => (b.data_ref || '').localeCompare(a.data_ref || ''));
 
   const totalPeriodo = visibleRows
-    .filter((r) => r.status !== 'CANCELADA')
+    .filter((r) => r.kind === 'dist' && r.status !== 'CANCELADA')
     .reduce((sum, r) => sum + (r.rowValor || 0), 0);
   const totalDistribuicoesUnicas = new Set(
-    visibleRows.filter((r) => r.status !== 'CANCELADA').map((r) => r.id)
+    visibleRows.filter((r) => r.kind === 'dist' && r.status !== 'CANCELADA').map((r) => r.id)
   ).size;
+  const totalNaoHouveVisiveis = visibleRows.filter((r) => r.kind === 'naohouve' && r.status !== 'CANCELADA').length;
 
   const totalSelecionado = (filteredDistribuicoes || [])
     .filter((d) => selectedIds.has(d.id) && d.status !== 'CANCELADA')
