@@ -130,6 +130,8 @@ export type Database = {
           id: string
           observacao: string | null
           resposta: Database["public"]["Enums"]["resposta_confirmacao"]
+          status: Database["public"]["Enums"]["status_distribuicao"]
+          updated_at: string
         }
         Insert: {
           cliente_id: string
@@ -138,6 +140,8 @@ export type Database = {
           id?: string
           observacao?: string | null
           resposta: Database["public"]["Enums"]["resposta_confirmacao"]
+          status?: Database["public"]["Enums"]["status_distribuicao"]
+          updated_at?: string
         }
         Update: {
           cliente_id?: string
@@ -146,6 +150,8 @@ export type Database = {
           id?: string
           observacao?: string | null
           resposta?: Database["public"]["Enums"]["resposta_confirmacao"]
+          status?: Database["public"]["Enums"]["status_distribuicao"]
+          updated_at?: string
         }
         Relationships: [
           {
