@@ -445,6 +445,15 @@ function ResolucaoBadge({ alerta }: { alerta: Alerta }) {
     );
   }
 
+  if (alerta.resolucao_tipo === 'NAO_HOUVE') {
+    return (
+      <Badge variant="outline" className="bg-info/10 text-info border-info/20 gap-1" title="Cliente confirmou que não houve distribuição">
+        <XCircle className="h-3 w-3" />
+        Não houve (cliente)
+      </Badge>
+    );
+  }
+
   return (
     <Badge variant="outline" className="bg-success/10 text-success border-success/20">
       {t('alerts.resolved')}
