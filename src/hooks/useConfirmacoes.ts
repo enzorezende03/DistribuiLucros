@@ -57,23 +57,6 @@ export function useCreateConfirmacao() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['confirmacoes'] });
-      queryClient.invalidateQueries({ queryKey: ['alertas'] });
-export function useCreateConfirmacao() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (confirmacao: CreateConfirmacaoData) => {
-      const { data, error } = await supabase
-        .from('confirmacoes_mes')
-        .insert(confirmacao)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as Confirmacao;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['confirmacoes'] });
       queryClient.invalidateQueries({ queryKey: ['confirmacoes-nao-houve'] });
       queryClient.invalidateQueries({ queryKey: ['alertas'] });
       toast.success('Confirmação registrada com sucesso!');
