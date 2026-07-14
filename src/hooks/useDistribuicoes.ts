@@ -154,23 +154,28 @@ export function useCreateDistribuicao() {
 
       if (itensError) throw itensError;
 
-      // Get client name for admin notification
-      const { data: clienteData } = await supabase
-        .from('clientes')
-        .select('razao_social')
-        .eq('id', distribuicao.cliente_id)
-        .single();
+      // Best-effort admin notification — never fail the main flow if this
+      // request is blocked (ad-blockers frequently block the word "notificacoes")
+      // or if the network drops.
+      try {
+        const { data: clienteData } = await supabase
+          .from('clientes')
+          .select('razao_social')
+          .eq('id', distribuicao.cliente_id)
+          .single();
 
-      const nomeEmpresa = clienteData?.razao_social || 'Empresa';
+        const nomeEmpresa = clienteData?.razao_social || 'Empresa';
 
-      // Create admin notification
-      await supabase.from('notificacoes').insert({
-        cliente_id: distribuicao.cliente_id,
-        distribuicao_id: data.id,
-        titulo: `Nova distribuição recebida: ${nomeEmpresa}`,
-        mensagem: `A empresa ${nomeEmpresa} enviou uma nova distribuição no valor de R$ ${distribuicao.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`,
-        is_admin_notificacao: true,
-      });
+        await supabase.from('notificacoes').insert({
+          cliente_id: distribuicao.cliente_id,
+          distribuicao_id: data.id,
+          titulo: `Nova distribuição recebida: ${nomeEmpresa}`,
+          mensagem: `A empresa ${nomeEmpresa} enviou uma nova distribuição no valor de R$ ${distribuicao.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`,
+          is_admin_notificacao: true,
+        });
+      } catch (notifErr) {
+        console.warn('Falha ao criar notificação (não crítico):', notifErr);
+      }
 
       return data as Distribuicao;
     },
