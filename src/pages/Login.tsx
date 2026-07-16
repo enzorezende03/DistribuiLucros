@@ -46,11 +46,17 @@ export default function LoginPage() {
   const [adminPassword, setAdminPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Forgot password
+  // Forgot password (cliente)
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotCnpj, setForgotCnpj] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+
+  // Forgot password (admin)
+  const [forgotAdminOpen, setForgotAdminOpen] = useState(false);
+  const [forgotAdminEmail, setForgotAdminEmail] = useState('');
+  const [forgotAdminLoading, setForgotAdminLoading] = useState(false);
+  const [forgotAdminSuccess, setForgotAdminSuccess] = useState<string | null>(null);
 
   const { t } = useLanguage();
   const navigate = useNavigate();
