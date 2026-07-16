@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.reset-password-cnpj]
 verify_jwt = false
+
+[functions.reset-password-admin]
+verify_jwt = false
