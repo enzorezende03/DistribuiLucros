@@ -446,8 +446,13 @@ export default function LoginPage() {
                   className="w-full"
                 >
                   Entendi, ir para o login
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
 
       <Dialog open={forgotAdminOpen} onOpenChange={(o) => (o ? setForgotAdminOpen(true) : closeForgotAdmin())}>
         <DialogContent className="sm:max-w-md">
