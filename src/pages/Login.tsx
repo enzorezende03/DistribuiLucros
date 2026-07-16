@@ -105,6 +105,50 @@ export default function LoginPage() {
     setForgotSuccess(null);
   };
 
+  const handleForgotAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = forgotAdminEmail.trim();
+    if (!email || !email.includes('@')) {
+      toast.error('Informe um e-mail válido');
+      return;
+    }
+    setForgotAdminLoading(true);
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const resp = await fetch(`${supabaseUrl}/functions/v1/reset-password-admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({ email }),
+      });
+      const data = await resp.json().catch(() => ({} as any));
+      if (!resp.ok || data?.success === false || data?.error) {
+        toast.error(data?.error || 'Não foi possível redefinir a senha');
+        return;
+      }
+      setForgotAdminSuccess(email);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro inesperado';
+      if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+        toast.error('Falha de conexão ao redefinir a senha. Verifique sua internet e tente novamente.');
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setForgotAdminLoading(false);
+    }
+  };
+
+  const closeForgotAdmin = () => {
+    setForgotAdminOpen(false);
+    setForgotAdminEmail('');
+    setForgotAdminSuccess(null);
+  };
+
   const handleClienteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
