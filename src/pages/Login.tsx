@@ -46,11 +46,17 @@ export default function LoginPage() {
   const [adminPassword, setAdminPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Forgot password
+  // Forgot password (cliente)
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotCnpj, setForgotCnpj] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+
+  // Forgot password (admin)
+  const [forgotAdminOpen, setForgotAdminOpen] = useState(false);
+  const [forgotAdminEmail, setForgotAdminEmail] = useState('');
+  const [forgotAdminLoading, setForgotAdminLoading] = useState(false);
+  const [forgotAdminSuccess, setForgotAdminSuccess] = useState<string | null>(null);
 
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -97,6 +103,50 @@ export default function LoginPage() {
     setForgotOpen(false);
     setForgotCnpj('');
     setForgotSuccess(null);
+  };
+
+  const handleForgotAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = forgotAdminEmail.trim();
+    if (!email || !email.includes('@')) {
+      toast.error('Informe um e-mail válido');
+      return;
+    }
+    setForgotAdminLoading(true);
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const resp = await fetch(`${supabaseUrl}/functions/v1/reset-password-admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({ email }),
+      });
+      const data = await resp.json().catch(() => ({} as any));
+      if (!resp.ok || data?.success === false || data?.error) {
+        toast.error(data?.error || 'Não foi possível redefinir a senha');
+        return;
+      }
+      setForgotAdminSuccess(email);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro inesperado';
+      if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+        toast.error('Falha de conexão ao redefinir a senha. Verifique sua internet e tente novamente.');
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setForgotAdminLoading(false);
+    }
+  };
+
+  const closeForgotAdmin = () => {
+    setForgotAdminOpen(false);
+    setForgotAdminEmail('');
+    setForgotAdminSuccess(null);
   };
 
   const handleClienteSubmit = async (e: React.FormEvent) => {
@@ -324,25 +374,7 @@ export default function LoginPage() {
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (!adminEmail) {
-                      toast.error('Informe seu e-mail acima para receber o link de redefinição.');
-                      return;
-                    }
-                    setLoading(true);
-                    try {
-                      const { error } = await supabase.auth.resetPasswordForEmail(adminEmail, {
-                        redirectTo: `${window.location.origin}/alterar-senha`,
-                      });
-                      if (error) {
-                        toast.error(`Não foi possível enviar o e-mail: ${error.message}`);
-                      } else {
-                        toast.success('Enviamos um e-mail com o link para redefinir sua senha.');
-                      }
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
+                  onClick={() => { setForgotAdminEmail(adminEmail); setForgotAdminOpen(true); }}
                   className="text-sm text-primary hover:underline transition-colors"
                   disabled={loading}
                 >
@@ -410,6 +442,73 @@ export default function LoginPage() {
                     setPrimeiroAcesso(true);
                     setClientePassword('');
                     closeForgot();
+                  }}
+                  className="w-full"
+                >
+                  Entendi, ir para o login
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+
+      <Dialog open={forgotAdminOpen} onOpenChange={(o) => (o ? setForgotAdminOpen(true) : closeForgotAdmin())}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Esqueci minha senha</DialogTitle>
+            <DialogDescription>
+              {forgotAdminSuccess
+                ? 'Sua senha foi redefinida com sucesso.'
+                : 'Informe seu e-mail administrativo. Vamos redefinir sua senha para a padrão para que você possa entrar e criar uma nova.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!forgotAdminSuccess ? (
+            <form onSubmit={handleForgotAdminSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-admin-email">E-mail</Label>
+                <Input
+                  id="forgot-admin-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={forgotAdminEmail}
+                  onChange={(e) => setForgotAdminEmail(e.target.value)}
+                  required
+                  disabled={forgotAdminLoading}
+                  autoFocus
+                  className="h-11"
+                />
+              </div>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="outline" onClick={closeForgotAdmin} disabled={forgotAdminLoading}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={forgotAdminLoading}>
+                  {forgotAdminLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Redefinir senha
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border bg-muted/40 p-4 text-sm space-y-2">
+                <p className="font-medium text-foreground">{forgotAdminSuccess}</p>
+                <p className="text-muted-foreground">
+                  Sua senha foi redefinida para a senha padrão{' '}
+                  <span className="font-mono font-semibold text-foreground">2mAdmin</span>.
+                </p>
+                <p className="text-muted-foreground">
+                  Entre com seu e-mail e essa senha — você será solicitado a criar uma nova senha em seguida.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    setAdminEmail(forgotAdminSuccess || '');
+                    setAdminPassword('');
+                    closeForgotAdmin();
                   }}
                   className="w-full"
                 >
