@@ -446,6 +446,68 @@ export default function LoginPage() {
                   className="w-full"
                 >
                   Entendi, ir para o login
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={forgotAdminOpen} onOpenChange={(o) => (o ? setForgotAdminOpen(true) : closeForgotAdmin())}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Esqueci minha senha</DialogTitle>
+            <DialogDescription>
+              {forgotAdminSuccess
+                ? 'Sua senha foi redefinida com sucesso.'
+                : 'Informe seu e-mail administrativo. Vamos redefinir sua senha para a padrão para que você possa entrar e criar uma nova.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!forgotAdminSuccess ? (
+            <form onSubmit={handleForgotAdminSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-admin-email">E-mail</Label>
+                <Input
+                  id="forgot-admin-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={forgotAdminEmail}
+                  onChange={(e) => setForgotAdminEmail(e.target.value)}
+                  required
+                  disabled={forgotAdminLoading}
+                  autoFocus
+                  className="h-11"
+                />
+              </div>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="outline" onClick={closeForgotAdmin} disabled={forgotAdminLoading}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={forgotAdminLoading}>
+                  {forgotAdminLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Redefinir senha
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-md border border-border bg-muted/40 p-4 text-sm space-y-2">
+                <p className="font-medium text-foreground">{forgotAdminSuccess}</p>
+                <p className="text-muted-foreground">
+                  Sua senha foi redefinida para a senha padrão{' '}
+                  <span className="font-mono font-semibold text-foreground">2mAdmin</span>.
+                </p>
+                <p className="text-muted-foreground">
+                  Entre com seu e-mail e essa senha — você será solicitado a criar uma nova senha em seguida.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    setAdminEmail(forgotAdminSuccess || '');
+                    setAdminPassword('');
+                    closeForgotAdmin();
+                  }}
+                  className="w-full"
+                >
+                  Entendi, ir para o login
                 </Button>
               </DialogFooter>
             </div>
