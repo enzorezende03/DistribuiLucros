@@ -374,25 +374,7 @@ export default function LoginPage() {
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (!adminEmail) {
-                      toast.error('Informe seu e-mail acima para receber o link de redefinição.');
-                      return;
-                    }
-                    setLoading(true);
-                    try {
-                      const { error } = await supabase.auth.resetPasswordForEmail(adminEmail, {
-                        redirectTo: `${window.location.origin}/alterar-senha`,
-                      });
-                      if (error) {
-                        toast.error(`Não foi possível enviar o e-mail: ${error.message}`);
-                      } else {
-                        toast.success('Enviamos um e-mail com o link para redefinir sua senha.');
-                      }
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
+                  onClick={() => { setForgotAdminEmail(adminEmail); setForgotAdminOpen(true); }}
                   className="text-sm text-primary hover:underline transition-colors"
                   disabled={loading}
                 >
