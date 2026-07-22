@@ -10,10 +10,30 @@ interface ExportParams {
   cnpj: string;
   saldoAtual: number;
   movimentacoes: MovimentacaoLucro[];
+  incluirProjecao?: boolean;
 }
 
 function getMovDate(mov: MovimentacaoLucro): string {
   return mov.distribuicao?.data_distribuicao || mov.created_at;
+}
+
+function computeProjecao(movimentacoes: MovimentacaoLucro[], saldoAtual: number) {
+  const abatimentos = movimentacoes.filter((m) => m.tipo === 'SAIDA' && m.distribuicao_id);
+  if (abatimentos.length === 0 || saldoAtual <= 0) return null;
+  const porMes = new Map<string, number>();
+  abatimentos.forEach((m) => {
+    const key = m.competencia || (m.distribuicao?.data_distribuicao || m.created_at).slice(0, 7);
+    porMes.set(key, (porMes.get(key) || 0) + Number(m.valor));
+  });
+  const valores = Array.from(porMes.values());
+  const mediaMensal = valores.reduce((a, b) => a + b, 0) / valores.length;
+  if (mediaMensal <= 0) return null;
+  const mesesRestantes = saldoAtual / mediaMensal;
+  const mesesInt = Math.floor(mesesRestantes);
+  const dataEsgotamento = new Date();
+  dataEsgotamento.setMonth(dataEsgotamento.getMonth() + Math.ceil(mesesRestantes));
+  const mesAno = dataEsgotamento.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return { mediaMensal, mesesQtd: valores.length, mesesRestantes, mesesInt, mesAno };
 }
 
 async function loadLogoDataUrl(): Promise<string> {
