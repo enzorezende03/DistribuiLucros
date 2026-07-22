@@ -26,7 +26,7 @@ export function useMovimentacoesLucros(clienteId: string | null) {
       if (!clienteId) return [];
       const { data, error } = await supabase
         .from('movimentacoes_lucros')
-        .select('*, distribuicao:distribuicoes(status)')
+        .select('*, distribuicao:distribuicoes(status, data_distribuicao)')
         .eq('cliente_id', clienteId)
         .order('created_at', { ascending: true });
 
