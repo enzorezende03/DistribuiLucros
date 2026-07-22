@@ -1,19 +1,24 @@
+import { useState } from 'react';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useMovimentacoesLucros } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
-import { ArrowDownCircle, ArrowUpCircle, Loader2, TrendingUp, FileText } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Loader2, TrendingUp, FileText, FileDown, FileSpreadsheet } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { exportLucrosAcumuladosPDF, exportLucrosAcumuladosExcel } from '@/lib/exportLucrosAcumulados';
 
 export default function LucrosAcumuladosPage() {
   const navigate = useNavigate();
   const { clienteId } = useAuth();
   const { data: cliente, isLoading: loadingCliente } = useCliente(clienteId);
   const { data: movimentacoes, isLoading: loadingMov } = useMovimentacoesLucros(clienteId);
+  const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
 
   if (loadingCliente) {
     return (
@@ -29,17 +34,60 @@ export default function LucrosAcumuladosPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const handleExport = async (kind: 'pdf' | 'excel') => {
+    if (!cliente) return;
+    setExporting(kind);
+    try {
+      const params = {
+        razaoSocial: cliente.razao_social,
+        cnpj: cliente.cnpj,
+        saldoAtual: Number(cliente.saldo_lucros_acumulados),
+        movimentacoes: movimentacoes || [],
+      };
+      if (kind === 'pdf') await exportLucrosAcumuladosPDF(params);
+      else await exportLucrosAcumuladosExcel(params);
+      toast.success('Relatório gerado!');
+    } catch (err: any) {
+      toast.error('Erro ao gerar relatório: ' + (err?.message || 'desconhecido'));
+    } finally {
+      setExporting(null);
+    }
+  };
+
   return (
     <SidebarLayout>
       <div className="p-4 md:p-6 space-y-6 max-w-full overflow-x-hidden">
-        <div className="page-header">
+        <div className="page-header flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Lucros Acumulados</h1>
             <p className="text-muted-foreground">
               Controle do saldo de lucros acumulados com Ata Registrada
             </p>
           </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExport('pdf')}
+              disabled={exporting !== null || loadingMov}
+              className="gap-2"
+            >
+              {exporting === 'pdf' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+              PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExport('excel')}
+              disabled={exporting !== null || loadingMov}
+              className="gap-2"
+            >
+              {exporting === 'excel' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+              Excel
+            </Button>
+          </div>
         </div>
+
 
         {/* Balance Card */}
         <Card className="border-emerald-200 dark:border-emerald-800">
