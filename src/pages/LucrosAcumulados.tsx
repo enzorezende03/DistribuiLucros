@@ -44,6 +44,7 @@ export default function LucrosAcumuladosPage() {
         cnpj: cliente.cnpj,
         saldoAtual: Number(cliente.saldo_lucros_acumulados),
         movimentacoes: movimentacoes || [],
+        incluirProjecao,
       };
       if (kind === 'pdf') await exportLucrosAcumuladosPDF(params);
       else await exportLucrosAcumuladosExcel(params);
