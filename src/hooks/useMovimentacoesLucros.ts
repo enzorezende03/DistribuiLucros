@@ -68,7 +68,7 @@ export function useMovimentacoesLucros(clienteId: string | null) {
       });
 
 
-      // Display: "Saldo inicial" pinned at top, then movements newest first
+      // Display: "Saldo inicial" pinned at top, then movements chronologically
       const result: MovimentacaoLucro[] = [];
       if (saldoInicial) {
         result.push({
@@ -77,7 +77,7 @@ export function useMovimentacoesLucros(clienteId: string | null) {
           saldo_posterior: valorInicial,
         });
       }
-      result.push(...recomputed.reverse());
+      result.push(...recomputed);
       return result;
     },
     enabled: !!clienteId,
