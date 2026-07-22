@@ -67,6 +67,8 @@ export function useCliente(id: string | null) {
       return data as Cliente;
     },
     enabled: !!id,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
