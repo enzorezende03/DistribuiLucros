@@ -81,6 +81,8 @@ export function useMovimentacoesLucros(clienteId: string | null) {
       return result;
     },
     enabled: !!clienteId,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
