@@ -1,13 +1,17 @@
+import { useState } from 'react';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCliente } from '@/hooks/useClientes';
 import { useMovimentacoesLucros } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
-import { ArrowDownCircle, ArrowUpCircle, Loader2, TrendingUp, FileText } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Loader2, TrendingUp, FileText, FileDown, FileSpreadsheet } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { exportLucrosAcumuladosPDF, exportLucrosAcumuladosExcel } from '@/lib/exportLucrosAcumulados';
 
 export default function LucrosAcumuladosPage() {
   const navigate = useNavigate();
