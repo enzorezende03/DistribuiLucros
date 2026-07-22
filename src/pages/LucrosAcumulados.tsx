@@ -93,7 +93,7 @@ export default function LucrosAcumuladosPage() {
                         onClick={() => mov.distribuicao_id && navigate(`/distribuicoes/editar/${mov.distribuicao_id}`)}
                       >
                         <TableCell className="whitespace-nowrap">
-                          {formatDate(mov.created_at)}
+                          {formatDate(mov.distribuicao?.data_distribuicao || mov.created_at)}
                         </TableCell>
                         <TableCell>
                           {mov.tipo === 'ENTRADA' ? (
@@ -108,7 +108,7 @@ export default function LucrosAcumuladosPage() {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate">
+                        <TableCell className="whitespace-normal break-words">
                           {mov.descricao}
                         </TableCell>
                         <TableCell className={`text-right font-medium ${mov.tipo === 'ENTRADA' ? 'text-emerald-600' : 'text-red-600'}`}>
