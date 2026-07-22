@@ -15,6 +15,7 @@ export interface MovimentacaoLucro {
   created_at: string;
   distribuicao?: {
     status: string;
+    data_distribuicao: string | null;
   } | null;
 }
 
