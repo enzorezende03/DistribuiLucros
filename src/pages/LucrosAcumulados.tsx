@@ -19,6 +19,7 @@ export default function LucrosAcumuladosPage() {
   const { data: cliente, isLoading: loadingCliente } = useCliente(clienteId);
   const { data: movimentacoes, isLoading: loadingMov } = useMovimentacoesLucros(clienteId);
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
+  const [incluirProjecao, setIncluirProjecao] = useState(true);
 
   if (loadingCliente) {
     return (
@@ -43,6 +44,7 @@ export default function LucrosAcumuladosPage() {
         cnpj: cliente.cnpj,
         saldoAtual: Number(cliente.saldo_lucros_acumulados),
         movimentacoes: movimentacoes || [],
+        incluirProjecao,
       };
       if (kind === 'pdf') await exportLucrosAcumuladosPDF(params);
       else await exportLucrosAcumuladosExcel(params);
@@ -64,7 +66,16 @@ export default function LucrosAcumuladosPage() {
               Controle do saldo de lucros acumulados com Ata Registrada
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-input accent-emerald-600"
+                checked={incluirProjecao}
+                onChange={(e) => setIncluirProjecao(e.target.checked)}
+              />
+              Incluir projeção no relatório
+            </label>
             <Button
               variant="outline"
               size="sm"

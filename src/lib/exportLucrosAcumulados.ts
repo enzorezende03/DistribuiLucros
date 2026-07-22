@@ -10,10 +10,30 @@ interface ExportParams {
   cnpj: string;
   saldoAtual: number;
   movimentacoes: MovimentacaoLucro[];
+  incluirProjecao?: boolean;
 }
 
 function getMovDate(mov: MovimentacaoLucro): string {
   return mov.distribuicao?.data_distribuicao || mov.created_at;
+}
+
+function computeProjecao(movimentacoes: MovimentacaoLucro[], saldoAtual: number) {
+  const abatimentos = movimentacoes.filter((m) => m.tipo === 'SAIDA' && m.distribuicao_id);
+  if (abatimentos.length === 0 || saldoAtual <= 0) return null;
+  const porMes = new Map<string, number>();
+  abatimentos.forEach((m) => {
+    const key = m.competencia || (m.distribuicao?.data_distribuicao || m.created_at).slice(0, 7);
+    porMes.set(key, (porMes.get(key) || 0) + Number(m.valor));
+  });
+  const valores = Array.from(porMes.values());
+  const mediaMensal = valores.reduce((a, b) => a + b, 0) / valores.length;
+  if (mediaMensal <= 0) return null;
+  const mesesRestantes = saldoAtual / mediaMensal;
+  const mesesInt = Math.floor(mesesRestantes);
+  const dataEsgotamento = new Date();
+  dataEsgotamento.setMonth(dataEsgotamento.getMonth() + Math.ceil(mesesRestantes));
+  const mesAno = dataEsgotamento.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return { mediaMensal, mesesQtd: valores.length, mesesRestantes, mesesInt, mesAno };
 }
 
 async function loadLogoDataUrl(): Promise<string> {
@@ -27,7 +47,7 @@ async function loadLogoDataUrl(): Promise<string> {
 }
 
 export async function exportLucrosAcumuladosPDF(params: ExportParams) {
-  const { razaoSocial, cnpj, saldoAtual, movimentacoes } = params;
+  const { razaoSocial, cnpj, saldoAtual, movimentacoes, incluirProjecao } = params;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -72,6 +92,64 @@ export async function exportLucrosAcumuladosPDF(params: ExportParams) {
   doc.setTextColor(0);
   doc.setFont('helvetica', 'normal');
 
+  let tableStartY = 200;
+
+  // Projection box (optional)
+  const projecao = incluirProjecao ? computeProjecao(movimentacoes, saldoAtual) : null;
+  if (incluirProjecao) {
+    const boxY = 195;
+    const boxH = 80;
+    doc.setDrawColor(245, 158, 11);
+    doc.setFillColor(255, 251, 235);
+    doc.roundedRect(40, boxY, pageWidth - 80, boxH, 6, 6, 'FD');
+    doc.setFontSize(10);
+    doc.setTextColor(120, 90, 10);
+    doc.text('Projeção de Esgotamento do Saldo', 55, boxY + 18);
+    doc.setTextColor(0);
+    if (projecao) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(90);
+      const col1 = 55;
+      const col2 = 55 + (pageWidth - 80) / 3;
+      const col3 = 55 + 2 * (pageWidth - 80) / 3;
+      const labelY = boxY + 36;
+      const valueY = boxY + 54;
+      doc.text('Média mensal de abatimento', col1, labelY);
+      doc.text('Meses estimados até esgotar', col2, labelY);
+      doc.text('Previsão de esgotamento', col3, labelY);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(180, 83, 9);
+      doc.text(formatCurrency(projecao.mediaMensal), col1, valueY);
+      const mesesLabel = `${projecao.mesesInt} ${projecao.mesesInt === 1 ? 'mês' : 'meses'}${projecao.mesesRestantes - projecao.mesesInt > 0.1 ? ' aprox.' : ''}`;
+      doc.text(mesesLabel, col2, valueY);
+      doc.text(projecao.mesAno.charAt(0).toUpperCase() + projecao.mesAno.slice(1), col3, valueY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text(
+        `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. A partir do esgotamento, distribuições acima de R$ 50.000/sócio no mês passarão a ter 10% de IR sobre o excedente.`,
+        55,
+        boxY + boxH - 8,
+        { maxWidth: pageWidth - 110 }
+      );
+    } else {
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      doc.text(
+        saldoAtual <= 0
+          ? 'Saldo já esgotado. As próximas distribuições acima de R$ 50.000/sócio terão incidência de 10% de IR.'
+          : 'Ainda não há histórico de abatimentos suficiente para projetar o esgotamento do saldo.',
+        55,
+        boxY + 40,
+        { maxWidth: pageWidth - 110 }
+      );
+    }
+    doc.setTextColor(0);
+    tableStartY = boxY + boxH + 15;
+  }
+
   // Table
   const rows = movimentacoes.map((mov) => [
     formatDate(getMovDate(mov)),
@@ -83,7 +161,7 @@ export async function exportLucrosAcumuladosPDF(params: ExportParams) {
   ]);
 
   autoTable(doc, {
-    startY: 200,
+    startY: tableStartY,
     head: [['Data', 'Tipo', 'Descrição', 'Valor', 'Saldo Anterior', 'Saldo Posterior']],
     body: rows,
     styles: { fontSize: 9, cellPadding: 6 },
@@ -123,7 +201,7 @@ export async function exportLucrosAcumuladosPDF(params: ExportParams) {
 }
 
 export async function exportLucrosAcumuladosExcel(params: ExportParams) {
-  const { razaoSocial, cnpj, saldoAtual, movimentacoes } = params;
+  const { razaoSocial, cnpj, saldoAtual, movimentacoes, incluirProjecao } = params;
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Lucros Acumulados');
 
@@ -163,8 +241,46 @@ export async function exportLucrosAcumuladosExcel(params: ExportParams) {
   ws.getCell('C7').numFmt = '"R$" #,##0.00';
   ws.getCell('C7').font = { bold: true, size: 12, color: { argb: 'FF059669' } };
 
+  let headerRow = 9;
+
+  // Projection block (optional)
+  if (incluirProjecao) {
+    const projecao = computeProjecao(movimentacoes, saldoAtual);
+    ws.getCell(`A${headerRow}`).value = 'Projeção de Esgotamento do Saldo';
+    ws.getCell(`A${headerRow}`).font = { bold: true, size: 12, color: { argb: 'FFB45309' } };
+    ws.mergeCells(`A${headerRow}:F${headerRow}`);
+    headerRow += 1;
+    if (projecao) {
+      ws.getCell(`A${headerRow}`).value = 'Média mensal de abatimento:';
+      ws.getCell(`A${headerRow}`).font = { bold: true };
+      ws.getCell(`C${headerRow}`).value = projecao.mediaMensal;
+      ws.getCell(`C${headerRow}`).numFmt = '"R$" #,##0.00';
+      ws.getCell(`C${headerRow}`).font = { bold: true, color: { argb: 'FFB45309' } };
+      headerRow += 1;
+      ws.getCell(`A${headerRow}`).value = 'Meses estimados até esgotar:';
+      ws.getCell(`A${headerRow}`).font = { bold: true };
+      ws.getCell(`C${headerRow}`).value = `${projecao.mesesInt} ${projecao.mesesInt === 1 ? 'mês' : 'meses'}${projecao.mesesRestantes - projecao.mesesInt > 0.1 ? ' aprox.' : ''}`;
+      headerRow += 1;
+      ws.getCell(`A${headerRow}`).value = 'Previsão de esgotamento:';
+      ws.getCell(`A${headerRow}`).font = { bold: true };
+      ws.getCell(`C${headerRow}`).value = projecao.mesAno.charAt(0).toUpperCase() + projecao.mesAno.slice(1);
+      headerRow += 1;
+      ws.getCell(`A${headerRow}`).value = `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. Após esgotamento: 10% de IR sobre o excedente.`;
+      ws.getCell(`A${headerRow}`).font = { italic: true, color: { argb: 'FF666666' }, size: 9 };
+      ws.mergeCells(`A${headerRow}:F${headerRow}`);
+      headerRow += 1;
+    } else {
+      ws.getCell(`A${headerRow}`).value = saldoAtual <= 0
+        ? 'Saldo já esgotado. Próximas distribuições acima de R$ 50.000/sócio terão 10% de IR.'
+        : 'Ainda não há histórico suficiente para projetar o esgotamento do saldo.';
+      ws.getCell(`A${headerRow}`).font = { italic: true, color: { argb: 'FF666666' } };
+      ws.mergeCells(`A${headerRow}:F${headerRow}`);
+      headerRow += 1;
+    }
+    headerRow += 1;
+  }
+
   // Table header
-  const headerRow = 9;
   const headers = ['Data', 'Tipo', 'Descrição', 'Valor', 'Saldo Anterior', 'Saldo Posterior'];
   headers.forEach((h, i) => {
     const cell = ws.getCell(headerRow, i + 1);
