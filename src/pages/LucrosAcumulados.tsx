@@ -107,6 +107,87 @@ export default function LucrosAcumuladosPage() {
           </CardContent>
         </Card>
 
+        {/* Projection Card */}
+        {(() => {
+          const abatimentos = (movimentacoes || []).filter(
+            (m) => m.tipo === 'SAIDA' && m.distribuicao_id
+          );
+          const saldo = Number(cliente.saldo_lucros_acumulados) || 0;
+          if (abatimentos.length === 0 || saldo <= 0) {
+            return (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Projeção de Esgotamento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    {saldo <= 0
+                      ? 'Saldo já esgotado. As próximas distribuições acima de R$ 50.000/sócio terão incidência de 10% de IR.'
+                      : 'Ainda não há histórico de abatimentos suficiente para projetar o esgotamento do saldo.'}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          // Group abatements by competencia (month) to get true monthly average
+          const porMes = new Map<string, number>();
+          abatimentos.forEach((m) => {
+            const key = m.competencia || (m.distribuicao?.data_distribuicao || m.created_at).slice(0, 7);
+            porMes.set(key, (porMes.get(key) || 0) + Number(m.valor));
+          });
+          const valores = Array.from(porMes.values());
+          const mediaMensal = valores.reduce((a, b) => a + b, 0) / valores.length;
+          const mesesRestantes = mediaMensal > 0 ? saldo / mediaMensal : 0;
+          const mesesInt = Math.floor(mesesRestantes);
+          const dataEsgotamento = new Date();
+          dataEsgotamento.setMonth(dataEsgotamento.getMonth() + Math.ceil(mesesRestantes));
+          const mesAno = dataEsgotamento.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+          return (
+            <Card className="border-amber-200 dark:border-amber-800">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Projeção de Esgotamento do Saldo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Média mensal de abatimento</p>
+                    <p className="text-xl font-bold text-amber-700 dark:text-amber-400">
+                      {formatCurrency(mediaMensal)}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      baseada em {valores.length} {valores.length === 1 ? 'mês' : 'meses'} com excedente
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Meses estimados até esgotar</p>
+                    <p className="text-xl font-bold text-amber-700 dark:text-amber-400">
+                      {mesesInt} {mesesInt === 1 ? 'mês' : 'meses'}
+                      {mesesRestantes - mesesInt > 0.1 && ' aprox.'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Previsão de esgotamento</p>
+                    <p className="text-xl font-bold text-amber-700 dark:text-amber-400 capitalize">
+                      {mesAno}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground border-t pt-3">
+                  A partir do esgotamento, distribuições acima de R$ 50.000,00 por sócio no mês passarão a ter incidência de <strong>10% de IR</strong> sobre o excedente.
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
         {/* Movement History */}
         <Card>
           <CardHeader>
