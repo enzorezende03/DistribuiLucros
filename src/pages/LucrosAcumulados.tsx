@@ -19,6 +19,7 @@ export default function LucrosAcumuladosPage() {
   const { data: cliente, isLoading: loadingCliente } = useCliente(clienteId);
   const { data: movimentacoes, isLoading: loadingMov } = useMovimentacoesLucros(clienteId);
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
+  const [incluirProjecao, setIncluirProjecao] = useState(true);
 
   if (loadingCliente) {
     return (
