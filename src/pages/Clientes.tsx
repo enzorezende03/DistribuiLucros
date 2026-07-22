@@ -1140,7 +1140,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             valor: Math.abs(diff),
             saldo_anterior: oldSaldo,
             saldo_posterior: newSaldo,
-            descricao: diff > 0 ? 'Ajuste de saldo - Entrada manual' : 'Ajuste de saldo - Saída manual',
+            descricao: diff > 0 ? 'Saldo inicial' : 'Ajuste de saldo - Saída manual',
           });
         } catch (e) {
           console.error('Erro ao registrar movimentação:', e);
