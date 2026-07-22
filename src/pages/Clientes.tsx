@@ -1380,7 +1380,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             {formData.ata_registrada && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="saldo_lucros">Saldo de Lucros Acumulados (R$)</Label>
+                  <Label htmlFor="saldo_lucros">Saldo Inicial de Lucros Acumulados (R$)</Label>
                   <Input
                     id="saldo_lucros"
                     type="number"
@@ -1392,8 +1392,9 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     placeholder="0,00"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Saldo disponível para distribuição sem incidência de IR. Este valor será controlado a cada distribuição registrada.
+                    Informe o saldo total inicial disponível (antes de qualquer abatimento). Ele aparecerá fixo no topo do extrato e será reduzido conforme as distribuições aprovadas.
                   </p>
+
                 </div>
                 <div className="space-y-2">
                   <Label>Anexar Ata</Label>
