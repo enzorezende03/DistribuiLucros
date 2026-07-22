@@ -141,7 +141,9 @@ export default function LucrosAcumuladosPage() {
                         onClick={() => mov.distribuicao_id && navigate(`/distribuicoes/editar/${mov.distribuicao_id}`)}
                       >
                         <TableCell className="whitespace-nowrap">
-                          {formatDate(mov.distribuicao?.data_distribuicao || mov.created_at)}
+                          {mov.distribuicao_id
+                            ? formatDate(mov.distribuicao?.data_distribuicao || mov.created_at)
+                            : <span className="text-muted-foreground">—</span>}
                         </TableCell>
                         <TableCell>
                           {mov.tipo === 'ENTRADA' ? (
