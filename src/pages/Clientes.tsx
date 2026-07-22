@@ -1037,19 +1037,37 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     if (open && cliente) {
-      setFormData({
-        razao_social: cliente.razao_social,
-        cnpj: formatCNPJ(cliente.cnpj),
-        email_responsavel: cliente.email_responsavel,
-        email_copia: cliente.email_copia || '',
-        telefone: cliente.telefone || '',
-        status: cliente.status,
-        tag: cliente.tag || '2M_CONTABILIDADE',
-        ata_registrada: cliente.ata_registrada || false,
-        saldo_lucros_acumulados: cliente.saldo_lucros_acumulados || 0,
-      });
+      (async () => {
+        // Load "Saldo inicial" = current saldo + already-abated amounts (to get original pool)
+        let saldoInicial = Number(cliente.saldo_lucros_acumulados) || 0;
+        try {
+          const { data: abatimentos } = await supabase
+            .from('movimentacoes_lucros')
+            .select('valor, distribuicao:distribuicoes(status)')
+            .eq('cliente_id', cliente.id)
+            .eq('tipo', 'SAIDA')
+            .not('distribuicao_id', 'is', null);
+          const jaAbatido = (abatimentos || [])
+            .filter((m: any) => m.distribuicao && m.distribuicao.status !== 'CANCELADA')
+            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
+          saldoInicial = (Number(cliente.saldo_lucros_acumulados) || 0) + jaAbatido;
+        } catch (e) {
+          console.error('Erro ao calcular saldo inicial:', e);
+        }
+        setFormData({
+          razao_social: cliente.razao_social,
+          cnpj: formatCNPJ(cliente.cnpj),
+          email_responsavel: cliente.email_responsavel,
+          email_copia: cliente.email_copia || '',
+          telefone: cliente.telefone || '',
+          status: cliente.status,
+          tag: cliente.tag || '2M_CONTABILIDADE',
+          ata_registrada: cliente.ata_registrada || false,
+          saldo_lucros_acumulados: saldoInicial,
+        });
+      })();
     } else if (open) {
       setFormData({
         razao_social: '',
@@ -1064,21 +1082,9 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       });
       setSocios([{ nome: '', cpf: '', percentual: '' }]);
     }
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, cliente?.id]);
 
-  if (open && cliente && formData.razao_social !== cliente.razao_social) {
-    setFormData({
-      razao_social: cliente.razao_social,
-      cnpj: formatCNPJ(cliente.cnpj),
-      email_responsavel: cliente.email_responsavel,
-      email_copia: cliente.email_copia || '',
-      telefone: cliente.telefone || '',
-      status: cliente.status,
-      tag: cliente.tag || '2M_CONTABILIDADE',
-      ata_registrada: cliente.ata_registrada || false,
-      saldo_lucros_acumulados: cliente.saldo_lucros_acumulados || 0,
-    });
-  }
 
   const addSocio = () => {
     setSocios([...socios, { nome: '', cpf: '', percentual: '' }]);
@@ -1374,7 +1380,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             {formData.ata_registrada && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="saldo_lucros">Saldo de Lucros Acumulados (R$)</Label>
+                  <Label htmlFor="saldo_lucros">Saldo Inicial de Lucros Acumulados (R$)</Label>
                   <Input
                     id="saldo_lucros"
                     type="number"
@@ -1386,8 +1392,9 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     placeholder="0,00"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Saldo disponível para distribuição sem incidência de IR. Este valor será controlado a cada distribuição registrada.
+                    Informe o saldo total inicial disponível (antes de qualquer abatimento). Ele aparecerá fixo no topo do extrato e será reduzido conforme as distribuições aprovadas.
                   </p>
+
                 </div>
                 <div className="space-y-2">
                   <Label>Anexar Ata</Label>
