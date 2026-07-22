@@ -27,13 +27,35 @@ export function useMovimentacoesLucros(clienteId: string | null) {
       const { data, error } = await supabase
         .from('movimentacoes_lucros')
         .select('*, distribuicao:distribuicoes(status, data_distribuicao)')
-        .eq('cliente_id', clienteId)
-        .order('created_at', { ascending: true });
+        .eq('cliente_id', clienteId);
 
       if (error) throw error;
-      return (data as MovimentacaoLucro[]).filter(
+      const filtered = (data as MovimentacaoLucro[]).filter(
         (mov) => !mov.distribuicao || mov.distribuicao.status !== 'CANCELADA'
       );
+
+      // Sort chronologically by effective date (data_distribuicao when available, else created_at)
+      const getDate = (m: MovimentacaoLucro) =>
+        m.distribuicao?.data_distribuicao || m.created_at;
+      const sorted = [...filtered].sort((a, b) => {
+        const da = getDate(a);
+        const db = getDate(b);
+        if (da === db) return a.created_at.localeCompare(b.created_at);
+        return da.localeCompare(db);
+      });
+
+      // Recompute running balance in chronological order so the last row
+      // matches the client's current accumulated balance.
+      let saldo = 0;
+      const recomputed = sorted.map((m) => {
+        const saldoAnterior = saldo;
+        const delta = m.tipo === 'ENTRADA' ? Number(m.valor) : -Number(m.valor);
+        saldo = Math.max(saldoAnterior + delta, 0);
+        return { ...m, saldo_anterior: saldoAnterior, saldo_posterior: saldo };
+      });
+
+      // Display most recent first
+      return recomputed.reverse();
     },
     enabled: !!clienteId,
   });
