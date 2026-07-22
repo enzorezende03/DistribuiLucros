@@ -1191,6 +1191,23 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         }
       }
 
+      // Register initial balance movement for new client with ata registrada
+      if (createdCliente?.id && data.ata_registrada && Number(data.saldo_lucros_acumulados) > 0) {
+        try {
+          const valorInicial = Number(data.saldo_lucros_acumulados);
+          await supabase.from('movimentacoes_lucros').insert({
+            cliente_id: createdCliente.id,
+            tipo: 'ENTRADA',
+            valor: valorInicial,
+            saldo_anterior: 0,
+            saldo_posterior: valorInicial,
+            descricao: 'Saldo inicial',
+          });
+        } catch (e) {
+          console.error('Erro ao registrar saldo inicial:', e);
+        }
+      }
+
       if (createdCliente?.id) {
         try {
           const cnpjDigits = unmask(formData.cnpj);
