@@ -63,9 +63,10 @@ export function useMovimentacoesLucros(clienteId: string | null) {
       const recomputed = chronological.map((m) => {
         const saldoAnterior = saldo;
         const delta = m.tipo === 'ENTRADA' ? Number(m.valor) : -Number(m.valor);
-        saldo = Math.max(saldoAnterior + delta, 0);
+        saldo = saldoAnterior + delta;
         return { ...m, saldo_anterior: saldoAnterior, saldo_posterior: saldo };
       });
+
 
       // Display: "Saldo inicial" pinned at top, then movements newest first
       const result: MovimentacaoLucro[] = [];
