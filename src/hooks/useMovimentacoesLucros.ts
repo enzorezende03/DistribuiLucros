@@ -34,28 +34,50 @@ export function useMovimentacoesLucros(clienteId: string | null) {
         (mov) => !mov.distribuicao || mov.distribuicao.status !== 'CANCELADA'
       );
 
-      // Sort chronologically by effective date (data_distribuicao when available, else created_at)
+      // Separate the "Saldo inicial" entry (pinned at top, no date) from the rest
+      const initials = filtered.filter(
+        (m) => !m.distribuicao_id && m.tipo === 'ENTRADA'
+      );
+      const movements = filtered.filter(
+        (m) => !(!m.distribuicao_id && m.tipo === 'ENTRADA')
+      );
+
+      // Keep only the most recent "Saldo inicial" as the current one
+      const saldoInicial = initials.sort((a, b) =>
+        b.created_at.localeCompare(a.created_at)
+      )[0];
+      const valorInicial = saldoInicial ? Number(saldoInicial.valor) : 0;
+
+      // Sort movements chronologically by effective date (distribution date or created_at)
       const getDate = (m: MovimentacaoLucro) =>
         m.distribuicao?.data_distribuicao || m.created_at;
-      const sorted = [...filtered].sort((a, b) => {
+      const chronological = [...movements].sort((a, b) => {
         const da = getDate(a);
         const db = getDate(b);
         if (da === db) return a.created_at.localeCompare(b.created_at);
         return da.localeCompare(db);
       });
 
-      // Recompute running balance in chronological order so the last row
-      // matches the client's current accumulated balance.
-      let saldo = 0;
-      const recomputed = sorted.map((m) => {
+      // Running balance starts from initial balance and is abated by each movement
+      let saldo = valorInicial;
+      const recomputed = chronological.map((m) => {
         const saldoAnterior = saldo;
         const delta = m.tipo === 'ENTRADA' ? Number(m.valor) : -Number(m.valor);
         saldo = Math.max(saldoAnterior + delta, 0);
         return { ...m, saldo_anterior: saldoAnterior, saldo_posterior: saldo };
       });
 
-      // Display most recent first
-      return recomputed.reverse();
+      // Display: "Saldo inicial" pinned at top, then movements newest first
+      const result: MovimentacaoLucro[] = [];
+      if (saldoInicial) {
+        result.push({
+          ...saldoInicial,
+          saldo_anterior: 0,
+          saldo_posterior: valorInicial,
+        });
+      }
+      result.push(...recomputed.reverse());
+      return result;
     },
     enabled: !!clienteId,
   });
