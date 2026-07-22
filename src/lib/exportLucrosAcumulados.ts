@@ -47,7 +47,7 @@ async function loadLogoDataUrl(): Promise<string> {
 }
 
 export async function exportLucrosAcumuladosPDF(params: ExportParams) {
-  const { razaoSocial, cnpj, saldoAtual, movimentacoes } = params;
+  const { razaoSocial, cnpj, saldoAtual, movimentacoes, incluirProjecao } = params;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
 
