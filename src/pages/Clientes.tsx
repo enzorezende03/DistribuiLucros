@@ -1127,23 +1127,48 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         (data as any).ata_url = filePath;
       }
 
-      const oldSaldo = Number(cliente.saldo_lucros_acumulados) || 0;
-      const newSaldo = Number(data.saldo_lucros_acumulados) || 0;
+      const newSaldoInicial = Number(data.saldo_lucros_acumulados) || 0;
       await updateCliente.mutateAsync({ id: cliente.id, ...data });
 
-      if (data.ata_registrada && newSaldo !== oldSaldo) {
-        const diff = newSaldo - oldSaldo;
+      if (data.ata_registrada) {
         try {
-          await supabase.from('movimentacoes_lucros').insert({
-            cliente_id: cliente.id,
-            tipo: diff > 0 ? 'ENTRADA' : 'SAIDA',
-            valor: Math.abs(diff),
-            saldo_anterior: oldSaldo,
-            saldo_posterior: newSaldo,
-            descricao: diff > 0 ? 'Saldo inicial' : 'Ajuste de saldo - Saída manual',
-          });
+          // Sum of abatements already applied via non-cancelled distributions
+          const { data: abatimentos } = await supabase
+            .from('movimentacoes_lucros')
+            .select('valor, distribuicao:distribuicoes(status)')
+            .eq('cliente_id', cliente.id)
+            .eq('tipo', 'SAIDA')
+            .not('distribuicao_id', 'is', null);
+          const jaAbatido = (abatimentos || [])
+            .filter((m: any) => m.distribuicao && m.distribuicao.status !== 'CANCELADA')
+            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
+
+          // Remove previous manual "Saldo inicial" / ajustes so only one initial row remains
+          await supabase
+            .from('movimentacoes_lucros')
+            .delete()
+            .eq('cliente_id', cliente.id)
+            .is('distribuicao_id', null);
+
+          if (newSaldoInicial > 0) {
+            await supabase.from('movimentacoes_lucros').insert({
+              cliente_id: cliente.id,
+              tipo: 'ENTRADA',
+              valor: newSaldoInicial,
+              saldo_anterior: 0,
+              saldo_posterior: newSaldoInicial,
+              descricao: 'Saldo inicial',
+            });
+          }
+
+          // Recompute remaining balance: initial minus what was already abated
+          const saldoRestante = Math.max(newSaldoInicial - jaAbatido, 0);
+          await supabase
+            .from('clientes')
+            .update({ saldo_lucros_acumulados: saldoRestante })
+            .eq('id', cliente.id);
         } catch (e) {
-          console.error('Erro ao registrar movimentação:', e);
+          console.error('Erro ao atualizar saldo inicial:', e);
         }
       }
     } else {
