@@ -1038,6 +1038,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           nome: s.nome_socio || '',
           cpf: '',
           percentual: '',
+          data_entrada: '',
         }));
         setSocios(newSocios);
       }
