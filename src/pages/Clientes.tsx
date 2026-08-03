@@ -1198,6 +1198,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           nome: s.nome.trim(),
           cpf: s.cpf ? unmask(s.cpf) : '',
           percentual: s.percentual ? parseFloat(s.percentual) : undefined,
+          data_entrada: s.data_entrada || null,
         }));
 
       createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
