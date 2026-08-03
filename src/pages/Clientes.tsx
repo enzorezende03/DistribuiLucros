@@ -1494,13 +1494,22 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     </Button>
                   )}
                   <p className="text-xs font-medium text-muted-foreground">{t('clients.partnerNumber')} {index + 1}</p>
-                  <div>
+                  <div className="space-y-2">
                       <Input
                         placeholder={t('clients.fullNamePlaceholder')}
                         value={socio.nome}
                         onChange={(e) => updateSocio(index, 'nome', e.target.value)}
                         disabled={isPending}
                       />
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Data de entrada na empresa</Label>
+                        <Input
+                          type="date"
+                          value={socio.data_entrada}
+                          onChange={(e) => updateSocio(index, 'data_entrada', e.target.value)}
+                          disabled={isPending}
+                        />
+                      </div>
                   </div>
                 </div>
               ))}
