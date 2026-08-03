@@ -638,6 +638,15 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           <Users className="h-4 w-4 text-accent" />
           {t('clients.partners')}
         </h4>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1 h-7 text-xs"
+          onClick={() => { setEditingSocio(null); setIsFormOpen(true); }}
+        >
+          <Plus className="h-3 w-3" />
+          Incluir sócio
+        </Button>
       </div>
 
       {isLoading ? (
@@ -652,6 +661,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                 <TableHead>{t('partners.name')}</TableHead>
                  <TableHead className="hidden sm:table-cell">{t('partners.cpf')}</TableHead>
                  <TableHead className="hidden sm:table-cell">{t('partners.percentage')}</TableHead>
+                 <TableHead className="hidden sm:table-cell">Entrada</TableHead>
                  <TableHead>{t('partners.status')}</TableHead>
                  <TableHead className="w-[50px]"></TableHead>
               </TableRow>
@@ -662,6 +672,9 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                   <TableCell className="font-medium">{socio.nome}</TableCell>
                   <TableCell className="font-mono text-sm hidden sm:table-cell">{formatCPF(socio.cpf)}</TableCell>
                   <TableCell className="hidden sm:table-cell">{socio.percentual ? `${socio.percentual}%` : '—'}</TableCell>
+                  <TableCell className="text-sm hidden sm:table-cell">
+                    {socio.data_entrada ? formatDate(socio.data_entrada) : '—'}
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={socio.ativo ? 'default' : 'secondary'}
