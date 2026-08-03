@@ -111,7 +111,10 @@ export default function NovaDistribuicaoPage() {
   const [natureza] = useState<NaturezaRepasse>(initialNatureza || 'LUCRO');
   const [errors, setErrors] = useState<string[]>([]);
 
-  const sociosAtivos = socios?.filter((s) => s.ativo) || [];
+  // Only partners already in the company on the distribution date can receive it
+  const sociosAtivos = (socios || []).filter(
+    (s) => s.ativo && (!s.data_entrada || s.data_entrada <= formData.data_distribuicao)
+  );
 
   const addRateioItem = () => { setRateio([...rateio, { socio_id: '', valor: '' }]); };
   const removeRateioItem = (index: number) => { if (rateio.length > 1) setRateio(rateio.filter((_, i) => i !== index)); };
