@@ -716,7 +716,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                         ) : (
                           <DropdownMenuItem
                             className="text-green-600"
-                            onClick={() => updateSocio.mutate({ id: socio.id, ativo: true })}
+                            onClick={() => updateSocio.mutate({ id: socio.id, ativo: true, data_saida: null })}
                           >
                             <Power className="mr-2 h-4 w-4" />
                             Reativar
