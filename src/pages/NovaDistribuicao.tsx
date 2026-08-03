@@ -158,6 +158,9 @@ export default function NovaDistribuicaoPage() {
       if (socio?.data_entrada && socio.data_entrada > formData.data_distribuicao) {
         newErrors.push(`${socio.nome} entrou na empresa em ${socio.data_entrada.split('-').reverse().join('/')} e não pode receber distribuição anterior a essa data.`);
       }
+      if (socio?.data_saida && socio.data_saida < formData.data_distribuicao) {
+        newErrors.push(`${socio.nome} saiu da empresa em ${socio.data_saida.split('-').reverse().join('/')} e não pode receber distribuição após essa data.`);
+      }
     });
     setErrors(newErrors);
     if (newErrors.length > 0) { toast.error(newErrors[0]); window.scrollTo({ top: 0, behavior: 'smooth' }); }
