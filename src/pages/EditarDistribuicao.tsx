@@ -93,7 +93,9 @@ export default function EditarDistribuicaoPage() {
     return `${year}-${month}`;
   };
 
-  const sociosAtivos = socios?.filter((s) => s.ativo) || [];
+  const sociosAtivos = (socios || []).filter(
+    (s) => s.ativo && (!s.data_entrada || !formData.data_distribuicao || s.data_entrada <= formData.data_distribuicao)
+  );
   const addRateioItem = () => setRateio([...rateio, { socio_id: '', valor: '' }]);
   const removeRateioItem = (index: number) => { if (rateio.length > 1) setRateio(rateio.filter((_, i) => i !== index)); };
   const updateRateioItem = (index: number, field: keyof RateioItem, value: string) => {
