@@ -1670,6 +1670,19 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
             </p>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="data_saida">Data de saída da empresa</Label>
+            <Input
+              id="data_saida"
+              type="date"
+              value={formData.data_saida}
+              onChange={(e) => setFormData({ ...formData, data_saida: e.target.value })}
+              disabled={isPending}
+            />
+            <p className="text-xs text-muted-foreground">
+              Preencha apenas se o sócio saiu. Não haverá retiradas após essa data.
+            </p>
+          </div>
 
 
           <div className="flex items-center justify-between">
