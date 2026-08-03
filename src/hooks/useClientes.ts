@@ -92,6 +92,7 @@ export function useCreateCliente() {
           nome: s.nome,
           cpf: s.cpf,
           percentual: s.percentual ?? null,
+          data_entrada: s.data_entrada || null,
         }));
 
         const { error: sociosError } = await supabase
