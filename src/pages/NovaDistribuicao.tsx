@@ -113,7 +113,10 @@ export default function NovaDistribuicaoPage() {
 
   // Only partners already in the company on the distribution date can receive it
   const sociosAtivos = (socios || []).filter(
-    (s) => s.ativo && (!s.data_entrada || s.data_entrada <= formData.data_distribuicao)
+    (s) =>
+      (s.ativo || (s.data_saida && s.data_saida >= formData.data_distribuicao)) &&
+      (!s.data_entrada || s.data_entrada <= formData.data_distribuicao) &&
+      (!s.data_saida || s.data_saida >= formData.data_distribuicao)
   );
 
   const addRateioItem = () => { setRateio([...rateio, { socio_id: '', valor: '' }]); };
