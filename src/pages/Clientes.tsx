@@ -630,6 +630,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
   const [deleteSocio, setDeleteSocio] = useState<Socio | null>(null);
   const [deactivateSocio, setDeactivateSocio] = useState<Socio | null>(null);
   const [deactivateSocioMotivo, setDeactivateSocioMotivo] = useState('');
+  const [deactivateSocioData, setDeactivateSocioData] = useState('');
 
   return (
     <div className="space-y-3">
