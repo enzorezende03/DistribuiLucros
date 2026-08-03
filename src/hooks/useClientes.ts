@@ -33,7 +33,7 @@ export interface CreateClienteData {
   ata_registrada?: boolean;
   saldo_lucros_acumulados?: number;
   motivo_arquivamento?: string;
-  socios?: { nome: string; cpf: string; percentual?: number }[];
+  socios?: { nome: string; cpf: string; percentual?: number; data_entrada?: string | null }[];
 }
 
 export function useClientes(options?: { enabled?: boolean }) {
