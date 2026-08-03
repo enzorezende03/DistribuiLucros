@@ -763,7 +763,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
       </AlertDialog>
 
       {/* Deactivate Socio Dialog */}
-      <Dialog open={!!deactivateSocio} onOpenChange={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); }}>
+      <Dialog open={!!deactivateSocio} onOpenChange={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); setDeactivateSocioData(''); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Desativar Sócio</DialogTitle>
@@ -771,29 +771,44 @@ function SociosSection({ clienteId }: { clienteId: string }) {
               Deseja desativar o sócio <strong>{deactivateSocio?.nome}</strong>?
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="motivo-desativacao-socio">Justificativa *</Label>
-            <Textarea
-              id="motivo-desativacao-socio"
-              placeholder="Informe o motivo da desativação..."
-              value={deactivateSocioMotivo}
-              onChange={(e) => setDeactivateSocioMotivo(e.target.value)}
-              rows={3}
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="data-saida-socio">Data de saída *</Label>
+              <Input
+                id="data-saida-socio"
+                type="date"
+                value={deactivateSocioData}
+                onChange={(e) => setDeactivateSocioData(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                A partir dessa data o sócio não poderá mais receber distribuições.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="motivo-desativacao-socio">Justificativa *</Label>
+              <Textarea
+                id="motivo-desativacao-socio"
+                placeholder="Informe o motivo da desativação..."
+                value={deactivateSocioMotivo}
+                onChange={(e) => setDeactivateSocioMotivo(e.target.value)}
+                rows={3}
+              />
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); }}>
+            <Button variant="outline" onClick={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); setDeactivateSocioData(''); }}>
               Cancelar
             </Button>
             <Button
               variant="destructive"
               onClick={async () => {
-                if (!deactivateSocio || !deactivateSocioMotivo.trim()) return;
-                await updateSocio.mutateAsync({ id: deactivateSocio.id, ativo: false });
+                if (!deactivateSocio || !deactivateSocioMotivo.trim() || !deactivateSocioData) return;
+                await updateSocio.mutateAsync({ id: deactivateSocio.id, ativo: false, data_saida: deactivateSocioData });
                 setDeactivateSocio(null);
                 setDeactivateSocioMotivo('');
+                setDeactivateSocioData('');
               }}
-              disabled={!deactivateSocioMotivo.trim() || updateSocio.isPending}
+              disabled={!deactivateSocioMotivo.trim() || !deactivateSocioData || updateSocio.isPending}
             >
               {updateSocio.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Desativar
