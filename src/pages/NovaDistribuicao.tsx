@@ -111,7 +111,10 @@ export default function NovaDistribuicaoPage() {
   const [natureza] = useState<NaturezaRepasse>(initialNatureza || 'LUCRO');
   const [errors, setErrors] = useState<string[]>([]);
 
-  const sociosAtivos = socios?.filter((s) => s.ativo) || [];
+  // Only partners already in the company on the distribution date can receive it
+  const sociosAtivos = (socios || []).filter(
+    (s) => s.ativo && (!s.data_entrada || s.data_entrada <= formData.data_distribuicao)
+  );
 
   const addRateioItem = () => { setRateio([...rateio, { socio_id: '', valor: '' }]); };
   const removeRateioItem = (index: number) => { if (rateio.length > 1) setRateio(rateio.filter((_, i) => i !== index)); };
@@ -148,6 +151,10 @@ export default function NovaDistribuicaoPage() {
     if (sociosDuplicados.length > 0) newErrors.push(t('newDist.duplicatePartners'));
     rateio.forEach((item, index) => {
       if (item.socio_id && parseMaskedCurrency(item.valor) <= 0) newErrors.push(`${t('common.item')} ${index + 1}: ${t('newDist.valueGreaterThanZero')}`);
+      const socio = socios?.find((s) => s.id === item.socio_id);
+      if (socio?.data_entrada && socio.data_entrada > formData.data_distribuicao) {
+        newErrors.push(`${socio.nome} entrou na empresa em ${socio.data_entrada.split('-').reverse().join('/')} e não pode receber distribuição anterior a essa data.`);
+      }
     });
     setErrors(newErrors);
     if (newErrors.length > 0) { toast.error(newErrors[0]); window.scrollTo({ top: 0, behavior: 'smooth' }); }

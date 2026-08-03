@@ -638,6 +638,15 @@ function SociosSection({ clienteId }: { clienteId: string }) {
           <Users className="h-4 w-4 text-accent" />
           {t('clients.partners')}
         </h4>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1 h-7 text-xs"
+          onClick={() => { setEditingSocio(null); setIsFormOpen(true); }}
+        >
+          <Plus className="h-3 w-3" />
+          Incluir sócio
+        </Button>
       </div>
 
       {isLoading ? (
@@ -652,6 +661,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                 <TableHead>{t('partners.name')}</TableHead>
                  <TableHead className="hidden sm:table-cell">{t('partners.cpf')}</TableHead>
                  <TableHead className="hidden sm:table-cell">{t('partners.percentage')}</TableHead>
+                 <TableHead className="hidden sm:table-cell">Entrada</TableHead>
                  <TableHead>{t('partners.status')}</TableHead>
                  <TableHead className="w-[50px]"></TableHead>
               </TableRow>
@@ -662,6 +672,9 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                   <TableCell className="font-medium">{socio.nome}</TableCell>
                   <TableCell className="font-mono text-sm hidden sm:table-cell">{formatCPF(socio.cpf)}</TableCell>
                   <TableCell className="hidden sm:table-cell">{socio.percentual ? `${socio.percentual}%` : '—'}</TableCell>
+                  <TableCell className="text-sm hidden sm:table-cell">
+                    {socio.data_entrada ? formatDate(socio.data_entrada) : '—'}
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={socio.ativo ? 'default' : 'secondary'}
@@ -994,8 +1007,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     saldo_lucros_acumulados: 0,
   });
 
-  const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string }[]>([
-    { nome: '', cpf: '', percentual: '' },
+  const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string; data_entrada: string }[]>([
+    { nome: '', cpf: '', percentual: '', data_entrada: '' },
   ]);
 
   const handleFetchCnpj = async () => {
@@ -1025,6 +1038,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           nome: s.nome_socio || '',
           cpf: '',
           percentual: '',
+          data_entrada: '',
         }));
         setSocios(newSocios);
       }
@@ -1080,14 +1094,14 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         ata_registrada: false,
         saldo_lucros_acumulados: 0,
       });
-      setSocios([{ nome: '', cpf: '', percentual: '' }]);
+      setSocios([{ nome: '', cpf: '', percentual: '', data_entrada: '' }]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, cliente?.id]);
 
 
   const addSocio = () => {
-    setSocios([...socios, { nome: '', cpf: '', percentual: '' }]);
+    setSocios([...socios, { nome: '', cpf: '', percentual: '', data_entrada: '' }]);
   };
 
   const removeSocio = (index: number) => {
@@ -1184,6 +1198,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           nome: s.nome.trim(),
           cpf: s.cpf ? unmask(s.cpf) : '',
           percentual: s.percentual ? parseFloat(s.percentual) : undefined,
+          data_entrada: s.data_entrada || null,
         }));
 
       createdCliente = await createCliente.mutateAsync({ ...data, socios: validSocios });
@@ -1250,7 +1265,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       ata_registrada: false,
       saldo_lucros_acumulados: 0,
     });
-    setSocios([{ nome: '', cpf: '', percentual: '' }]);
+    setSocios([{ nome: '', cpf: '', percentual: '', data_entrada: '' }]);
     setAtaFile(null);
   };
 
@@ -1480,13 +1495,22 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
                     </Button>
                   )}
                   <p className="text-xs font-medium text-muted-foreground">{t('clients.partnerNumber')} {index + 1}</p>
-                  <div>
+                  <div className="space-y-2">
                       <Input
                         placeholder={t('clients.fullNamePlaceholder')}
                         value={socio.nome}
                         onChange={(e) => updateSocio(index, 'nome', e.target.value)}
                         disabled={isPending}
                       />
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Data de entrada na empresa</Label>
+                        <Input
+                          type="date"
+                          value={socio.data_entrada}
+                          onChange={(e) => updateSocio(index, 'data_entrada', e.target.value)}
+                          disabled={isPending}
+                        />
+                      </div>
                   </div>
                 </div>
               ))}
@@ -1540,6 +1564,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     cpf: '',
     percentual: '',
     ativo: true,
+    data_entrada: '',
   });
 
   if (open && socio && formData.nome !== socio.nome) {
@@ -1548,6 +1573,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       cpf: formatCPF(socio.cpf),
       percentual: socio.percentual?.toString() || '',
       ativo: socio.ativo,
+      data_entrada: socio.data_entrada || '',
     });
   }
 
@@ -1557,6 +1583,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       cpf: '',
       percentual: '',
       ativo: true,
+      data_entrada: '',
     });
   }
 
@@ -1568,6 +1595,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       nome: formData.nome,
       cpf: formData.cpf ? unmask(formData.cpf) : '',
       ativo: formData.ativo,
+      data_entrada: formData.data_entrada || null,
     };
 
     if (isEditing) {
@@ -1577,7 +1605,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     }
 
     onOpenChange(false);
-    setFormData({ nome: '', cpf: '', percentual: '', ativo: true });
+    setFormData({ nome: '', cpf: '', percentual: '', ativo: true, data_entrada: '' });
   };
 
   const isPending = createSocio.isPending || updateSocio.isPending;
@@ -1603,6 +1631,22 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
               disabled={isPending}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="data_entrada">Data de entrada na empresa</Label>
+            <Input
+              id="data_entrada"
+              type="date"
+              value={formData.data_entrada}
+              onChange={(e) => setFormData({ ...formData, data_entrada: e.target.value })}
+              disabled={isPending}
+            />
+            <p className="text-xs text-muted-foreground">
+              O sócio não poderá receber distribuições com data anterior à entrada.
+            </p>
+          </div>
+
+
 
           <div className="flex items-center justify-between">
             <Label htmlFor="ativo">{t('partners.active')}</Label>

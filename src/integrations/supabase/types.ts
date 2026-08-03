@@ -434,6 +434,7 @@ export type Database = {
           cliente_id: string
           cpf: string | null
           created_at: string
+          data_entrada: string | null
           id: string
           nome: string
           percentual: number | null
@@ -444,6 +445,7 @@ export type Database = {
           cliente_id: string
           cpf?: string | null
           created_at?: string
+          data_entrada?: string | null
           id?: string
           nome: string
           percentual?: number | null
@@ -454,6 +456,7 @@ export type Database = {
           cliente_id?: string
           cpf?: string | null
           created_at?: string
+          data_entrada?: string | null
           id?: string
           nome?: string
           percentual?: number | null
