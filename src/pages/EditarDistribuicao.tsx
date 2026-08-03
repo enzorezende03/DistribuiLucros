@@ -94,7 +94,10 @@ export default function EditarDistribuicaoPage() {
   };
 
   const sociosAtivos = (socios || []).filter(
-    (s) => s.ativo && (!s.data_entrada || !formData.data_distribuicao || s.data_entrada <= formData.data_distribuicao)
+    (s) =>
+      (s.ativo || (s.data_saida && (!formData.data_distribuicao || s.data_saida >= formData.data_distribuicao))) &&
+      (!s.data_entrada || !formData.data_distribuicao || s.data_entrada <= formData.data_distribuicao) &&
+      (!s.data_saida || !formData.data_distribuicao || s.data_saida >= formData.data_distribuicao)
   );
   const addRateioItem = () => setRateio([...rateio, { socio_id: '', valor: '' }]);
   const removeRateioItem = (index: number) => { if (rateio.length > 1) setRateio(rateio.filter((_, i) => i !== index)); };
@@ -132,6 +135,9 @@ export default function EditarDistribuicaoPage() {
       const socio = socios?.find((s) => s.id === item.socio_id);
       if (socio?.data_entrada && formData.data_distribuicao && socio.data_entrada > formData.data_distribuicao) {
         newErrors.push(`${socio.nome} entrou na empresa em ${socio.data_entrada.split('-').reverse().join('/')} e não pode receber distribuição anterior a essa data.`);
+      }
+      if (socio?.data_saida && formData.data_distribuicao && socio.data_saida < formData.data_distribuicao) {
+        newErrors.push(`${socio.nome} saiu da empresa em ${socio.data_saida.split('-').reverse().join('/')} e não pode receber distribuição após essa data.`);
       }
     });
     setErrors(newErrors);

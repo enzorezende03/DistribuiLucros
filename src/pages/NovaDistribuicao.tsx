@@ -113,7 +113,10 @@ export default function NovaDistribuicaoPage() {
 
   // Only partners already in the company on the distribution date can receive it
   const sociosAtivos = (socios || []).filter(
-    (s) => s.ativo && (!s.data_entrada || s.data_entrada <= formData.data_distribuicao)
+    (s) =>
+      (s.ativo || (s.data_saida && s.data_saida >= formData.data_distribuicao)) &&
+      (!s.data_entrada || s.data_entrada <= formData.data_distribuicao) &&
+      (!s.data_saida || s.data_saida >= formData.data_distribuicao)
   );
 
   const addRateioItem = () => { setRateio([...rateio, { socio_id: '', valor: '' }]); };
@@ -154,6 +157,9 @@ export default function NovaDistribuicaoPage() {
       const socio = socios?.find((s) => s.id === item.socio_id);
       if (socio?.data_entrada && socio.data_entrada > formData.data_distribuicao) {
         newErrors.push(`${socio.nome} entrou na empresa em ${socio.data_entrada.split('-').reverse().join('/')} e não pode receber distribuição anterior a essa data.`);
+      }
+      if (socio?.data_saida && socio.data_saida < formData.data_distribuicao) {
+        newErrors.push(`${socio.nome} saiu da empresa em ${socio.data_saida.split('-').reverse().join('/')} e não pode receber distribuição após essa data.`);
       }
     });
     setErrors(newErrors);

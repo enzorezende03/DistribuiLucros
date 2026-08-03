@@ -435,6 +435,7 @@ export type Database = {
           cpf: string | null
           created_at: string
           data_entrada: string | null
+          data_saida: string | null
           id: string
           nome: string
           percentual: number | null
@@ -446,6 +447,7 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           data_entrada?: string | null
+          data_saida?: string | null
           id?: string
           nome: string
           percentual?: number | null
@@ -457,6 +459,7 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           data_entrada?: string | null
+          data_saida?: string | null
           id?: string
           nome?: string
           percentual?: number | null

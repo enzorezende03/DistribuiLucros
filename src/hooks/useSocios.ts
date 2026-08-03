@@ -10,6 +10,7 @@ export interface Socio {
   percentual: number | null;
   ativo: boolean;
   data_entrada: string | null;
+  data_saida: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -21,6 +22,7 @@ export interface CreateSocioData {
   percentual?: number;
   ativo?: boolean;
   data_entrada?: string | null;
+  data_saida?: string | null;
 }
 
 export function useSocios(clienteId?: string | null) {

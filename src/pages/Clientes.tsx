@@ -630,6 +630,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
   const [deleteSocio, setDeleteSocio] = useState<Socio | null>(null);
   const [deactivateSocio, setDeactivateSocio] = useState<Socio | null>(null);
   const [deactivateSocioMotivo, setDeactivateSocioMotivo] = useState('');
+  const [deactivateSocioData, setDeactivateSocioData] = useState('');
 
   return (
     <div className="space-y-3">
@@ -662,6 +663,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                  <TableHead className="hidden sm:table-cell">{t('partners.cpf')}</TableHead>
                  <TableHead className="hidden sm:table-cell">{t('partners.percentage')}</TableHead>
                  <TableHead className="hidden sm:table-cell">Entrada</TableHead>
+                 <TableHead className="hidden sm:table-cell">Saída</TableHead>
                  <TableHead>{t('partners.status')}</TableHead>
                  <TableHead className="w-[50px]"></TableHead>
               </TableRow>
@@ -674,6 +676,9 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                   <TableCell className="hidden sm:table-cell">{socio.percentual ? `${socio.percentual}%` : '—'}</TableCell>
                   <TableCell className="text-sm hidden sm:table-cell">
                     {socio.data_entrada ? formatDate(socio.data_entrada) : '—'}
+                  </TableCell>
+                  <TableCell className="text-sm hidden sm:table-cell">
+                    {socio.data_saida ? formatDate(socio.data_saida) : '—'}
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -711,7 +716,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                         ) : (
                           <DropdownMenuItem
                             className="text-green-600"
-                            onClick={() => updateSocio.mutate({ id: socio.id, ativo: true })}
+                            onClick={() => updateSocio.mutate({ id: socio.id, ativo: true, data_saida: null })}
                           >
                             <Power className="mr-2 h-4 w-4" />
                             Reativar
@@ -759,7 +764,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
       </AlertDialog>
 
       {/* Deactivate Socio Dialog */}
-      <Dialog open={!!deactivateSocio} onOpenChange={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); }}>
+      <Dialog open={!!deactivateSocio} onOpenChange={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); setDeactivateSocioData(''); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Desativar Sócio</DialogTitle>
@@ -767,29 +772,44 @@ function SociosSection({ clienteId }: { clienteId: string }) {
               Deseja desativar o sócio <strong>{deactivateSocio?.nome}</strong>?
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="motivo-desativacao-socio">Justificativa *</Label>
-            <Textarea
-              id="motivo-desativacao-socio"
-              placeholder="Informe o motivo da desativação..."
-              value={deactivateSocioMotivo}
-              onChange={(e) => setDeactivateSocioMotivo(e.target.value)}
-              rows={3}
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="data-saida-socio">Data de saída *</Label>
+              <Input
+                id="data-saida-socio"
+                type="date"
+                value={deactivateSocioData}
+                onChange={(e) => setDeactivateSocioData(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                A partir dessa data o sócio não poderá mais receber distribuições.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="motivo-desativacao-socio">Justificativa *</Label>
+              <Textarea
+                id="motivo-desativacao-socio"
+                placeholder="Informe o motivo da desativação..."
+                value={deactivateSocioMotivo}
+                onChange={(e) => setDeactivateSocioMotivo(e.target.value)}
+                rows={3}
+              />
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); }}>
+            <Button variant="outline" onClick={() => { setDeactivateSocio(null); setDeactivateSocioMotivo(''); setDeactivateSocioData(''); }}>
               Cancelar
             </Button>
             <Button
               variant="destructive"
               onClick={async () => {
-                if (!deactivateSocio || !deactivateSocioMotivo.trim()) return;
-                await updateSocio.mutateAsync({ id: deactivateSocio.id, ativo: false });
+                if (!deactivateSocio || !deactivateSocioMotivo.trim() || !deactivateSocioData) return;
+                await updateSocio.mutateAsync({ id: deactivateSocio.id, ativo: false, data_saida: deactivateSocioData });
                 setDeactivateSocio(null);
                 setDeactivateSocioMotivo('');
+                setDeactivateSocioData('');
               }}
-              disabled={!deactivateSocioMotivo.trim() || updateSocio.isPending}
+              disabled={!deactivateSocioMotivo.trim() || !deactivateSocioData || updateSocio.isPending}
             >
               {updateSocio.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Desativar
@@ -1565,6 +1585,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     percentual: '',
     ativo: true,
     data_entrada: '',
+    data_saida: '',
   });
 
   if (open && socio && formData.nome !== socio.nome) {
@@ -1574,6 +1595,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       percentual: socio.percentual?.toString() || '',
       ativo: socio.ativo,
       data_entrada: socio.data_entrada || '',
+      data_saida: socio.data_saida || '',
     });
   }
 
@@ -1584,6 +1606,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       percentual: '',
       ativo: true,
       data_entrada: '',
+      data_saida: '',
     });
   }
 
@@ -1596,6 +1619,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       cpf: formData.cpf ? unmask(formData.cpf) : '',
       ativo: formData.ativo,
       data_entrada: formData.data_entrada || null,
+      data_saida: formData.data_saida || null,
     };
 
     if (isEditing) {
@@ -1605,7 +1629,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     }
 
     onOpenChange(false);
-    setFormData({ nome: '', cpf: '', percentual: '', ativo: true, data_entrada: '' });
+    setFormData({ nome: '', cpf: '', percentual: '', ativo: true, data_entrada: '', data_saida: '' });
   };
 
   const isPending = createSocio.isPending || updateSocio.isPending;
@@ -1646,6 +1670,19 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
             </p>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="data_saida">Data de saída da empresa</Label>
+            <Input
+              id="data_saida"
+              type="date"
+              value={formData.data_saida}
+              onChange={(e) => setFormData({ ...formData, data_saida: e.target.value })}
+              disabled={isPending}
+            />
+            <p className="text-xs text-muted-foreground">
+              Preencha apenas se o sócio saiu. Não haverá retiradas após essa data.
+            </p>
+          </div>
 
 
           <div className="flex items-center justify-between">
