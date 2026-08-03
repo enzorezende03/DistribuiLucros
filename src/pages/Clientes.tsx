@@ -1093,14 +1093,14 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         ata_registrada: false,
         saldo_lucros_acumulados: 0,
       });
-      setSocios([{ nome: '', cpf: '', percentual: '' }]);
+      setSocios([{ nome: '', cpf: '', percentual: '', data_entrada: '' }]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, cliente?.id]);
 
 
   const addSocio = () => {
-    setSocios([...socios, { nome: '', cpf: '', percentual: '' }]);
+    setSocios([...socios, { nome: '', cpf: '', percentual: '', data_entrada: '' }]);
   };
 
   const removeSocio = (index: number) => {
@@ -1263,7 +1263,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
       ata_registrada: false,
       saldo_lucros_acumulados: 0,
     });
-    setSocios([{ nome: '', cpf: '', percentual: '' }]);
+    setSocios([{ nome: '', cpf: '', percentual: '', data_entrada: '' }]);
     setAtaFile(null);
   };
 
