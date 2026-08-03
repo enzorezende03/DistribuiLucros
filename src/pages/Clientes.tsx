@@ -1007,8 +1007,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
     saldo_lucros_acumulados: 0,
   });
 
-  const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string }[]>([
-    { nome: '', cpf: '', percentual: '' },
+  const [socios, setSocios] = useState<{ nome: string; cpf: string; percentual: string; data_entrada: string }[]>([
+    { nome: '', cpf: '', percentual: '', data_entrada: '' },
   ]);
 
   const handleFetchCnpj = async () => {
