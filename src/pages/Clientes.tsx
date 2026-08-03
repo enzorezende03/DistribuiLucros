@@ -1553,6 +1553,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     cpf: '',
     percentual: '',
     ativo: true,
+    data_entrada: '',
   });
 
   if (open && socio && formData.nome !== socio.nome) {
@@ -1561,6 +1562,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       cpf: formatCPF(socio.cpf),
       percentual: socio.percentual?.toString() || '',
       ativo: socio.ativo,
+      data_entrada: socio.data_entrada || '',
     });
   }
 
@@ -1570,6 +1572,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       cpf: '',
       percentual: '',
       ativo: true,
+      data_entrada: '',
     });
   }
 
@@ -1581,6 +1584,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       nome: formData.nome,
       cpf: formData.cpf ? unmask(formData.cpf) : '',
       ativo: formData.ativo,
+      data_entrada: formData.data_entrada || null,
     };
 
     if (isEditing) {
@@ -1590,7 +1594,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     }
 
     onOpenChange(false);
-    setFormData({ nome: '', cpf: '', percentual: '', ativo: true });
+    setFormData({ nome: '', cpf: '', percentual: '', ativo: true, data_entrada: '' });
   };
 
   const isPending = createSocio.isPending || updateSocio.isPending;
