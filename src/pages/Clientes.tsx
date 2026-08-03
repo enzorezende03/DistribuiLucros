@@ -662,6 +662,7 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                  <TableHead className="hidden sm:table-cell">{t('partners.cpf')}</TableHead>
                  <TableHead className="hidden sm:table-cell">{t('partners.percentage')}</TableHead>
                  <TableHead className="hidden sm:table-cell">Entrada</TableHead>
+                 <TableHead className="hidden sm:table-cell">Saída</TableHead>
                  <TableHead>{t('partners.status')}</TableHead>
                  <TableHead className="w-[50px]"></TableHead>
               </TableRow>
@@ -674,6 +675,9 @@ function SociosSection({ clienteId }: { clienteId: string }) {
                   <TableCell className="hidden sm:table-cell">{socio.percentual ? `${socio.percentual}%` : '—'}</TableCell>
                   <TableCell className="text-sm hidden sm:table-cell">
                     {socio.data_entrada ? formatDate(socio.data_entrada) : '—'}
+                  </TableCell>
+                  <TableCell className="text-sm hidden sm:table-cell">
+                    {socio.data_saida ? formatDate(socio.data_saida) : '—'}
                   </TableCell>
                   <TableCell>
                     <Badge
