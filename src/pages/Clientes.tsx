@@ -1621,6 +1621,22 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="data_entrada">Data de entrada na empresa</Label>
+            <Input
+              id="data_entrada"
+              type="date"
+              value={formData.data_entrada}
+              onChange={(e) => setFormData({ ...formData, data_entrada: e.target.value })}
+              disabled={isPending}
+            />
+            <p className="text-xs text-muted-foreground">
+              O sócio não poderá receber distribuições com data anterior à entrada.
+            </p>
+          </div>
+
+
+
           <div className="flex items-center justify-between">
             <Label htmlFor="ativo">{t('partners.active')}</Label>
             <Switch
