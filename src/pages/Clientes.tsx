@@ -1588,27 +1588,28 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     data_saida: '',
   });
 
-  if (open && socio && formData.nome !== socio.nome) {
-    setFormData({
-      nome: socio.nome,
-      cpf: formatCPF(socio.cpf),
-      percentual: socio.percentual?.toString() || '',
-      ativo: socio.ativo,
-      data_entrada: socio.data_entrada || '',
-      data_saida: socio.data_saida || '',
-    });
-  }
-
-  if (open && !socio && formData.nome !== '') {
-    setFormData({
-      nome: '',
-      cpf: '',
-      percentual: '',
-      ativo: true,
-      data_entrada: '',
-      data_saida: '',
-    });
-  }
+  useEffect(() => {
+    if (!open) return;
+    if (socio) {
+      setFormData({
+        nome: socio.nome,
+        cpf: formatCPF(socio.cpf),
+        percentual: socio.percentual?.toString() || '',
+        ativo: socio.ativo,
+        data_entrada: socio.data_entrada || '',
+        data_saida: socio.data_saida || '',
+      });
+    } else {
+      setFormData({
+        nome: '',
+        cpf: '',
+        percentual: '',
+        ativo: true,
+        data_entrada: '',
+        data_saida: '',
+      });
+    }
+  }, [open, socio]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
