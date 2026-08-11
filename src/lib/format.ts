@@ -130,3 +130,11 @@ export function maskPhone(value: string): string {
 export function unmask(value: string): string {
   return value.replace(/\D/g, '');
 }
+
+/** Data e hora completa (dd/mm/aaaa às HH:MM) — usado no registro de preenchimento */
+export function formatDateTime(value: string | null | undefined): string {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return '—';
+  return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+}

@@ -30,7 +30,7 @@ import { useSocios } from '@/hooks/useSocios';
 import { useClientes } from '@/hooks/useClientes';
 import { useConfirmacoes, useConfirmacoesNaoHouve, useUpdateConfirmacaoStatus, useUpdateConfirmacao, useDeleteConfirmacao, type Confirmacao } from '@/hooks/useConfirmacoes';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatCurrency, formatDate, formatCompetencia } from '@/lib/format';
+import { formatCurrency, formatDate, formatDateTime, formatCompetencia } from '@/lib/format';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
@@ -180,6 +180,8 @@ export default function DistribuicoesPage() {
     competencia: string;
     status: StatusDistribuicao;
     rowValor: number;
+    /** Data/hora em que o cliente preencheu a informação */
+    registrado_em: string;
   };
   type DistRow = BaseRow & {
     kind: 'dist';
@@ -218,6 +220,7 @@ export default function DistribuicoesPage() {
       multiSocios: multi,
       socioIndex: idx,
       data_ref: d.data_distribuicao,
+      registrado_em: d.created_at,
     }));
   });
 
@@ -238,6 +241,7 @@ export default function DistribuicoesPage() {
       rowKey: `n-${c.id}`,
       rowValor: 0,
       data_ref: c.created_at,
+      registrado_em: c.created_at,
       observacao: c.observacao,
     }));
 
@@ -497,6 +501,9 @@ export default function DistribuicoesPage() {
                             <StatusBadge status={row.status} />
                             <span className="text-xs text-muted-foreground">{formatDate(row.data_ref)}</span>
                           </div>
+                          {isAdmin && (
+                            <p className="text-xs text-muted-foreground">Preenchido em {formatDateTime(row.registrado_em)}</p>
+                          )}
                         </div>
                       );
                     }
@@ -527,6 +534,9 @@ export default function DistribuicoesPage() {
                           <StatusBadgeWithHistory distribuicaoId={dr.id} status={dr.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
                           <span className="text-xs text-muted-foreground">{formatDate(dr.data_ref)}</span>
                         </div>
+                        {isAdmin && (
+                          <p className="text-xs text-muted-foreground">Preenchido em {formatDateTime(dr.registrado_em)}</p>
+                        )}
                       </div>
                     );
                   })}
@@ -565,6 +575,7 @@ export default function DistribuicoesPage() {
                         <TableHead>{t('distributions.date')}</TableHead>
                         <TableHead className="text-right">{t('distributions.value')}</TableHead>
                         <TableHead>{t('distributions.status')}</TableHead>
+                        {isAdmin && <TableHead className="hidden lg:table-cell whitespace-nowrap">Preenchido em</TableHead>}
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -594,6 +605,11 @@ export default function DistribuicoesPage() {
                               <TableCell>
                                 <StatusBadge status={row.status} />
                               </TableCell>
+                              {isAdmin && (
+                                <TableCell className="hidden lg:table-cell text-xs text-muted-foreground whitespace-nowrap">
+                                  {formatDateTime(row.registrado_em)}
+                                </TableCell>
+                              )}
                               <TableCell>
                                 <NaoHouveActions row={row} isAdmin={isAdmin} />
                               </TableCell>
@@ -642,6 +658,11 @@ export default function DistribuicoesPage() {
                             <TableCell>
                               <StatusBadgeWithHistory distribuicaoId={dr.id} status={dr.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
                             </TableCell>
+                            {isAdmin && (
+                              <TableCell className="hidden lg:table-cell text-xs text-muted-foreground whitespace-nowrap">
+                                {formatDateTime(dr.registrado_em)}
+                              </TableCell>
+                            )}
                             <TableCell>
                               <DistribuicaoActions distribuicao={dr.dist} isAdmin={isAdmin} onView={() => setViewingDistribuicao(dr.id)} />
                             </TableCell>
@@ -1224,6 +1245,12 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
               <p className="text-sm text-muted-foreground">{t('distributions.paymentMethod')}</p>
               <p className="font-medium">{distribuicao.forma_pagamento}</p>
             </div>
+            {isAdmin && (
+              <div>
+                <p className="text-sm text-muted-foreground">Preenchido pelo cliente em</p>
+                <p className="font-medium">{formatDateTime(distribuicao.created_at)}</p>
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
