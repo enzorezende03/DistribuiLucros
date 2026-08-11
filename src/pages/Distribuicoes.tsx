@@ -180,6 +180,8 @@ export default function DistribuicoesPage() {
     competencia: string;
     status: StatusDistribuicao;
     rowValor: number;
+    /** Data/hora em que o cliente preencheu a informação */
+    registrado_em: string;
   };
   type DistRow = BaseRow & {
     kind: 'dist';
