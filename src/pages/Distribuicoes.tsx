@@ -1245,6 +1245,12 @@ function DistribuicaoDetailDialog({ distribuicaoId, onClose, isAdmin }: Distribu
               <p className="text-sm text-muted-foreground">{t('distributions.paymentMethod')}</p>
               <p className="font-medium">{distribuicao.forma_pagamento}</p>
             </div>
+            {isAdmin && (
+              <div>
+                <p className="text-sm text-muted-foreground">Preenchido pelo cliente em</p>
+                <p className="font-medium">{formatDateTime(distribuicao.created_at)}</p>
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
