@@ -1672,6 +1672,44 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="tipo_pessoa">Tipo de sócio *</Label>
+            <Select
+              value={formData.tipo_pessoa}
+              onValueChange={(v) => setFormData({ ...formData, tipo_pessoa: v as 'PF' | 'PJ', cpf: '' })}
+              disabled={isPending}
+            >
+              <SelectTrigger id="tipo_pessoa">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PF">Pessoa física (CPF)</SelectItem>
+                <SelectItem value="PJ">Pessoa jurídica (CNPJ)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Sócio pessoa jurídica não gera abatimento do saldo de lucros acumulados (não há tributação de PJ para PJ).
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="socio_doc">{formData.tipo_pessoa === 'PJ' ? 'CNPJ' : 'CPF'}</Label>
+            <Input
+              id="socio_doc"
+              value={formData.cpf}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  cpf: formData.tipo_pessoa === 'PJ' ? maskCNPJ(e.target.value) : maskCPF(e.target.value),
+                })
+              }
+              placeholder={formData.tipo_pessoa === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00'}
+              disabled={isPending}
+            />
+          </div>
+
+
+
+          <div className="space-y-2">
             <Label htmlFor="data_entrada">Data de entrada na empresa</Label>
             <Input
               id="data_entrada"
