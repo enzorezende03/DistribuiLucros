@@ -439,6 +439,7 @@ export type Database = {
           id: string
           nome: string
           percentual: number | null
+          tipo_pessoa: string
           updated_at: string
         }
         Insert: {
@@ -451,6 +452,7 @@ export type Database = {
           id?: string
           nome: string
           percentual?: number | null
+          tipo_pessoa?: string
           updated_at?: string
         }
         Update: {
@@ -463,6 +465,7 @@ export type Database = {
           id?: string
           nome?: string
           percentual?: number | null
+          tipo_pessoa?: string
           updated_at?: string
         }
         Relationships: [
