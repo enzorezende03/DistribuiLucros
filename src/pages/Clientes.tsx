@@ -671,8 +671,17 @@ function SociosSection({ clienteId }: { clienteId: string }) {
             <TableBody>
               {socios.map((socio) => (
                 <TableRow key={socio.id}>
-                  <TableCell className="font-medium">{socio.nome}</TableCell>
-                  <TableCell className="font-mono text-sm hidden sm:table-cell">{formatCPF(socio.cpf)}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <span>{socio.nome}</span>
+                      {socio.tipo_pessoa === 'PJ' && (
+                        <Badge variant="outline" className="text-[10px]">PJ</Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-mono text-sm hidden sm:table-cell">
+                    {socio.tipo_pessoa === 'PJ' ? formatCNPJ(socio.cpf) : formatCPF(socio.cpf)}
+                  </TableCell>
                   <TableCell className="hidden sm:table-cell">{socio.percentual ? `${socio.percentual}%` : '—'}</TableCell>
                   <TableCell className="text-sm hidden sm:table-cell">
                     {socio.data_entrada ? formatDate(socio.data_entrada) : '—'}
@@ -1582,6 +1591,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
+    tipo_pessoa: 'PF' as 'PF' | 'PJ',
     percentual: '',
     ativo: true,
     data_entrada: '',
@@ -1593,7 +1603,8 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     if (socio) {
       setFormData({
         nome: socio.nome,
-        cpf: formatCPF(socio.cpf),
+        cpf: socio.tipo_pessoa === 'PJ' ? formatCNPJ(socio.cpf) : formatCPF(socio.cpf),
+        tipo_pessoa: socio.tipo_pessoa ?? 'PF',
         percentual: socio.percentual?.toString() || '',
         ativo: socio.ativo,
         data_entrada: socio.data_entrada || '',
@@ -1603,6 +1614,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       setFormData({
         nome: '',
         cpf: '',
+        tipo_pessoa: 'PF',
         percentual: '',
         ativo: true,
         data_entrada: '',
@@ -1618,6 +1630,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       cliente_id: clienteId,
       nome: formData.nome,
       cpf: formData.cpf ? unmask(formData.cpf) : '',
+      tipo_pessoa: formData.tipo_pessoa,
       ativo: formData.ativo,
       data_entrada: formData.data_entrada || null,
       data_saida: formData.data_saida || null,
@@ -1630,7 +1643,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     }
 
     onOpenChange(false);
-    setFormData({ nome: '', cpf: '', percentual: '', ativo: true, data_entrada: '', data_saida: '' });
+    setFormData({ nome: '', cpf: '', tipo_pessoa: 'PF', percentual: '', ativo: true, data_entrada: '', data_saida: '' });
   };
 
   const isPending = createSocio.isPending || updateSocio.isPending;
@@ -1645,6 +1658,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
           </DialogDescription>
         </DialogHeader>
 
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="nome">{t('partners.fullName')} *</Label>
@@ -1656,6 +1670,44 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
               disabled={isPending}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tipo_pessoa">Tipo de sócio *</Label>
+            <Select
+              value={formData.tipo_pessoa}
+              onValueChange={(v) => setFormData({ ...formData, tipo_pessoa: v as 'PF' | 'PJ', cpf: '' })}
+              disabled={isPending}
+            >
+              <SelectTrigger id="tipo_pessoa">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PF">Pessoa física (CPF)</SelectItem>
+                <SelectItem value="PJ">Pessoa jurídica (CNPJ)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Sócio pessoa jurídica não gera abatimento do saldo de lucros acumulados (não há tributação de PJ para PJ).
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="socio_doc">{formData.tipo_pessoa === 'PJ' ? 'CNPJ' : 'CPF'}</Label>
+            <Input
+              id="socio_doc"
+              value={formData.cpf}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  cpf: formData.tipo_pessoa === 'PJ' ? maskCNPJ(e.target.value) : maskCPF(e.target.value),
+                })
+              }
+              placeholder={formData.tipo_pessoa === 'PJ' ? '00.000.000/0000-00' : '000.000.000-00'}
+              disabled={isPending}
+            />
+          </div>
+
+
 
           <div className="space-y-2">
             <Label htmlFor="data_entrada">Data de entrada na empresa</Label>
