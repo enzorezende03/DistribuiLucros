@@ -1591,6 +1591,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
+    tipo_pessoa: 'PF' as 'PF' | 'PJ',
     percentual: '',
     ativo: true,
     data_entrada: '',
@@ -1602,7 +1603,8 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     if (socio) {
       setFormData({
         nome: socio.nome,
-        cpf: formatCPF(socio.cpf),
+        cpf: socio.tipo_pessoa === 'PJ' ? formatCNPJ(socio.cpf) : formatCPF(socio.cpf),
+        tipo_pessoa: socio.tipo_pessoa ?? 'PF',
         percentual: socio.percentual?.toString() || '',
         ativo: socio.ativo,
         data_entrada: socio.data_entrada || '',
@@ -1612,6 +1614,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       setFormData({
         nome: '',
         cpf: '',
+        tipo_pessoa: 'PF',
         percentual: '',
         ativo: true,
         data_entrada: '',
@@ -1627,6 +1630,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
       cliente_id: clienteId,
       nome: formData.nome,
       cpf: formData.cpf ? unmask(formData.cpf) : '',
+      tipo_pessoa: formData.tipo_pessoa,
       ativo: formData.ativo,
       data_entrada: formData.data_entrada || null,
       data_saida: formData.data_saida || null,
@@ -1639,7 +1643,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
     }
 
     onOpenChange(false);
-    setFormData({ nome: '', cpf: '', percentual: '', ativo: true, data_entrada: '', data_saida: '' });
+    setFormData({ nome: '', cpf: '', tipo_pessoa: 'PF', percentual: '', ativo: true, data_entrada: '', data_saida: '' });
   };
 
   const isPending = createSocio.isPending || updateSocio.isPending;
@@ -1653,6 +1657,7 @@ function SocioFormDialog({ open, onOpenChange, socio, clienteId }: SocioFormDial
             {isEditing ? t('partners.updateInfo') : t('partners.fillData')}
           </DialogDescription>
         </DialogHeader>
+
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
