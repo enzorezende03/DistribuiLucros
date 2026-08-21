@@ -298,21 +298,20 @@ export default function EditarDistribuicaoPage() {
                 )}
 
                 {(() => {
-                  const hasExcess = rateio.some((item) => {
+                  // Sócios PJ não sofrem tributação de IR (PJ para PJ), então ficam fora do cálculo
+                  const isTributavel = (socioId: string) =>
+                    sociosAtivos.find((s) => s.id === socioId)?.tipo_pessoa !== 'PJ';
+
+                  const excessItems = rateio.filter((item) => {
+                    if (!item.socio_id || !isTributavel(item.socio_id)) return false;
                     const valorForm = parseMaskedCurrency(item.valor);
-                    const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                    const acumulado = acumuladoPorSocio.get(item.socio_id) || 0;
                     return (valorForm + acumulado) > 50000;
                   });
-                  if (!hasExcess) return null;
+                  if (excessItems.length === 0) return null;
 
                   const hasAta = cliente?.ata_registrada && (cliente?.saldo_lucros_acumulados || 0) > 0;
                   const saldoIsento = hasAta ? (cliente?.saldo_lucros_acumulados || 0) : 0;
-
-                  const excessItems = rateio.filter((item) => {
-                    const valorForm = parseMaskedCurrency(item.valor);
-                    const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
-                    return (valorForm + acumulado) > 50000;
-                  });
 
                   const totalExcess = excessItems.reduce((sum, item) => {
                     const valorForm = parseMaskedCurrency(item.valor);
