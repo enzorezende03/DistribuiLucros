@@ -671,8 +671,17 @@ function SociosSection({ clienteId }: { clienteId: string }) {
             <TableBody>
               {socios.map((socio) => (
                 <TableRow key={socio.id}>
-                  <TableCell className="font-medium">{socio.nome}</TableCell>
-                  <TableCell className="font-mono text-sm hidden sm:table-cell">{formatCPF(socio.cpf)}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <span>{socio.nome}</span>
+                      {socio.tipo_pessoa === 'PJ' && (
+                        <Badge variant="outline" className="text-[10px]">PJ</Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-mono text-sm hidden sm:table-cell">
+                    {socio.tipo_pessoa === 'PJ' ? formatCNPJ(socio.cpf) : formatCPF(socio.cpf)}
+                  </TableCell>
                   <TableCell className="hidden sm:table-cell">{socio.percentual ? `${socio.percentual}%` : '—'}</TableCell>
                   <TableCell className="text-sm hidden sm:table-cell">
                     {socio.data_entrada ? formatDate(socio.data_entrada) : '—'}
