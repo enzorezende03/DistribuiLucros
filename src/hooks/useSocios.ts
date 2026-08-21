@@ -2,11 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export type TipoPessoaSocio = 'PF' | 'PJ';
+
 export interface Socio {
   id: string;
   cliente_id: string;
   nome: string;
   cpf: string;
+  tipo_pessoa: TipoPessoaSocio;
   percentual: number | null;
   ativo: boolean;
   data_entrada: string | null;
@@ -19,6 +22,7 @@ export interface CreateSocioData {
   cliente_id: string;
   nome: string;
   cpf: string;
+  tipo_pessoa?: TipoPessoaSocio;
   percentual?: number;
   ativo?: boolean;
   data_entrada?: string | null;
