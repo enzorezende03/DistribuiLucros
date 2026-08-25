@@ -651,6 +651,7 @@ export type Database = {
         | "APROVADA"
         | "AJUSTE_SOLICITADO"
         | "CANCELADA"
+        | "REPROVADA"
       tag_cliente: "2M_SAUDE" | "2M_CONTABILIDADE"
       tipo_alerta: "ALERTA_50K" | "PENDENTE_MES"
     }
@@ -795,6 +796,7 @@ export const Constants = {
         "APROVADA",
         "AJUSTE_SOLICITADO",
         "CANCELADA",
+        "REPROVADA",
       ],
       tag_cliente: ["2M_SAUDE", "2M_CONTABILIDADE"],
       tipo_alerta: ["ALERTA_50K", "PENDENTE_MES"],
