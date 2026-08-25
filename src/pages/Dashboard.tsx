@@ -617,7 +617,7 @@ function usePendenciasDashboard(clienteId?: string | null) {
       let distQuery = supabase
         .from('distribuicoes')
         .select('id, competencia, valor_total, recibo_numero')
-        .eq('status', 'AJUSTE_SOLICITADO');
+        .in('status', ['AJUSTE_SOLICITADO', 'REPROVADA']);
 
       if (clienteId) {
         distQuery = distQuery.eq('cliente_id', clienteId);
@@ -632,7 +632,7 @@ function usePendenciasDashboard(clienteId?: string | null) {
       const { data } = await supabase
         .from('distribuicao_historico')
         .select('id, observacao, created_at, distribuicao_id, lida')
-        .eq('status_novo', 'AJUSTE_SOLICITADO')
+        .in('status_novo', ['AJUSTE_SOLICITADO', 'REPROVADA'])
         .eq('lida', false)
         .in('distribuicao_id', distIds)
         .order('created_at', { ascending: false })
