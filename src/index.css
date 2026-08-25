@@ -173,6 +173,10 @@
     @apply bg-destructive/10 text-destructive border-destructive/20;
   }
   
+  .status-reprovada {
+    @apply bg-destructive/15 text-destructive border-destructive/40 font-semibold;
+  }
+
   .status-cancelada {
     @apply bg-muted text-muted-foreground border-muted;
   }

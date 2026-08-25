@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type StatusDistribuicao = 'ENVIADA_AO_CONTADOR' | 'APROVADA' | 'AJUSTE_SOLICITADO' | 'CANCELADA';
+export type StatusDistribuicao = 'ENVIADA_AO_CONTADOR' | 'APROVADA' | 'AJUSTE_SOLICITADO' | 'REPROVADA' | 'CANCELADA';
 
 export type NaturezaRepasse = 'LUCRO' | 'REEMBOLSO' | 'EMPRESTIMO_MUTUO' | 'PRO_LABORE' | 'DEVOLUCAO';
 
@@ -39,6 +39,7 @@ export interface Distribuicao {
   status: StatusDistribuicao;
   recibo_numero: string | null;
   recibo_pdf_url: string | null;
+  justificativa_recusa?: string | null;
   created_at: string;
   updated_at: string;
   cliente?: {
@@ -236,10 +237,13 @@ export function useUpdateDistribuicaoStatus() {
 
       const statusAnterior = current.status as StatusDistribuicao;
 
-      // Update status
+      // Update status (store the refusal justification when not accepted)
       const { data, error } = await supabase
         .from('distribuicoes')
-        .update({ status })
+        .update({
+          status,
+          justificativa_recusa: status === 'REPROVADA' ? (observacao || null) : null,
+        })
         .eq('id', id)
         .select()
         .single();
@@ -260,6 +264,7 @@ export function useUpdateDistribuicaoStatus() {
         ENVIADA_AO_CONTADOR: 'Enviada ao Contador',
         APROVADA: 'Aprovada',
         AJUSTE_SOLICITADO: 'Ajuste Solicitado',
+        REPROVADA: 'Não aprovada',
         CANCELADA: 'Cancelada',
       };
 
@@ -297,6 +302,7 @@ export function useBatchUpdateStatus() {
         ENVIADA_AO_CONTADOR: 'Enviada ao Contador',
         APROVADA: 'Aprovada',
         AJUSTE_SOLICITADO: 'Ajuste Solicitado',
+        REPROVADA: 'Não aprovada',
         CANCELADA: 'Cancelada',
       };
       for (const id of ids) {

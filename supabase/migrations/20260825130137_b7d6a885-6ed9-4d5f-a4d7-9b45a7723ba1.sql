@@ -1,0 +1,1 @@
+ALTER TYPE public.status_distribuicao ADD VALUE IF NOT EXISTS 'REPROVADA';

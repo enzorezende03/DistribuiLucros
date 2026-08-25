@@ -16,6 +16,7 @@ interface Pendencia {
   observacao: string | null;
   created_at: string;
   distribuicao_id: string;
+  status_novo?: string;
   distribuicao?: {
     competencia: string;
     valor_total: number;
@@ -46,8 +47,8 @@ function usePendencias(clienteId?: string | null) {
 
       const { data, error } = await supabase
         .from('distribuicao_historico')
-        .select('id, observacao, created_at, distribuicao_id, lida')
-        .eq('status_novo', 'AJUSTE_SOLICITADO')
+        .select('id, observacao, created_at, distribuicao_id, lida, status_novo')
+        .in('status_novo', ['AJUSTE_SOLICITADO', 'REPROVADA'])
         .eq('lida', false)
         .in('distribuicao_id', distIds)
         .order('created_at', { ascending: false })
@@ -102,7 +103,7 @@ export default function PendenciasPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-sm">{t('pending.adjustRequested')}</p>
+                      <p className="font-semibold text-sm">{p.status_novo === 'REPROVADA' ? 'Distribuição não aprovada' : t('pending.adjustRequested')}</p>
                       {p.distribuicao?.recibo_numero && (
                         <Badge variant="outline" className="text-xs">{p.distribuicao.recibo_numero}</Badge>
                       )}
