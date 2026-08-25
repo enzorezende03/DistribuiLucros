@@ -39,6 +39,7 @@ export interface Distribuicao {
   status: StatusDistribuicao;
   recibo_numero: string | null;
   recibo_pdf_url: string | null;
+  justificativa_recusa?: string | null;
   created_at: string;
   updated_at: string;
   cliente?: {
