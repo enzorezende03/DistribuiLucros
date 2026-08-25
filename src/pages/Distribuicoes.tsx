@@ -1173,6 +1173,39 @@ function NaoHouveActions({ row, isAdmin }: { row: { id: string; competencia: str
         </DropdownMenuContent>
       </DropdownMenu>
 
+      <Dialog open={recusaOpen} onOpenChange={setRecusaOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Não aprovar declaração</DialogTitle>
+            <DialogDescription>
+              Informe o motivo pelo qual esta declaração não foi aceita — {formatCompetencia(row.competencia)}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              value={justValue}
+              onChange={(e) => setJustValue(e.target.value)}
+              rows={3}
+              placeholder="Ex.: informação divergente do movimento do mês."
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRecusaOpen(false)}>{t('common.cancel')}</Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  await updateStatus.mutateAsync({ id: row.id, status: 'REPROVADA', justificativa: justValue.trim() });
+                  setRecusaOpen(false);
+                }}
+                disabled={updateStatus.isPending || justValue.trim().length < 5}
+              >
+                {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Não aprovar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
