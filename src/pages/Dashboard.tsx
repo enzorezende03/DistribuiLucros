@@ -962,6 +962,7 @@ function StatusBadge({ status }: { status: string }) {
     ENVIADA_AO_CONTADOR: { className: 'status-recebida' },
     APROVADA: { className: 'status-aprovada' },
     AJUSTE_SOLICITADO: { className: 'status-ajuste-solicitado' },
+    REPROVADA: { className: 'status-reprovada' },
     CANCELADA: { className: 'status-cancelada' },
   };
 

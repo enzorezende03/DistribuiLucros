@@ -114,10 +114,13 @@ export function useUpdateConfirmacao() {
 export function useUpdateConfirmacaoStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: StatusDistribuicao }) => {
+    mutationFn: async ({ id, status, justificativa }: { id: string; status: StatusDistribuicao; justificativa?: string }) => {
       const { data, error } = await supabase
         .from('confirmacoes_mes')
-        .update({ status })
+        .update({
+          status,
+          justificativa_recusa: status === 'REPROVADA' ? (justificativa || null) : null,
+        })
         .eq('id', id)
         .select()
         .single();
@@ -128,12 +131,13 @@ export function useUpdateConfirmacaoStatus() {
         ENVIADA_AO_CONTADOR: 'Enviada ao Contador',
         APROVADA: 'Aprovada',
         AJUSTE_SOLICITADO: 'Ajuste Solicitado',
+        REPROVADA: 'Não aprovada',
         CANCELADA: 'Cancelada',
       };
       await supabase.from('notificacoes').insert({
         cliente_id: (data as any).cliente_id,
         titulo: `Não houve distribuição — status: ${statusLabels[status] || status}`,
-        mensagem: `Sua declaração de "não houve distribuição" para ${(data as any).competencia} teve o status alterado para "${statusLabels[status] || status}".`,
+        mensagem: `Sua declaração de "não houve distribuição" para ${(data as any).competencia} teve o status alterado para "${statusLabels[status] || status}".${justificativa ? ` Justificativa: ${justificativa}` : ''}`,
       });
 
       return data as Confirmacao;

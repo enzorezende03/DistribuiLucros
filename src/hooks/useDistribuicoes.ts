@@ -264,6 +264,7 @@ export function useUpdateDistribuicaoStatus() {
         ENVIADA_AO_CONTADOR: 'Enviada ao Contador',
         APROVADA: 'Aprovada',
         AJUSTE_SOLICITADO: 'Ajuste Solicitado',
+        REPROVADA: 'Não aprovada',
         CANCELADA: 'Cancelada',
       };
 
@@ -301,6 +302,7 @@ export function useBatchUpdateStatus() {
         ENVIADA_AO_CONTADOR: 'Enviada ao Contador',
         APROVADA: 'Aprovada',
         AJUSTE_SOLICITADO: 'Ajuste Solicitado',
+        REPROVADA: 'Não aprovada',
         CANCELADA: 'Cancelada',
       };
       for (const id of ids) {
