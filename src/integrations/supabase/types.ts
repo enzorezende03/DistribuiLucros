@@ -128,6 +128,7 @@ export type Database = {
           competencia: string
           created_at: string
           id: string
+          justificativa_recusa: string | null
           observacao: string | null
           resposta: Database["public"]["Enums"]["resposta_confirmacao"]
           status: Database["public"]["Enums"]["status_distribuicao"]
@@ -138,6 +139,7 @@ export type Database = {
           competencia: string
           created_at?: string
           id?: string
+          justificativa_recusa?: string | null
           observacao?: string | null
           resposta: Database["public"]["Enums"]["resposta_confirmacao"]
           status?: Database["public"]["Enums"]["status_distribuicao"]
@@ -148,6 +150,7 @@ export type Database = {
           competencia?: string
           created_at?: string
           id?: string
+          justificativa_recusa?: string | null
           observacao?: string | null
           resposta?: Database["public"]["Enums"]["resposta_confirmacao"]
           status?: Database["public"]["Enums"]["status_distribuicao"]
@@ -257,6 +260,7 @@ export type Database = {
           data_distribuicao: string
           forma_pagamento: string
           id: string
+          justificativa_recusa: string | null
           natureza: Database["public"]["Enums"]["natureza_repasse"]
           recibo_numero: string | null
           recibo_pdf_url: string | null
@@ -273,6 +277,7 @@ export type Database = {
           data_distribuicao: string
           forma_pagamento: string
           id?: string
+          justificativa_recusa?: string | null
           natureza: Database["public"]["Enums"]["natureza_repasse"]
           recibo_numero?: string | null
           recibo_pdf_url?: string | null
@@ -289,6 +294,7 @@ export type Database = {
           data_distribuicao?: string
           forma_pagamento?: string
           id?: string
+          justificativa_recusa?: string | null
           natureza?: Database["public"]["Enums"]["natureza_repasse"]
           recibo_numero?: string | null
           recibo_pdf_url?: string | null
