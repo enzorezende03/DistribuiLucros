@@ -82,6 +82,7 @@ const statusKeys: Record<StatusDistribuicao, string> = {
   ENVIADA_AO_CONTADOR: 'status.ENVIADA_AO_CONTADOR',
   APROVADA: 'status.APROVADA',
   AJUSTE_SOLICITADO: 'status.AJUSTE_SOLICITADO',
+  REPROVADA: 'status.REPROVADA',
   CANCELADA: 'status.CANCELADA',
 };
 
@@ -89,6 +90,7 @@ const statusClassNames: Record<StatusDistribuicao, string> = {
   ENVIADA_AO_CONTADOR: 'status-recebida',
   APROVADA: 'status-aprovada',
   AJUSTE_SOLICITADO: 'status-ajuste-solicitado',
+  REPROVADA: 'status-reprovada',
   CANCELADA: 'status-cancelada',
 };
 
@@ -182,6 +184,8 @@ export default function DistribuicoesPage() {
     rowValor: number;
     /** Data/hora em que o cliente preencheu a informação */
     registrado_em: string;
+    /** Justificativa informada pelo time interno ao não aprovar */
+    justificativa: string | null;
   };
   type DistRow = BaseRow & {
     kind: 'dist';
@@ -221,6 +225,7 @@ export default function DistribuicoesPage() {
       socioIndex: idx,
       data_ref: d.data_distribuicao,
       registrado_em: d.created_at,
+      justificativa: (d as any).justificativa_recusa ?? null,
     }));
   });
 
@@ -242,6 +247,7 @@ export default function DistribuicoesPage() {
       rowValor: 0,
       data_ref: c.created_at,
       registrado_em: c.created_at,
+      justificativa: c.justificativa_recusa ?? null,
       observacao: c.observacao,
     }));
 
@@ -501,6 +507,9 @@ export default function DistribuicoesPage() {
                             <StatusBadge status={row.status} />
                             <span className="text-xs text-muted-foreground">{formatDate(row.data_ref)}</span>
                           </div>
+                          {row.status === 'REPROVADA' && (
+                            <RecusaMotivo justificativa={row.justificativa} />
+                          )}
                           {isAdmin && (
                             <p className="text-xs text-muted-foreground">Preenchido em {formatDateTime(row.registrado_em)}</p>
                           )}
@@ -534,6 +543,9 @@ export default function DistribuicoesPage() {
                           <StatusBadgeWithHistory distribuicaoId={dr.id} status={dr.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
                           <span className="text-xs text-muted-foreground">{formatDate(dr.data_ref)}</span>
                         </div>
+                        {dr.status === 'REPROVADA' && (
+                          <RecusaMotivo justificativa={dr.justificativa} />
+                        )}
                         {isAdmin && (
                           <p className="text-xs text-muted-foreground">Preenchido em {formatDateTime(dr.registrado_em)}</p>
                         )}
@@ -604,6 +616,9 @@ export default function DistribuicoesPage() {
                               <TableCell className="text-right text-sm text-muted-foreground">—</TableCell>
                               <TableCell>
                                 <StatusBadge status={row.status} />
+                                {row.status === 'REPROVADA' && (
+                                  <RecusaMotivo justificativa={row.justificativa} />
+                                )}
                               </TableCell>
                               {isAdmin && (
                                 <TableCell className="hidden lg:table-cell text-xs text-muted-foreground whitespace-nowrap">
@@ -657,6 +672,9 @@ export default function DistribuicoesPage() {
                             <TableCell className="text-right font-semibold money-value">{formatCurrency(dr.rowValor)}</TableCell>
                             <TableCell>
                               <StatusBadgeWithHistory distribuicaoId={dr.id} status={dr.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
+                              {dr.status === 'REPROVADA' && (
+                                <RecusaMotivo justificativa={dr.justificativa} />
+                              )}
                             </TableCell>
                             {isAdmin && (
                               <TableCell className="hidden lg:table-cell text-xs text-muted-foreground whitespace-nowrap">
@@ -747,6 +765,15 @@ export default function DistribuicoesPage() {
 
       <ExportDistribuicoesDialog open={isExportOpen} onOpenChange={setIsExportOpen} />
     </SidebarLayout>
+  );
+}
+
+function RecusaMotivo({ justificativa }: { justificativa: string | null }) {
+  return (
+    <p className="mt-1 max-w-[260px] text-xs text-destructive">
+      <span className="font-medium">Motivo: </span>
+      {justificativa || 'Justificativa não informada'}
+    </p>
   );
 }
 
@@ -1049,10 +1076,16 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="observacao">{t('distributions.observationOptional')}</Label>
+              <Label htmlFor="observacao">
+                {pendingStatus === 'REPROVADA'
+                  ? 'Justificativa da recusa (obrigatória)'
+                  : t('distributions.observationOptional')}
+              </Label>
               <Textarea
                 id="observacao"
-                placeholder={t('distributions.addObservation')}
+                placeholder={pendingStatus === 'REPROVADA'
+                  ? 'Ex.: empresa com débitos em aberto, impedida de distribuir lucros neste período.'
+                  : t('distributions.addObservation')}
                 value={observacao}
                 onChange={(e) => setObservacao(e.target.value)}
                 rows={3}
@@ -1062,7 +1095,10 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
               <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
                 {t('common.cancel')}
               </Button>
-              <Button onClick={confirmStatusChange} disabled={updateStatus.isPending}>
+              <Button
+                onClick={confirmStatusChange}
+                disabled={updateStatus.isPending || (pendingStatus === 'REPROVADA' && observacao.trim().length < 5)}
+              >
                 {updateStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 {t('common.confirm')}
               </Button>
@@ -1080,6 +1116,8 @@ function NaoHouveActions({ row, isAdmin }: { row: { id: string; competencia: str
   const updateConf = useUpdateConfirmacao();
   const deleteConf = useDeleteConfirmacao();
   const [editOpen, setEditOpen] = useState(false);
+  const [recusaOpen, setRecusaOpen] = useState(false);
+  const [justValue, setJustValue] = useState('');
   const [obsValue, setObsValue] = useState(row.observacao || '');
   const canClientEdit = !isAdmin && row.status === 'ENVIADA_AO_CONTADOR';
 
@@ -1094,11 +1132,18 @@ function NaoHouveActions({ row, isAdmin }: { row: { id: string; competencia: str
         <DropdownMenuContent align="end">
           {isAdmin && (
             <>
-              {(['ENVIADA_AO_CONTADOR', 'APROVADA', 'AJUSTE_SOLICITADO', 'CANCELADA'] as StatusDistribuicao[]).map((s) => (
+              {(['ENVIADA_AO_CONTADOR', 'APROVADA', 'AJUSTE_SOLICITADO', 'REPROVADA', 'CANCELADA'] as StatusDistribuicao[]).map((s) => (
                 <DropdownMenuItem
                   key={s}
                   disabled={row.status === s || updateStatus.isPending}
-                  onClick={() => updateStatus.mutate({ id: row.id, status: s })}
+                  onClick={() => {
+                    if (s === 'REPROVADA') {
+                      setJustValue('');
+                      setRecusaOpen(true);
+                      return;
+                    }
+                    updateStatus.mutate({ id: row.id, status: s });
+                  }}
                 >
                   {t('distributions.markAs')} {t(statusKeys[s])}
                 </DropdownMenuItem>
