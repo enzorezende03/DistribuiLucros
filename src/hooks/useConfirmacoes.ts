@@ -12,6 +12,7 @@ export interface Confirmacao {
   resposta: RespostaConfirmacao;
   observacao: string | null;
   status: StatusDistribuicao;
+  justificativa_recusa?: string | null;
   created_at: string;
   updated_at?: string;
 }
