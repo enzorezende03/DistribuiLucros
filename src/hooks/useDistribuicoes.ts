@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type StatusDistribuicao = 'ENVIADA_AO_CONTADOR' | 'APROVADA' | 'AJUSTE_SOLICITADO' | 'CANCELADA';
+export type StatusDistribuicao = 'ENVIADA_AO_CONTADOR' | 'APROVADA' | 'AJUSTE_SOLICITADO' | 'REPROVADA' | 'CANCELADA';
 
 export type NaturezaRepasse = 'LUCRO' | 'REEMBOLSO' | 'EMPRESTIMO_MUTUO' | 'PRO_LABORE' | 'DEVOLUCAO';
 
