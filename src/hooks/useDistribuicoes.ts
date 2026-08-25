@@ -237,10 +237,13 @@ export function useUpdateDistribuicaoStatus() {
 
       const statusAnterior = current.status as StatusDistribuicao;
 
-      // Update status
+      // Update status (store the refusal justification when not accepted)
       const { data, error } = await supabase
         .from('distribuicoes')
-        .update({ status })
+        .update({
+          status,
+          justificativa_recusa: status === 'REPROVADA' ? (observacao || null) : null,
+        })
         .eq('id', id)
         .select()
         .single();
