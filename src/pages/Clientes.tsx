@@ -1,5 +1,5 @@
 import { memo, startTransition, useCallback, useState, useEffect, useMemo, useRef } from 'react';
-import { useMovimentacoesLucros, useCreateMovimentacao } from '@/hooks/useMovimentacoesLucros';
+import { useMovimentacoesLucros, useCreateMovimentacao, useTransferirSaldoLucros } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
