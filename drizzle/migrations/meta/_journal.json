@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789154061317,
+      "tag": "0000_add_transferencia_saldo_lucros",
+      "breakpoints": true
+    }
+  ]
+}

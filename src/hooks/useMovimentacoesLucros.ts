@@ -13,11 +13,14 @@ export interface MovimentacaoLucro {
   distribuicao_id: string | null;
   competencia: string | null;
   created_at: string;
+  cliente_origem_id?: string | null;
+  cliente_destino_id?: string | null;
   distribuicao?: {
     status: string;
     data_distribuicao: string | null;
   } | null;
 }
+
 
 export function useMovimentacoesLucros(clienteId: string | null) {
   return useQuery({
@@ -34,13 +37,16 @@ export function useMovimentacoesLucros(clienteId: string | null) {
         (mov) => !mov.distribuicao || mov.distribuicao.status !== 'CANCELADA'
       );
 
-      // Separate the "Saldo inicial" entry (pinned at top, no date) from the rest
-      const initials = filtered.filter(
-        (m) => !m.distribuicao_id && m.tipo === 'ENTRADA'
-      );
-      const movements = filtered.filter(
-        (m) => !(!m.distribuicao_id && m.tipo === 'ENTRADA')
-      );
+      // Separate the "Saldo inicial" entry (pinned at top, no date) from the rest.
+      // Transfers between companies are real movements, never "saldo inicial".
+      const isSaldoInicial = (m: MovimentacaoLucro) =>
+        !m.distribuicao_id &&
+        m.tipo === 'ENTRADA' &&
+        !m.cliente_origem_id &&
+        !m.cliente_destino_id;
+      const initials = filtered.filter(isSaldoInicial);
+      const movements = filtered.filter((m) => !isSaldoInicial(m));
+
 
       // Keep only the most recent "Saldo inicial" as the current one
       const saldoInicial = initials.sort((a, b) =>
@@ -145,3 +151,84 @@ export function useCreateMovimentacao() {
     },
   });
 }
+
+export function useTransferirSaldoLucros() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      origem_id: string;
+      destino_id: string;
+      valor: number;
+      observacao?: string;
+    }) => {
+      const { origem_id, destino_id, valor, observacao } = params;
+      if (origem_id === destino_id) throw new Error('Selecione uma empresa de destino diferente.');
+      if (!(valor > 0)) throw new Error('Informe um valor maior que zero.');
+
+      const { data: empresas, error: empresasError } = await supabase
+        .from('clientes')
+        .select('id, razao_social, saldo_lucros_acumulados')
+        .in('id', [origem_id, destino_id]);
+
+      if (empresasError) throw empresasError;
+
+      const origem = empresas?.find((c) => c.id === origem_id);
+      const destino = empresas?.find((c) => c.id === destino_id);
+      if (!origem || !destino) throw new Error('Empresa não encontrada.');
+
+      const saldoOrigem = Number(origem.saldo_lucros_acumulados) || 0;
+      const saldoDestino = Number(destino.saldo_lucros_acumulados) || 0;
+      if (valor > saldoOrigem) throw new Error('Valor maior que o saldo disponível.');
+
+      const sufixo = observacao?.trim() ? ` — ${observacao.trim()}` : '';
+
+      const { error: movError } = await supabase.from('movimentacoes_lucros').insert([
+        {
+          cliente_id: origem_id,
+          tipo: 'SAIDA',
+          valor,
+          saldo_anterior: saldoOrigem,
+          saldo_posterior: saldoOrigem - valor,
+          descricao: `Transferência de saldo para ${destino.razao_social}${sufixo}`,
+          cliente_destino_id: destino_id,
+        },
+        {
+          cliente_id: destino_id,
+          tipo: 'ENTRADA',
+          valor,
+          saldo_anterior: saldoDestino,
+          saldo_posterior: saldoDestino + valor,
+          descricao: `Transferência de saldo recebida de ${origem.razao_social}${sufixo}`,
+          cliente_origem_id: origem_id,
+        },
+      ]);
+
+      if (movError) throw movError;
+
+      const { error: updOrigem } = await supabase
+        .from('clientes')
+        .update({ saldo_lucros_acumulados: saldoOrigem - valor })
+        .eq('id', origem_id);
+      if (updOrigem) throw updOrigem;
+
+      const { error: updDestino } = await supabase
+        .from('clientes')
+        .update({ saldo_lucros_acumulados: saldoDestino + valor })
+        .eq('id', destino_id);
+      if (updDestino) throw updDestino;
+
+      return { destino: destino.razao_social, valor };
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['movimentacoes_lucros'] });
+      queryClient.invalidateQueries({ queryKey: ['clientes'] });
+      queryClient.invalidateQueries({ queryKey: ['cliente'] });
+      toast.success(`Saldo transferido para ${res.destino}!`);
+    },
+    onError: (error) => {
+      toast.error('Erro ao transferir saldo: ' + error.message);
+    },
+  });
+}
+

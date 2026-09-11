@@ -1,5 +1,5 @@
 import { memo, startTransition, useCallback, useState, useEffect, useMemo, useRef } from 'react';
-import { useMovimentacoesLucros, useCreateMovimentacao } from '@/hooks/useMovimentacoesLucros';
+import { useMovimentacoesLucros, useCreateMovimentacao, useTransferirSaldoLucros } from '@/hooks/useMovimentacoesLucros';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -835,10 +835,21 @@ function SociosSection({ clienteId }: { clienteId: string }) {
 function LucrosAcumuladosSection({ clienteId, saldoAtual }: { clienteId: string; saldoAtual: number }) {
   const { data: movimentacoes, isLoading } = useMovimentacoesLucros(clienteId);
   const createMovimentacao = useCreateMovimentacao();
+  const transferirSaldo = useTransferirSaldoLucros();
+  const { data: todosClientes } = useClientes();
   const [showForm, setShowForm] = useState(false);
   const [tipo, setTipo] = useState<'ENTRADA' | 'SAIDA'>('ENTRADA');
   const [valor, setValor] = useState('');
   const [descricao, setDescricao] = useState('');
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [destinoId, setDestinoId] = useState('');
+  const [valorTransfer, setValorTransfer] = useState('');
+  const [obsTransfer, setObsTransfer] = useState('');
+
+  const destinos = useMemo(
+    () => (todosClientes || []).filter((c) => c.id !== clienteId && c.status !== 'arquivado'),
+    [todosClientes, clienteId]
+  );
 
   const handleSubmit = async () => {
     if (!valor || !descricao.trim()) return;
@@ -853,23 +864,120 @@ function LucrosAcumuladosSection({ clienteId, saldoAtual }: { clienteId: string;
     setDescricao('');
   };
 
+  const openTransfer = () => {
+    setDestinoId('');
+    setValorTransfer(String(Number(saldoAtual) || 0));
+    setObsTransfer('');
+    setShowTransfer(true);
+  };
+
+  const handleTransfer = async () => {
+    await transferirSaldo.mutateAsync({
+      origem_id: clienteId,
+      destino_id: destinoId,
+      valor: Number(valorTransfer),
+      observacao: obsTransfer,
+    });
+    setShowTransfer(false);
+  };
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h4 className="text-sm font-semibold flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-emerald-600" />
           Lucros Acumulados (Ata Registrada)
         </h4>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="text-sm font-bold text-emerald-600">
             Saldo: {formatCurrency(saldoAtual)}
           </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={openTransfer}
+            disabled={!(Number(saldoAtual) > 0)}
+          >
+            <TrendingUp className="h-3.5 w-3.5 mr-1" />
+            Transferir saldo
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
             <Plus className="h-3.5 w-3.5 mr-1" />
             Movimentação
           </Button>
         </div>
       </div>
+
+      <Dialog open={showTransfer} onOpenChange={setShowTransfer}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Transferir saldo de lucros acumulados</DialogTitle>
+            <DialogDescription>
+              O valor sai desta empresa e entra na empresa escolhida (ex.: a holding do grupo).
+              Saldo disponível: {formatCurrency(saldoAtual)}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Empresa de destino</Label>
+              <Select value={destinoId} onValueChange={setDestinoId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinos.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.razao_social}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Valor a transferir (R$)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={valorTransfer}
+                onChange={(e) => setValorTransfer(e.target.value)}
+                placeholder="0,00"
+              />
+              <button
+                type="button"
+                className="mt-1 text-xs text-emerald-600 hover:underline"
+                onClick={() => setValorTransfer(String(Number(saldoAtual) || 0))}
+              >
+                Usar saldo total
+              </button>
+            </div>
+            <div>
+              <Label>Observação (opcional)</Label>
+              <Input
+                value={obsTransfer}
+                onChange={(e) => setObsTransfer(e.target.value)}
+                placeholder="Ex: transferência para holding do grupo"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTransfer(false)}>Cancelar</Button>
+            <Button
+              onClick={handleTransfer}
+              disabled={
+                !destinoId ||
+                !(Number(valorTransfer) > 0) ||
+                Number(valorTransfer) > Number(saldoAtual) ||
+                transferirSaldo.isPending
+              }
+            >
+              {transferirSaldo.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+              Transferir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {showForm && (
         <div className="rounded-lg border p-4 space-y-3 bg-muted/30">
