@@ -15,6 +15,13 @@
       "when": 1789154951002,
       "tag": "0001_fix_abatimento_lucros_competencia",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789156164502,
+      "tag": "0002_corrigir_calculos_alertas_e_abatimentos",
+      "breakpoints": true
     }
   ]
 }
