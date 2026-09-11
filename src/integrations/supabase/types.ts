@@ -316,7 +316,9 @@ export type Database = {
       }
       movimentacoes_lucros: {
         Row: {
+          cliente_destino_id: string | null
           cliente_id: string
+          cliente_origem_id: string | null
           competencia: string | null
           created_at: string
           descricao: string
@@ -328,7 +330,9 @@ export type Database = {
           valor: number
         }
         Insert: {
+          cliente_destino_id?: string | null
           cliente_id: string
+          cliente_origem_id?: string | null
           competencia?: string | null
           created_at?: string
           descricao: string
@@ -340,7 +344,9 @@ export type Database = {
           valor: number
         }
         Update: {
+          cliente_destino_id?: string | null
           cliente_id?: string
+          cliente_origem_id?: string | null
           competencia?: string | null
           created_at?: string
           descricao?: string
@@ -353,8 +359,22 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "movimentacoes_lucros_cliente_destino_id_fkey"
+            columns: ["cliente_destino_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "movimentacoes_lucros_cliente_id_fkey"
             columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_lucros_cliente_origem_id_fkey"
+            columns: ["cliente_origem_id"]
             isOneToOne: false
             referencedRelation: "clientes"
             referencedColumns: ["id"]
