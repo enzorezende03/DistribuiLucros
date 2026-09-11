@@ -37,7 +37,7 @@ export function useAlertas(clienteId?: string | null, tipo?: TipoAlerta, resolvi
           socio:socios(nome)
         `)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(2000);
 
       if (clienteId) {
         query = query.eq('cliente_id', clienteId);

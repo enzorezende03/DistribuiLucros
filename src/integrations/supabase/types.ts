@@ -660,7 +660,28 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_cliente_owner: { Args: { _cliente_id: string }; Returns: boolean }
+      recalcular_alerta_50k: {
+        Args: { _cliente_id: string; _competencia: string; _socio_id: string }
+        Returns: undefined
+      }
+      reconciliar_abatimento_lucros: {
+        Args: {
+          _cliente_id: string
+          _competencia: string
+          _distribuicao_id: string
+        }
+        Returns: undefined
+      }
       solicitar_acesso_cnpj: { Args: { _cnpj: string }; Returns: Json }
+      transferir_saldo_lucros: {
+        Args: {
+          _destino_id: string
+          _observacao?: string
+          _origem_id: string
+          _valor: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "cliente"

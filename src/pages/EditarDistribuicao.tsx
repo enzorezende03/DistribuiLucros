@@ -114,7 +114,11 @@ export default function EditarDistribuicaoPage() {
     const map = new Map<string, number>();
     if (!existingDistribuicoes) return map;
     for (const dist of existingDistribuicoes) {
-      if (dist.competencia !== competenciaAtual || dist.id === id) continue;
+      if (
+        dist.competencia !== competenciaAtual ||
+        dist.id === id ||
+        !['ENVIADA_AO_CONTADOR', 'APROVADA'].includes(dist.status)
+      ) continue;
       for (const item of dist.itens || []) {
         map.set(item.socio_id, (map.get(item.socio_id) || 0) + Number(item.valor));
       }
@@ -316,7 +320,7 @@ export default function EditarDistribuicaoPage() {
                   const totalExcess = excessItems.reduce((sum, item) => {
                     const valorForm = parseMaskedCurrency(item.valor);
                     const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
-                    return sum + (valorForm + acumulado);
+                    return sum + Math.max(valorForm + acumulado - 50000, 0);
                   }, 0);
 
                   const cobertoPeloSaldo = hasAta ? Math.min(saldoIsento, totalExcess) : 0;

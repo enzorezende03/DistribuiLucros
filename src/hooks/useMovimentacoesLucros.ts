@@ -166,59 +166,19 @@ export function useTransferirSaldoLucros() {
       if (origem_id === destino_id) throw new Error('Selecione uma empresa de destino diferente.');
       if (!(valor > 0)) throw new Error('Informe um valor maior que zero.');
 
-      const { data: empresas, error: empresasError } = await supabase
-        .from('clientes')
-        .select('id, razao_social, saldo_lucros_acumulados')
-        .in('id', [origem_id, destino_id]);
+      const { data, error } = await supabase.rpc('transferir_saldo_lucros', {
+        _origem_id: origem_id,
+        _destino_id: destino_id,
+        _valor: valor,
+        _observacao: observacao?.trim() || null,
+      });
+      if (error) throw error;
 
-      if (empresasError) throw empresasError;
-
-      const origem = empresas?.find((c) => c.id === origem_id);
-      const destino = empresas?.find((c) => c.id === destino_id);
-      if (!origem || !destino) throw new Error('Empresa não encontrada.');
-
-      const saldoOrigem = Number(origem.saldo_lucros_acumulados) || 0;
-      const saldoDestino = Number(destino.saldo_lucros_acumulados) || 0;
-      if (valor > saldoOrigem) throw new Error('Valor maior que o saldo disponível.');
-
-      const sufixo = observacao?.trim() ? ` — ${observacao.trim()}` : '';
-
-      const { error: movError } = await supabase.from('movimentacoes_lucros').insert([
-        {
-          cliente_id: origem_id,
-          tipo: 'SAIDA',
-          valor,
-          saldo_anterior: saldoOrigem,
-          saldo_posterior: saldoOrigem - valor,
-          descricao: `Transferência de saldo para ${destino.razao_social}${sufixo}`,
-          cliente_destino_id: destino_id,
-        },
-        {
-          cliente_id: destino_id,
-          tipo: 'ENTRADA',
-          valor,
-          saldo_anterior: saldoDestino,
-          saldo_posterior: saldoDestino + valor,
-          descricao: `Transferência de saldo recebida de ${origem.razao_social}${sufixo}`,
-          cliente_origem_id: origem_id,
-        },
-      ]);
-
-      if (movError) throw movError;
-
-      const { error: updOrigem } = await supabase
-        .from('clientes')
-        .update({ saldo_lucros_acumulados: saldoOrigem - valor })
-        .eq('id', origem_id);
-      if (updOrigem) throw updOrigem;
-
-      const { error: updDestino } = await supabase
-        .from('clientes')
-        .update({ saldo_lucros_acumulados: saldoDestino + valor })
-        .eq('id', destino_id);
-      if (updDestino) throw updDestino;
-
-      return { destino: destino.razao_social, valor };
+      const result = data as { destino?: string; valor?: number } | null;
+      return {
+        destino: result?.destino || 'empresa selecionada',
+        valor: Number(result?.valor ?? valor),
+      };
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['movimentacoes_lucros'] });
