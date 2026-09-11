@@ -37,13 +37,16 @@ export function useMovimentacoesLucros(clienteId: string | null) {
         (mov) => !mov.distribuicao || mov.distribuicao.status !== 'CANCELADA'
       );
 
-      // Separate the "Saldo inicial" entry (pinned at top, no date) from the rest
-      const initials = filtered.filter(
-        (m) => !m.distribuicao_id && m.tipo === 'ENTRADA'
-      );
-      const movements = filtered.filter(
-        (m) => !(!m.distribuicao_id && m.tipo === 'ENTRADA')
-      );
+      // Separate the "Saldo inicial" entry (pinned at top, no date) from the rest.
+      // Transfers between companies are real movements, never "saldo inicial".
+      const isSaldoInicial = (m: MovimentacaoLucro) =>
+        !m.distribuicao_id &&
+        m.tipo === 'ENTRADA' &&
+        !m.cliente_origem_id &&
+        !m.cliente_destino_id;
+      const initials = filtered.filter(isSaldoInicial);
+      const movements = filtered.filter((m) => !isSaldoInicial(m));
+
 
       // Keep only the most recent "Saldo inicial" as the current one
       const saldoInicial = initials.sort((a, b) =>
