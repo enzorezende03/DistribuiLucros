@@ -1191,19 +1191,25 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
   useEffect(() => {
     if (open && cliente) {
       (async () => {
-        // Load "Saldo inicial" = current saldo + already-abated amounts (to get original pool)
+        // Load "Saldo inicial" = current saldo + already-abated amounts - transfers received + transfers sent
         let saldoInicial = Number(cliente.saldo_lucros_acumulados) || 0;
         try {
-          const { data: abatimentos } = await supabase
+          const { data: movs } = await supabase
             .from('movimentacoes_lucros')
-            .select('valor, distribuicao:distribuicoes(status)')
-            .eq('cliente_id', cliente.id)
-            .eq('tipo', 'SAIDA')
-            .not('distribuicao_id', 'is', null);
-          const jaAbatido = (abatimentos || [])
-            .filter((m: any) => m.distribuicao && m.distribuicao.status !== 'CANCELADA')
+            .select('valor, tipo, distribuicao_id, cliente_origem_id, cliente_destino_id, distribuicao:distribuicoes(status)')
+            .eq('cliente_id', cliente.id);
+          const rows = (movs || []) as any[];
+          const jaAbatido = rows
+            .filter((m) => m.tipo === 'SAIDA' && m.distribuicao_id && m.distribuicao && m.distribuicao.status !== 'CANCELADA')
             .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
-          saldoInicial = (Number(cliente.saldo_lucros_acumulados) || 0) + jaAbatido;
+          const recebidas = rows
+            .filter((m) => m.tipo === 'ENTRADA' && m.cliente_origem_id)
+            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
+          const enviadas = rows
+            .filter((m) => m.tipo === 'SAIDA' && m.cliente_destino_id)
+            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
+          saldoInicial = (Number(cliente.saldo_lucros_acumulados) || 0) + jaAbatido - recebidas + enviadas;
+          if (saldoInicial < 0) saldoInicial = 0;
         } catch (e) {
           console.error('Erro ao calcular saldo inicial:', e);
         }
@@ -1220,6 +1226,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         });
       })();
     } else if (open) {
+
       setFormData({
         razao_social: '',
         cnpj: '',
@@ -1289,23 +1296,31 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
       if (data.ata_registrada) {
         try {
-          // Sum of abatements already applied via non-cancelled distributions
-          const { data: abatimentos } = await supabase
+          const { data: movs } = await supabase
             .from('movimentacoes_lucros')
-            .select('valor, distribuicao:distribuicoes(status)')
-            .eq('cliente_id', cliente.id)
-            .eq('tipo', 'SAIDA')
-            .not('distribuicao_id', 'is', null);
-          const jaAbatido = (abatimentos || [])
-            .filter((m: any) => m.distribuicao && m.distribuicao.status !== 'CANCELADA')
+            .select('valor, tipo, distribuicao_id, cliente_origem_id, cliente_destino_id, distribuicao:distribuicoes(status)')
+            .eq('cliente_id', cliente.id);
+          const rows = (movs || []) as any[];
+          // Abatements already applied via non-cancelled distributions
+          const jaAbatido = rows
+            .filter((m) => m.tipo === 'SAIDA' && m.distribuicao_id && m.distribuicao && m.distribuicao.status !== 'CANCELADA')
+            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
+          // Transfers between companies must be preserved in the balance
+          const recebidas = rows
+            .filter((m) => m.tipo === 'ENTRADA' && m.cliente_origem_id)
+            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
+          const enviadas = rows
+            .filter((m) => m.tipo === 'SAIDA' && m.cliente_destino_id)
             .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
 
-          // Remove previous manual "Saldo inicial" / ajustes so only one initial row remains
+          // Remove only the previous manual "Saldo inicial" row (never transfers/abatements)
           await supabase
             .from('movimentacoes_lucros')
             .delete()
             .eq('cliente_id', cliente.id)
-            .is('distribuicao_id', null);
+            .is('distribuicao_id', null)
+            .is('cliente_origem_id', null)
+            .is('cliente_destino_id', null);
 
           if (newSaldoInicial > 0) {
             await supabase.from('movimentacoes_lucros').insert({
@@ -1318,8 +1333,8 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             });
           }
 
-          // Recompute remaining balance: initial minus what was already abated
-          const saldoRestante = Math.max(newSaldoInicial - jaAbatido, 0);
+          // Recompute remaining balance: initial + transfers in - transfers out - abatements
+          const saldoRestante = Math.max(newSaldoInicial + recebidas - enviadas - jaAbatido, 0);
           await supabase
             .from('clientes')
             .update({ saldo_lucros_acumulados: saldoRestante })
@@ -1328,6 +1343,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
           console.error('Erro ao atualizar saldo inicial:', e);
         }
       }
+
     } else {
       const validSocios = socios
         .filter((s) => s.nome.trim())
