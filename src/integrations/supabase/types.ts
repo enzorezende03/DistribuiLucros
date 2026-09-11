@@ -673,6 +673,15 @@ export type Database = {
         Returns: undefined
       }
       solicitar_acesso_cnpj: { Args: { _cnpj: string }; Returns: Json }
+      transferir_saldo_lucros: {
+        Args: {
+          _destino_id: string
+          _observacao?: string
+          _origem_id: string
+          _valor: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "cliente"

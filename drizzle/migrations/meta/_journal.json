@@ -22,6 +22,13 @@
       "when": 1789156164502,
       "tag": "0002_corrigir_calculos_alertas_e_abatimentos",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789156260822,
+      "tag": "0003_aperfeicoar_cobertura_alertas_e_transferencia",
+      "breakpoints": true
     }
   ]
 }
