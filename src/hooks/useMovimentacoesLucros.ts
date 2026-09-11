@@ -13,11 +13,14 @@ export interface MovimentacaoLucro {
   distribuicao_id: string | null;
   competencia: string | null;
   created_at: string;
+  cliente_origem_id?: string | null;
+  cliente_destino_id?: string | null;
   distribuicao?: {
     status: string;
     data_distribuicao: string | null;
   } | null;
 }
+
 
 export function useMovimentacoesLucros(clienteId: string | null) {
   return useQuery({
