@@ -399,8 +399,17 @@ export default function DistribuicoesPage() {
                   {exportingTela === 'excel' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
                   Excel
                 </Button>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setIsImportTelaOpen(true)}
+                >
+                  <Upload className="h-4 w-4" />
+                  Importar planilha
+                </Button>
               </>
             )}
+
             {!isAdmin && (
               <Link to="/distribuicoes/nova">
                 <Button className="gap-2">
