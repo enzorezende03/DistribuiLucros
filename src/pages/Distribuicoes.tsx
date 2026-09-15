@@ -294,6 +294,47 @@ export default function DistribuicoesPage() {
     .filter((d) => selectedIds.has(d.id) && d.status !== 'CANCELADA')
     .reduce((sum, d) => sum + Number(d.valor_total || 0), 0);
 
+  const { data: clienteAtual } = useCliente(!isAdmin ? clienteId : null);
+
+  const handleExportTela = async (kind: 'pdf' | 'excel') => {
+    if (visibleRows.length === 0) {
+      toast.error('Não há informações na tela para exportar.');
+      return;
+    }
+    setExportingTela(kind);
+    try {
+      const linhas: LinhaExport[] = visibleRows.map((r) => ({
+        recibo: r.kind === 'dist' ? (r as DistRow).reciboDisplay : '',
+        socio: r.kind === 'dist' ? ((r as DistRow).item?.socio?.nome || '') : '',
+        data: r.data_ref,
+        valor: r.rowValor || 0,
+        status: t(statusKeys[r.status]),
+        tipo: r.kind,
+        competencia: r.competencia,
+      }));
+      const params = {
+        razaoSocial: clienteAtual?.razao_social || 'Empresa',
+        cnpj: clienteAtual?.cnpj || '',
+        linhas,
+        total: totalPeriodo,
+        qtdDistribuicoes: totalDistribuicoesUnicas,
+        filtrosLabel: [
+          selectedCompetencia ? `Mês: ${formatCompetencia(selectedCompetencia)}` : 'Todos os meses',
+          selectedStatus ? `Situação: ${t(statusKeys[selectedStatus as StatusDistribuicao])}` : null,
+          search ? `Busca: ${search}` : null,
+        ].filter(Boolean).join('  •  '),
+      };
+      if (kind === 'pdf') await exportDistribuicoesTelaPDF(params);
+      else await exportDistribuicoesTelaExcel(params);
+      toast.success('Arquivo gerado!');
+    } catch (err: any) {
+      toast.error('Não foi possível gerar o arquivo: ' + (err?.message || 'erro desconhecido'));
+    } finally {
+      setExportingTela(null);
+    }
+  };
+
+
   return (
     <SidebarLayout>
       <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
