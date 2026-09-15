@@ -113,6 +113,7 @@ export default function DistribuicoesPage() {
   const [selectedCompetenciaParam, setSelectedCompetenciaParam] = useUrlParam('competencia');
   const selectedCompetencia = selectedCompetenciaParam || null;
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [exportingTela, setExportingTela] = useState<'pdf' | 'excel' | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const batchUpdate = useBatchUpdateStatus();
   
