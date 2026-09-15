@@ -379,6 +379,28 @@ export default function DistribuicoesPage() {
               </>
             )}
             {!isAdmin && (
+              <>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  disabled={exportingTela !== null || isLoading}
+                  onClick={() => handleExportTela('pdf')}
+                >
+                  {exportingTela === 'pdf' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                  PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  disabled={exportingTela !== null || isLoading}
+                  onClick={() => handleExportTela('excel')}
+                >
+                  {exportingTela === 'excel' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                  Excel
+                </Button>
+              </>
+            )}
+            {!isAdmin && (
               <Link to="/distribuicoes/nova">
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
