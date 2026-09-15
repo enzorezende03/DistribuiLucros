@@ -27,7 +27,9 @@ import {
 } from '@/components/ui/select';
 import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, useBatchUpdateStatus, type StatusDistribuicao, type Distribuicao } from '@/hooks/useDistribuicoes';
 import { useSocios } from '@/hooks/useSocios';
-import { useClientes } from '@/hooks/useClientes';
+import { useClientes, useCliente } from '@/hooks/useClientes';
+import { exportDistribuicoesTelaPDF, exportDistribuicoesTelaExcel, type LinhaExport } from '@/lib/exportDistribuicoesTela';
+import { FileDown, FileSpreadsheet } from 'lucide-react';
 import { useConfirmacoes, useConfirmacoesNaoHouve, useUpdateConfirmacaoStatus, useUpdateConfirmacao, useDeleteConfirmacao, type Confirmacao } from '@/hooks/useConfirmacoes';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatDate, formatDateTime, formatCompetencia } from '@/lib/format';
