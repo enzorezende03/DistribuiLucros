@@ -29,7 +29,9 @@ import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, u
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes, useCliente } from '@/hooks/useClientes';
 import { exportDistribuicoesTelaPDF, exportDistribuicoesTelaExcel, type LinhaExport } from '@/lib/exportDistribuicoesTela';
-import { FileDown, FileSpreadsheet } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Upload } from 'lucide-react';
+import { ImportDistribuicoesDialog } from '@/components/ImportDistribuicoesDialog';
+
 import { useConfirmacoes, useConfirmacoesNaoHouve, useUpdateConfirmacaoStatus, useUpdateConfirmacao, useDeleteConfirmacao, type Confirmacao } from '@/hooks/useConfirmacoes';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, formatDate, formatDateTime, formatCompetencia } from '@/lib/format';
@@ -113,6 +115,8 @@ export default function DistribuicoesPage() {
   const [selectedCompetenciaParam, setSelectedCompetenciaParam] = useUrlParam('competencia');
   const selectedCompetencia = selectedCompetenciaParam || null;
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isImportTelaOpen, setIsImportTelaOpen] = useState(false);
+
   const [exportingTela, setExportingTela] = useState<'pdf' | 'excel' | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const batchUpdate = useBatchUpdateStatus();
@@ -399,8 +403,17 @@ export default function DistribuicoesPage() {
                   {exportingTela === 'excel' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
                   Excel
                 </Button>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setIsImportTelaOpen(true)}
+                >
+                  <Upload className="h-4 w-4" />
+                  Importar planilha
+                </Button>
               </>
             )}
+
             {!isAdmin && (
               <Link to="/distribuicoes/nova">
                 <Button className="gap-2">
@@ -830,6 +843,11 @@ export default function DistribuicoesPage() {
       />
 
       <ExportDistribuicoesDialog open={isExportOpen} onOpenChange={setIsExportOpen} />
+
+      {!isAdmin && (
+        <ImportDistribuicoesDialog open={isImportTelaOpen} onOpenChange={setIsImportTelaOpen} />
+      )}
+
     </SidebarLayout>
   );
 }
