@@ -193,6 +193,8 @@ export default function DistribuicoesPage() {
     registrado_em: string;
     /** Justificativa informada pelo time interno ao não aprovar */
     justificativa: string | null;
+    editado_em?: string | null;
+    edicao_justificativa?: string | null;
   };
   type DistRow = BaseRow & {
     kind: 'dist';
@@ -233,6 +235,8 @@ export default function DistribuicoesPage() {
       data_ref: d.data_distribuicao,
       registrado_em: d.created_at,
       justificativa: (d as any).justificativa_recusa ?? null,
+      editado_em: (d as any).editado_em ?? null,
+      edicao_justificativa: (d as any).edicao_justificativa ?? null,
     }));
   });
 
@@ -620,6 +624,7 @@ export default function DistribuicoesPage() {
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <StatusBadgeWithHistory distribuicaoId={dr.id} status={dr.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
+                          <EditadaBadge editadoEm={dr.editado_em} justificativa={dr.edicao_justificativa} />
                           <span className="text-xs text-muted-foreground">{formatDate(dr.data_ref)}</span>
                         </div>
                         {dr.status === 'REPROVADA' && (
@@ -751,6 +756,7 @@ export default function DistribuicoesPage() {
                             <TableCell className="text-right font-semibold money-value">{formatCurrency(dr.rowValor)}</TableCell>
                             <TableCell>
                               <StatusBadgeWithHistory distribuicaoId={dr.id} status={dr.status} isAdmin={isAdmin} isRealAdmin={userRole?.role === 'admin'} />
+                          <EditadaBadge editadoEm={dr.editado_em} justificativa={dr.edicao_justificativa} />
                               {dr.status === 'REPROVADA' && (
                                 <RecusaMotivo justificativa={dr.justificativa} />
                               )}
@@ -858,6 +864,18 @@ function RecusaMotivo({ justificativa }: { justificativa: string | null }) {
       <span className="font-medium">Motivo: </span>
       {justificativa || 'Justificativa não informada'}
     </p>
+  );
+}
+
+function EditadaBadge({ editadoEm, justificativa }: { editadoEm?: string | null; justificativa?: string | null }) {
+  if (!editadoEm) return null;
+  return (
+    <div className="mt-1">
+      <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 dark:text-amber-400" title={justificativa ? `Motivo: ${justificativa}` : undefined}>
+        Editada pela equipe
+      </Badge>
+      {justificativa && <p className="text-[11px] text-muted-foreground mt-0.5 max-w-[220px] whitespace-normal">Motivo: {justificativa}</p>}
+    </div>
   );
 }
 
@@ -1106,7 +1124,7 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
                 ))}
               </>
             )}
-            {!isAdmin && distribuicao.status === 'ENVIADA_AO_CONTADOR' && (
+            {(isAdmin ? distribuicao.status !== 'CANCELADA' : distribuicao.status === 'ENVIADA_AO_CONTADOR') && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -49,8 +50,10 @@ export default function EditarDistribuicaoPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
-  const { clienteId } = useAuth();
+  const { clienteId: authClienteId, isAdmin, user } = useAuth();
   const { data: distribuicao, isLoading: loadingDist } = useDistribuicao(id || null);
+  const clienteId = isAdmin ? (distribuicao?.cliente_id || null) : authClienteId;
+  const [justificativaEdicao, setJustificativaEdicao] = useState('');
   const { data: cliente } = useCliente(clienteId);
   const { data: socios } = useSocios(clienteId);
   const { data: existingDistribuicoes } = useDistribuicoes(clienteId);
@@ -80,7 +83,7 @@ export default function EditarDistribuicaoPage() {
   }, [distribuicao, initialized]);
 
 
-  const shouldRedirect = distribuicao && distribuicao.status !== 'ENVIADA_AO_CONTADOR';
+  const shouldRedirect = distribuicao && (isAdmin ? distribuicao.status === 'CANCELADA' : distribuicao.status !== 'ENVIADA_AO_CONTADOR');
 
   useEffect(() => {
     if (shouldRedirect) navigate('/distribuicoes');
@@ -152,6 +155,7 @@ export default function EditarDistribuicaoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm() || !id || !clienteId) return;
+    if (isAdmin && !justificativaEdicao.trim()) { toast.error('Informe a justificativa da edição.'); return; }
     setSaving(true);
     try {
       const competencia = getCompetenciaFromDate(formData.data_distribuicao);
@@ -166,6 +170,7 @@ export default function EditarDistribuicaoPage() {
           competencia,
           valor_total: newValorTotal,
           natureza,
+          ...(isAdmin ? { editado_em: new Date().toISOString(), editado_por: user?.id ?? null, edicao_justificativa: justificativaEdicao.trim() } : {}),
         })
         .eq('id', id);
       if (updateError) throw updateError;
@@ -183,6 +188,20 @@ export default function EditarDistribuicaoPage() {
         .insert(itens.map((item) => ({ ...item, distribuicao_id: id })));
       if (insertError) throw insertError;
 
+      if (isAdmin && distribuicao && user) {
+        const anterior = formatCurrency(Number(distribuicao.valor_total));
+        const obs = `Editada pela equipe (${anterior} → ${formatCurrency(newValorTotal)}): ${justificativaEdicao.trim()}`;
+        try {
+          await supabase.from('distribuicao_historico').insert({
+            distribuicao_id: id, status_anterior: distribuicao.status, status_novo: distribuicao.status,
+            observacao: obs, usuario_id: user.id,
+          });
+          await supabase.from('notificacoes').insert({
+            cliente_id: clienteId, distribuicao_id: id,
+            titulo: 'Distribuição editada pela equipe', mensagem: obs,
+          });
+        } catch { /* não bloqueia o salvamento */ }
+      }
       queryClient.invalidateQueries({ queryKey: ['distribuicoes'] });
       queryClient.invalidateQueries({ queryKey: ['distribuicao', id] });
       toast.success(t('newDist.updated') || 'Distribuição atualizada com sucesso!');
@@ -428,9 +447,18 @@ export default function EditarDistribuicaoPage() {
               </CardContent>
             </Card>
 
+            {isAdmin && (
+              <Card className="border-amber-300">
+                <CardHeader><CardTitle className="text-lg">Justificativa da edição *</CardTitle></CardHeader>
+                <CardContent>
+                  <Textarea value={justificativaEdicao} onChange={(e) => setJustificativaEdicao(e.target.value)} placeholder="Explique o motivo da alteração (o cliente verá esta informação)" rows={3} />
+                </CardContent>
+              </Card>
+            )}
+
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-4">
               <Button type="button" variant="outline" onClick={() => navigate(-1)}>{t('common.cancel')}</Button>
-              <Button type="submit" disabled={saving || valorTotal <= 0} className="gap-2">
+              <Button type="submit" disabled={saving || (isAdmin && !justificativaEdicao.trim()) || valorTotal <= 0} className="gap-2">
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                 {t('newDist.save') || 'Salvar alterações'}
               </Button>
