@@ -288,3 +288,19 @@
     @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
   }
 }
+
+.print-only { display: none; }
+@media print {
+  @page { size: A4 landscape; margin: 12mm; }
+  html, body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  aside, nav, header, .no-print, [data-lovable-badge] { display: none !important; }
+  .print-only { display: inline; }
+  main, main * { overflow: visible !important; }
+  main { height: auto !important; }
+  .h-screen { height: auto !important; }
+  .print-slide { break-before: page; page-break-before: always; }
+  .print-grid-4 { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
+  .print-grid-3 { display: grid !important; grid-template-columns: 2fr 1fr !important; }
+  .print-span-2 { grid-column: auto !important; }
+  .card, [class*="rounded-lg border"] { break-inside: avoid; }
+}
