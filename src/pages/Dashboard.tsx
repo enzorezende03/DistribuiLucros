@@ -215,19 +215,6 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
       )}
 
       <div className="dashboard-grid">
-        {/* NOVO: Imposto evitado no ano */}
-        <Card className="stat-card border-emerald-500/40 bg-emerald-500/5">
-          <div className="stat-card-accent bg-emerald-500" />
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-              Imposto que você evitou em {anoAtual}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="money-value-lg text-emerald-700 dark:text-emerald-400">{breakableCurrency(impostoEvitado || 0)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Economia por isenções e classificações</p>
-          </CardContent>
-        </Card>
 
         <Card className="stat-card">
           <div className="stat-card-accent bg-primary" />
@@ -254,18 +241,6 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardContent>
         </Card>
 
-        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => setTotalMesDialogOpen(true)}>
-          <div className="stat-card-accent bg-info" />
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Repasses de {formatMesNome(competenciaAtual)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="money-value-lg">{breakableCurrency(totalMes)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{t('dashboard.clickDetails')}</p>
-          </CardContent>
-        </Card>
 
         {/* Situação substitui o card "Alertas" */}
         <Card
