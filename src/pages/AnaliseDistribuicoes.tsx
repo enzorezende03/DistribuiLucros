@@ -13,7 +13,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { useAuth } from '@/contexts/AuthContext';
 import { useSocios } from '@/hooks/useSocios';
 import { supabase } from '@/integrations/supabase/client';
-import { formatCurrency, formatMesNome } from '@/lib/format';
+import { formatCurrency } from '@/lib/format';
 
 const LIMITE = 50000;
 const CORES = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--chart-3, 38 92% 50%))', 'hsl(var(--chart-4, 280 60% 55%))', 'hsl(var(--chart-5, 0 70% 55%))', 'hsl(var(--muted-foreground))'];
@@ -136,7 +136,7 @@ export default function AnaliseDistribuicoesPage() {
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <Stat icon={TrendingUp} label={`Distribuído em ${ano}`} value={formatCurrency(a.total)} />
               <Stat icon={CalendarDays} label="Média por mês" value={formatCurrency(a.mesesComValor ? a.total / a.mesesComValor : 0)} hint={`${a.mesesComValor} ${a.mesesComValor === 1 ? 'mês' : 'meses'} com distribuição`} />
-              <Stat icon={Trophy} label="Maior mês" value={formatCurrency(a.mesTotal[a.maiorIdx])} hint={formatMesNome ? MESES[a.maiorIdx] : ''} />
+              <Stat icon={Trophy} label="Maior mês" value={formatCurrency(a.mesTotal[a.maiorIdx])} hint={MESES[a.maiorIdx]} />
               <Stat icon={Users} label="Sócios que receberam" value={String(a.lista.length)} />
             </div>
 
