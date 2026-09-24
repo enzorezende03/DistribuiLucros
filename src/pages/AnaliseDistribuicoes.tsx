@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, Users, CalendarDays, Trophy, AlertTriangle, ChevronDown, Info, Presentation } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Users, CalendarDays, Trophy, AlertTriangle, ChevronDown, Info, Presentation, PiggyBank } from 'lucide-react';
+import { useMovimentacoesLucros } from '@/hooks/useMovimentacoesLucros';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ReferenceLine, XAxis, YAxis } from 'recharts';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +29,7 @@ export default function AnaliseDistribuicoesPage() {
   const [ano, setAno] = useState(String(anoAtual));
   const { data: socios } = useSocios(clienteId);
   const { data: cliente } = useCliente(clienteId);
+  const { data: movs } = useMovimentacoesLucros(cliente?.ata_registrada ? clienteId : null);
 
   const { data: dists, isLoading } = useQuery({
     queryKey: ['analise-dist', clienteId],
@@ -160,6 +162,54 @@ export default function AnaliseDistribuicoesPage() {
                 <CardContent><ul className="space-y-1 text-sm list-disc pl-5">{pontos.map((p, i) => <li key={i}>{p}</li>)}</ul></CardContent>
               </Card>
             )}
+
+            {cliente?.ata_registrada && (() => {
+              const saldo = Number(cliente.saldo_lucros_acumulados || 0);
+              const abat = Array(12).fill(0);
+              let recebido = 0, enviado = 0;
+              for (const m of movs || []) {
+                const comp = m.competencia || (m.distribuicao?.data_distribuicao || m.created_at).slice(0, 7);
+                if (!comp.startsWith(ano)) continue;
+                const idx = Number(comp.slice(5, 7)) - 1;
+                if (m.distribuicao_id) abat[idx] += m.tipo === 'SAIDA' ? Number(m.valor) : -Number(m.valor);
+                else if (m.cliente_origem_id) recebido += Number(m.valor);
+                else if (m.cliente_destino_id) enviado += Number(m.valor);
+              }
+              const totalAbat = abat.reduce((s, v) => s + Math.max(v, 0), 0);
+              const mesesAbat = abat.filter(v => v > 0).length;
+              const media = mesesAbat ? totalAbat / mesesAbat : 0;
+              const mesesRest = media > 0 ? saldo / media : 0;
+              const prev = new Date(); prev.setMonth(prev.getMonth() + Math.ceil(mesesRest));
+              const chartAbat = MESES.slice(0, a.ultimoMes + 1).map((mes, i) => ({ mes, v: Math.max(abat[i], 0) }));
+              return (
+                <Card className="print-slide">
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><PiggyBank className="h-4 w-4" /> Lucros acumulados da ata</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 print-grid-4">
+                      <Stat icon={PiggyBank} label="Saldo disponível hoje" value={formatCurrency(saldo)} />
+                      <Stat icon={TrendingUp} label={`Abatido em ${ano}`} value={formatCurrency(totalAbat)} hint={`${mesesAbat} ${mesesAbat === 1 ? 'mês' : 'meses'} com excedente acima de R$ 50 mil`} />
+                      <Stat icon={CalendarDays} label="Média abatida por mês" value={formatCurrency(media)} />
+                      <Stat icon={AlertTriangle} label="Previsão de esgotamento" value={saldo <= 0 ? 'Esgotado' : media > 0 ? prev.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : '—'} hint={saldo > 0 && media > 0 ? `cerca de ${Math.floor(mesesRest)} ${Math.floor(mesesRest) === 1 ? 'mês' : 'meses'} no ritmo atual` : undefined} />
+                    </div>
+                    {(recebido > 0 || enviado > 0) && (
+                      <p className="text-sm text-muted-foreground">Transferências em {ano}: {recebido > 0 && <>recebido {formatCurrency(recebido)}</>}{recebido > 0 && enviado > 0 && ' · '}{enviado > 0 && <>enviado {formatCurrency(enviado)}</>}</p>
+                    )}
+                    {totalAbat > 0 && (
+                      <ChartContainer config={{ v: { label: 'Abatido', color: 'hsl(var(--accent))' } }} className="h-[220px] w-full aspect-auto">
+                        <BarChart data={chartAbat}>
+                          <CartesianGrid vertical={false} />
+                          <XAxis dataKey="mes" tickLine={false} axisLine={false} />
+                          <YAxis tickFormatter={compact} tickLine={false} axisLine={false} width={50} />
+                          <ChartTooltip content={<ChartTooltipContent formatter={(v) => <span className="font-mono">{formatCurrency(Number(v))}</span>} />} />
+                          <Bar dataKey="v" fill="var(--color-v)" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ChartContainer>
+                    )}
+                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Info className="h-3 w-3" /> O que passa de R$ 50 mil por sócio pessoa física no mês é abatido deste saldo. Quando ele acabar, o excedente passa a ter 10% de IR.</p>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             <div className="grid gap-4 lg:grid-cols-3 print-slide print-grid-3">
               <Card className="lg:col-span-2 print-span-2">
