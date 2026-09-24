@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSocios } from '@/hooks/useSocios';
+import { useCliente } from '@/hooks/useClientes';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
 
@@ -26,6 +27,7 @@ export default function AnaliseDistribuicoesPage() {
   const anoAtual = new Date().getFullYear();
   const [ano, setAno] = useState(String(anoAtual));
   const { data: socios } = useSocios(clienteId);
+  const { data: cliente } = useCliente(clienteId);
 
   const { data: dists, isLoading } = useQuery({
     queryKey: ['analise-dist', clienteId],
@@ -89,10 +91,17 @@ export default function AnaliseDistribuicoesPage() {
   const pontos = useMemo(() => {
     const p: string[] = [];
     const mesesDecorridos = a.ultimoMes + 1;
+    const temAta = !!cliente?.ata_registrada;
+    const saldo = Number(cliente?.saldo_lucros_acumulados || 0);
+    let excedenteTotal = 0;
     for (const s of a.lista) {
       if (s.pj) continue;
       const acima = s.meses.filter(v => v > LIMITE).length;
-      if (acima > 0) p.push(`${s.nome} passou de R$ 50 mil em ${acima} de ${mesesDecorridos} ${mesesDecorridos === 1 ? 'mês' : 'meses'}.`);
+      excedenteTotal += s.meses.reduce((t, v) => t + Math.max(v - LIMITE, 0), 0);
+      if (acima > 0) p.push(`${s.nome} passou de R$ 50 mil em ${acima} de ${mesesDecorridos} ${mesesDecorridos === 1 ? 'mês' : 'meses'}${temAta ? ' — excedente coberto pelos lucros acumulados da ata' : ''}.`);
+    }
+    if (temAta && excedenteTotal > 0) {
+      p.push(`Empresa com ata registrada: o que passou de R$ 50 mil no ano (${formatCurrency(excedenteTotal)}) é abatido dos lucros acumulados. Saldo disponível hoje: ${formatCurrency(saldo)}${saldo <= 0 ? ' — saldo esgotado, novos excedentes terão 10% de IR' : ''}.`);
     }
     if (a.lista[0] && a.total > 0) {
       const pct = (a.lista[0].total / a.total) * 100;
@@ -106,7 +115,7 @@ export default function AnaliseDistribuicoesPage() {
     }
     if (semInfo.length) p.push(`Sem informação em: ${semInfo.join(', ')}.`);
     return p;
-  }, [a, confirmacoes, ano]);
+  }, [a, confirmacoes, ano, cliente]);
 
   const pieData = a.lista.map((s, k) => ({ name: s.nome, value: s.total, fill: CORES[k % CORES.length] }));
 
