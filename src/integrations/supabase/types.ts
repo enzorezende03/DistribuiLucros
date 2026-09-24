@@ -258,6 +258,9 @@ export type Database = {
           competencia: string
           created_at: string
           data_distribuicao: string
+          edicao_justificativa: string | null
+          editado_em: string | null
+          editado_por: string | null
           forma_pagamento: string
           id: string
           justificativa_recusa: string | null
@@ -275,6 +278,9 @@ export type Database = {
           competencia: string
           created_at?: string
           data_distribuicao: string
+          edicao_justificativa?: string | null
+          editado_em?: string | null
+          editado_por?: string | null
           forma_pagamento: string
           id?: string
           justificativa_recusa?: string | null
@@ -292,6 +298,9 @@ export type Database = {
           competencia?: string
           created_at?: string
           data_distribuicao?: string
+          edicao_justificativa?: string | null
+          editado_em?: string | null
+          editado_por?: string | null
           forma_pagamento?: string
           id?: string
           justificativa_recusa?: string | null
