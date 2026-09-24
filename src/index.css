@@ -304,3 +304,8 @@
   .print-span-2 { grid-column: auto !important; }
   .card, [class*="rounded-lg border"] { break-inside: avoid; }
 }
+@media print {
+  #root, #root > div, .h-screen, .overflow-hidden { height: auto !important; max-height: none !important; overflow: visible !important; }
+  #root > div { display: block !important; }
+  main.md\:flex { display: block !important; }
+}
