@@ -74,7 +74,7 @@ export function useDistribuicoes(clienteId?: string | null, competencia?: string
         .select(`
           *,
           cliente:clientes(razao_social, cnpj),
-          itens:distribuicao_itens(id, socio_id, valor, socio:socios(nome, cpf))
+          itens:distribuicao_itens(id, socio_id, valor, editado_em, edicao_justificativa, valor_anterior, socio:socios(nome, cpf))
         `)
         .order('created_at', { ascending: false })
         .limit(rowLimit);
