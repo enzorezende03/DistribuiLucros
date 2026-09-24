@@ -217,23 +217,32 @@ export type Database = {
         Row: {
           created_at: string
           distribuicao_id: string
+          edicao_justificativa: string | null
+          editado_em: string | null
           id: string
           socio_id: string
           valor: number
+          valor_anterior: number | null
         }
         Insert: {
           created_at?: string
           distribuicao_id: string
+          edicao_justificativa?: string | null
+          editado_em?: string | null
           id?: string
           socio_id: string
           valor: number
+          valor_anterior?: number | null
         }
         Update: {
           created_at?: string
           distribuicao_id?: string
+          edicao_justificativa?: string | null
+          editado_em?: string | null
           id?: string
           socio_id?: string
           valor?: number
+          valor_anterior?: number | null
         }
         Relationships: [
           {
