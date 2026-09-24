@@ -205,7 +205,7 @@ export default function EditarDistribuicaoPage() {
       queryClient.invalidateQueries({ queryKey: ['distribuicoes'] });
       queryClient.invalidateQueries({ queryKey: ['distribuicao', id] });
       toast.success(t('newDist.updated') || 'Distribuição atualizada com sucesso!');
-      navigate('/distribuicoes');
+      if (window.history.length > 1) navigate(-1); else navigate('/distribuicoes');
     } catch (err: any) {
       toast.error('Erro ao atualizar: ' + err.message);
     } finally {

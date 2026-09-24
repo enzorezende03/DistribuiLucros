@@ -29,7 +29,7 @@ import { useDistribuicoes, useUpdateDistribuicaoStatus, useDeleteDistribuicao, u
 import { useSocios } from '@/hooks/useSocios';
 import { useClientes, useCliente } from '@/hooks/useClientes';
 import { exportDistribuicoesTelaPDF, exportDistribuicoesTelaExcel, type LinhaExport } from '@/lib/exportDistribuicoesTela';
-import { FileDown, FileSpreadsheet, Upload } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Upload , Pencil } from 'lucide-react';
 import { ImportDistribuicoesDialog } from '@/components/ImportDistribuicoesDialog';
 
 import { useConfirmacoes, useConfirmacoesNaoHouve, useUpdateConfirmacaoStatus, useUpdateConfirmacao, useDeleteConfirmacao, type Confirmacao } from '@/hooks/useConfirmacoes';
@@ -1130,8 +1130,8 @@ function DistribuicaoActions({ distribuicao, isAdmin, onView }: DistribuicaoActi
                 <DropdownMenuItem
                   onClick={() => navigate(`/distribuicoes/editar/${distribuicao.id}`)}
                 >
-                  <FileText className="mr-2 h-4 w-4" />
-                  {t('distributions.edit') || 'Editar'}
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {isAdmin ? 'Editar valor (com justificativa)' : 'Editar'}
                 </DropdownMenuItem>
               </>
             )}
