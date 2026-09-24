@@ -309,3 +309,6 @@
   #root > div { display: block !important; }
   main.md\:flex { display: block !important; }
 }
+@media print {
+  html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+}
