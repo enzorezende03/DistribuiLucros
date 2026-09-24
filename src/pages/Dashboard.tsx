@@ -228,7 +228,7 @@ function ClienteDashboard({ clienteId }: { clienteId: string | null }) {
           </CardContent>
         </Card>
 
-        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => setTotalAnoDialogOpen(true)}>
+        <Card className="stat-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/analise-distribuicoes')}>
           <div className="stat-card-accent bg-accent" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
