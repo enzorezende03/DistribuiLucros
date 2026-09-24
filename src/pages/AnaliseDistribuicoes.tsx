@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, Users, CalendarDays, Trophy, AlertTriangle, ChevronDown, Info } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Users, CalendarDays, Trophy, AlertTriangle, ChevronDown, Info, Presentation } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ReferenceLine, XAxis, YAxis } from 'recharts';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -115,16 +115,21 @@ export default function AnaliseDistribuicoesPage() {
       <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
         <div className="page-header flex flex-wrap items-center justify-between gap-3">
           <div>
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2 mb-1" onClick={() => navigate('/dashboard')}>
+            <Button variant="ghost" size="sm" className="gap-2 -ml-2 mb-1 no-print" onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="h-4 w-4" /> Voltar ao Dashboard
             </Button>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Análise das distribuições</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Análise das distribuições {''}<span className="print-only">— {ano}</span></h1>
             <p className="text-muted-foreground">Quanto cada sócio recebeu e como isso evoluiu no ano</p>
           </div>
-          <Select value={ano} onValueChange={setAno}>
-            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-            <SelectContent>{anos.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
-          </Select>
+          <div className="flex items-center gap-2 no-print">
+            <Button variant="outline" className="gap-2" disabled={isLoading || a.lista.length === 0} onClick={() => window.print()}>
+              <Presentation className="h-4 w-4" /> Apresentação (PDF)
+            </Button>
+            <Select value={ano} onValueChange={setAno}>
+              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+              <SelectContent>{anos.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
         </div>
 
         {isLoading ? (
@@ -133,7 +138,7 @@ export default function AnaliseDistribuicoesPage() {
           <Card><CardContent className="py-10 text-center text-muted-foreground">Nenhuma distribuição em {ano}.</CardContent></Card>
         ) : (
           <>
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 print-grid-4">
               <Stat icon={TrendingUp} label={`Distribuído em ${ano}`} value={formatCurrency(a.total)} />
               <Stat icon={CalendarDays} label="Média por mês" value={formatCurrency(a.mesesComValor ? a.total / a.mesesComValor : 0)} hint={`${a.mesesComValor} ${a.mesesComValor === 1 ? 'mês' : 'meses'} com distribuição`} />
               <Stat icon={Trophy} label="Maior mês" value={formatCurrency(a.mesTotal[a.maiorIdx])} hint={MESES[a.maiorIdx]} />
@@ -147,8 +152,8 @@ export default function AnaliseDistribuicoesPage() {
               </Card>
             )}
 
-            <div className="grid gap-4 lg:grid-cols-3">
-              <Card className="lg:col-span-2">
+            <div className="grid gap-4 lg:grid-cols-3 print-slide print-grid-3">
+              <Card className="lg:col-span-2 print-span-2">
                 <CardHeader><CardTitle className="text-base">Distribuição mês a mês por sócio</CardTitle></CardHeader>
                 <CardContent>
                   <ChartContainer config={a.config} className="h-[320px] w-full aspect-auto">
@@ -191,7 +196,7 @@ export default function AnaliseDistribuicoesPage() {
               </Card>
             </div>
 
-            <Card>
+            <Card className="print-slide">
               <CardHeader><CardTitle className="text-base">Resumo por sócio</CardTitle></CardHeader>
               <CardContent className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -219,7 +224,7 @@ export default function AnaliseDistribuicoesPage() {
               </CardContent>
             </Card>
 
-            <Collapsible>
+            <Collapsible className="no-print">
               <Card>
                 <CollapsibleTrigger asChild>
                   <button className="w-full flex items-center justify-between p-4 text-left font-semibold">Valores por sócio e mês <ChevronDown className="h-4 w-4" /></button>
