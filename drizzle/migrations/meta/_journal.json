@@ -36,6 +36,13 @@
       "when": 1790262844823,
       "tag": "0004_distribuicao_edicao_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790263149537,
+      "tag": "0005_item_edicao_admin",
+      "breakpoints": true
     }
   ]
 }

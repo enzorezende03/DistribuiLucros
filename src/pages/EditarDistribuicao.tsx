@@ -185,7 +185,14 @@ export default function EditarDistribuicaoPage() {
 
       const { error: insertError } = await supabase
         .from('distribuicao_itens')
-        .insert(itens.map((item) => ({ ...item, distribuicao_id: id })));
+        .insert(itens.map((item) => {
+          const prev = distribuicao?.itens?.find((o) => o.socio_id === item.socio_id);
+          const changed = !prev || Math.abs(Number(prev.valor) - item.valor) > 0.001;
+          const edit = isAdmin && changed
+            ? { editado_em: new Date().toISOString(), edicao_justificativa: justificativaEdicao.trim(), valor_anterior: prev ? Number(prev.valor) : null }
+            : { editado_em: prev?.editado_em ?? null, edicao_justificativa: prev?.edicao_justificativa ?? null, valor_anterior: prev?.valor_anterior ?? null };
+          return { ...item, ...edit, distribuicao_id: id };
+        }));
       if (insertError) throw insertError;
 
       if (isAdmin && distribuicao && user) {
