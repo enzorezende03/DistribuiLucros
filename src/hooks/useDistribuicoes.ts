@@ -15,6 +15,9 @@ export const NATUREZA_LABELS: Record<NaturezaRepasse, string> = {
 };
 
 export interface DistribuicaoItem {
+  editado_em?: string | null;
+  edicao_justificativa?: string | null;
+  valor_anterior?: number | null;
   id: string;
   distribuicao_id: string;
   socio_id: string;
@@ -106,7 +109,7 @@ export function useDistribuicao(id: string | null) {
           *,
           cliente:clientes(razao_social, cnpj),
           itens:distribuicao_itens(
-            id, socio_id, valor,
+            id, socio_id, valor, editado_em, edicao_justificativa, valor_anterior,
             socio:socios(nome, cpf)
           )
         `)

@@ -235,8 +235,8 @@ export default function DistribuicoesPage() {
       data_ref: d.data_distribuicao,
       registrado_em: d.created_at,
       justificativa: (d as any).justificativa_recusa ?? null,
-      editado_em: (d as any).editado_em ?? null,
-      edicao_justificativa: (d as any).edicao_justificativa ?? null,
+      editado_em: item ? (item.editado_em ?? null) : ((d as any).editado_em ?? null),
+      edicao_justificativa: item ? (item.edicao_justificativa ?? null) : ((d as any).edicao_justificativa ?? null),
     }));
   });
 
