@@ -307,6 +307,11 @@ export default function NovaDistribuicaoPage() {
                   const cobertoPeloSaldo = hasAta ? Math.min(saldoIsento, totalExcess) : 0;
                   const excedenteReal = totalExcess - cobertoPeloSaldo;
                   const totalIR = excedenteReal > 0 ? excedenteReal * 0.1 : 0;
+                  // Sem ata: IR de 10% sobre o valor TOTAL de cada sócio acima de 50 mil
+                  const totalIRSemAta = excessItems.reduce((sum, item) => {
+                    const acumulado = item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0;
+                    return sum + (parseMaskedCurrency(item.valor) + acumulado) * 0.1;
+                  }, 0);
                   const fullyExempt = hasAta && excedenteReal <= 0;
 
                   if (fullyExempt) {
@@ -390,9 +395,9 @@ export default function NovaDistribuicaoPage() {
                             </div>
                           ) : null;
                         })}
-                        {totalIR > 0 && (
+                        {totalIRSemAta > 0 && (
                           <div className="mt-2 pt-2 border-t border-yellow-500/30 text-sm font-bold">
-                            {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIR)}</span>
+                            {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIRSemAta)}</span>
                           </div>
                         )}
                       </AlertDescription>

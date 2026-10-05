@@ -434,9 +434,9 @@ export default function EditarDistribuicaoPage() {
                             </div>
                           ) : null;
                         })}
-                        {totalIR > 0 && (
+                        {excessItems.length > 0 && (
                           <div className="mt-2 pt-2 border-t border-yellow-500/30 text-sm font-bold">
-                            {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(totalIR)}</span>
+                            {t('newDist.totalEstimatedIR')}: <span className="text-destructive">{formatCurrency(excessItems.reduce((sum, item) => sum + (parseMaskedCurrency(item.valor) + (item.socio_id ? (acumuladoPorSocio.get(item.socio_id) || 0) : 0)) * 0.1, 0))}</span>
                           </div>
                         )}
                       </AlertDescription>
