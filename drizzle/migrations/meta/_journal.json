@@ -43,6 +43,13 @@
       "when": 1790263149537,
       "tag": "0005_item_edicao_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793995722180,
+      "tag": "0006_espelho_distribuicao_holding",
+      "breakpoints": true
     }
   ]
 }

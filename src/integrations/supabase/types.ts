@@ -270,6 +270,7 @@ export type Database = {
           edicao_justificativa: string | null
           editado_em: string | null
           editado_por: string | null
+          espelho_origem_item_id: string | null
           forma_pagamento: string
           id: string
           justificativa_recusa: string | null
@@ -290,6 +291,7 @@ export type Database = {
           edicao_justificativa?: string | null
           editado_em?: string | null
           editado_por?: string | null
+          espelho_origem_item_id?: string | null
           forma_pagamento: string
           id?: string
           justificativa_recusa?: string | null
@@ -310,6 +312,7 @@ export type Database = {
           edicao_justificativa?: string | null
           editado_em?: string | null
           editado_por?: string | null
+          espelho_origem_item_id?: string | null
           forma_pagamento?: string
           id?: string
           justificativa_recusa?: string | null
@@ -328,6 +331,52 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      espelhos_distribuicao: {
+        Row: {
+          cliente_destino_id: string
+          created_at: string
+          id: string
+          socio_destino_id: string
+          socio_origem_id: string
+        }
+        Insert: {
+          cliente_destino_id: string
+          created_at?: string
+          id?: string
+          socio_destino_id: string
+          socio_origem_id: string
+        }
+        Update: {
+          cliente_destino_id?: string
+          created_at?: string
+          id?: string
+          socio_destino_id?: string
+          socio_origem_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "espelhos_distribuicao_cliente_destino_id_fkey"
+            columns: ["cliente_destino_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "espelhos_distribuicao_socio_destino_id_fkey"
+            columns: ["socio_destino_id"]
+            isOneToOne: false
+            referencedRelation: "socios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "espelhos_distribuicao_socio_origem_id_fkey"
+            columns: ["socio_origem_id"]
+            isOneToOne: true
+            referencedRelation: "socios"
             referencedColumns: ["id"]
           },
         ]
