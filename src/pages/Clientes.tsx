@@ -1127,6 +1127,7 @@ interface ClienteFormDialogProps {
 
 function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogProps) {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
   const createCliente = useCreateCliente();
   const updateCliente = useUpdateCliente();
   const isEditing = !!cliente;
@@ -1199,6 +1200,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             .from('movimentacoes_lucros')
             .select('valor, tipo, distribuicao_id, cliente_origem_id, cliente_destino_id, distribuicao:distribuicoes(status)')
             .eq('cliente_id', cliente.id);
+          if (movsError) throw movsError;
           const rows = (movs || []) as any[];
           const jaAbatido = rows
             .filter((m) => m.tipo === 'SAIDA' && m.distribuicao_id && m.distribuicao && m.distribuicao.status !== 'CANCELADA')
@@ -1297,7 +1299,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
 
       if (data.ata_registrada) {
         try {
-          const { data: movs } = await supabase
+          const { data: movs, error: movsError } = await supabase
             .from('movimentacoes_lucros')
             .select('valor, tipo, distribuicao_id, cliente_origem_id, cliente_destino_id, distribuicao:distribuicoes(status)')
             .eq('cliente_id', cliente.id);
