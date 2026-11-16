@@ -17,6 +17,7 @@ import { useSocios } from '@/hooks/useSocios';
 import { useCliente } from '@/hooks/useClientes';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
+import { projetarAta } from '@/lib/projecaoAta';
 
 const LIMITE = 50000;
 const CORES = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--chart-3, 38 92% 50%))', 'hsl(var(--chart-4, 280 60% 55%))', 'hsl(var(--chart-5, 0 70% 55%))', 'hsl(var(--muted-foreground))'];
@@ -113,7 +114,7 @@ export default function AnaliseDistribuicoesPage() {
       if (acima > 0) p.push(`${s.nome} passou de R$ 50 mil em ${acima} de ${mesesDecorridos} ${mesesDecorridos === 1 ? 'mês' : 'meses'}${temAta ? ' — excedente coberto pelos lucros acumulados da ata' : ''}.`);
     }
     if (temAta && excedenteTotal > 0) {
-      p.push(`Empresa com ata registrada: o que passou de R$ 50 mil no ano (${formatCurrency(excedenteTotal)}) é abatido dos lucros acumulados. Saldo disponível hoje: ${formatCurrency(saldo)}${saldo <= 0 ? ' — saldo esgotado, novos excedentes terão 10% de IR' : ''}.`);
+      p.push(`Excedente do ano: ${formatCurrency(excedenteTotal)} (inclui distribuições aguardando aprovação). O abatimento é efetivado após aprovação. Saldo disponível hoje: ${formatCurrency(saldo)}.`);
     }
     if (a.lista[0] && a.total > 0) {
       const pct = (a.lista[0].total / a.total) * 100;
@@ -187,13 +188,9 @@ export default function AnaliseDistribuicoesPage() {
               }
               const totalAbat = abat.reduce((s, v) => s + Math.max(v, 0), 0);
               const mesesAbat = abat.filter(v => v > 0).length;
-              const media = mesesAbat ? totalAbat / mesesAbat : 0;
-              const mesesRest = media > 0 ? saldo / media : 0;
-              const prev = new Date(); prev.setMonth(prev.getMonth() + Math.ceil(mesesRest));
-              // Lei 15.270/2025: a isenção via lucros acumulados vale apenas até dez/2028
-              const limiteLei = new Date(2028, 11, 1);
-              const passaDoLimite = prev > limiteLei;
-              const prevExibida = passaDoLimite ? limiteLei : prev;
+              const excedentes = Array.from({ length: 12 }, (_, i) => a.lista.reduce((total, s) => total + (s.pj ? 0 : Math.max(s.meses[i] - LIMITE, 0)), 0));
+              const corte = new Date(Number(ano), a.ultimoMes + 1, 0);
+              const projecao = projetarAta(saldo, excedentes, totalAbat, corte);
               const chartAbat = MESES.slice(0, a.ultimoMes + 1).map((mes, i) => ({ mes, v: Math.max(abat[i], 0) }));
               return (
                 <Card className="print-slide">
@@ -201,9 +198,15 @@ export default function AnaliseDistribuicoesPage() {
                   <CardContent className="space-y-4">
                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 print-grid-4">
                       <Stat icon={PiggyBank} label="Saldo disponível hoje" value={formatCurrency(saldo)} />
-                      <Stat icon={TrendingUp} label={`Abatido em ${ano}`} value={formatCurrency(totalAbat)} hint={`${mesesAbat} ${mesesAbat === 1 ? 'mês' : 'meses'} com excedente acima de R$ 50 mil`} />
-                      <Stat icon={CalendarDays} label="Média abatida por mês" value={formatCurrency(media)} />
-                      <Stat icon={AlertTriangle} label="Previsão de esgotamento" value={saldo <= 0 ? 'Esgotado' : media > 0 ? prevExibida.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : '—'} hint={saldo > 0 && media > 0 ? (passaDoLimite ? 'limite da isenção pela lei — o que sobrar após dez/2028 perde a isenção' : `cerca de ${Math.floor(mesesRest)} ${Math.floor(mesesRest) === 1 ? 'mês' : 'meses'} no ritmo atual`) : undefined} />
+                      <Stat icon={TrendingUp} label={`Excedente em ${ano}`} value={formatCurrency(projecao.excedente)} hint={`${projecao.meses} meses · inclui valores aguardando aprovação`} />
+                      <Stat icon={CalendarDays} label="Excedente médio por mês" value={formatCurrency(projecao.media)} />
+                      <Stat icon={AlertTriangle} label="Saldo previsto em dez/2028" value={formatCurrency(projecao.saldoNoLimite)} hint={projecao.saldoNoLimite > 0 ? 'Saldo remanescente perde a isenção' : 'Saldo previsto esgotado até o limite da isenção'} />
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <p>Abatido em {ano}: <strong>{formatCurrency(totalAbat)}</strong> ({mesesAbat} meses). Excedente ainda aguardando aprovação: <strong>{formatCurrency(projecao.pendente)}</strong>.</p>
+                      <p>Saldo após aprovação dos valores pendentes: <strong>{formatCurrency(projecao.saldoAposPendentes)}</strong> (projeção, não altera o saldo atual).</p>
+                      <p>Excedente mensal necessário para zerar até dez/2028: <strong>{projecao.mensalNecessario === null ? 'Prazo encerrado' : formatCurrency(projecao.mensalNecessario)}</strong>.</p>
+                      <p className="text-muted-foreground">Data de corte: {corte.toLocaleDateString('pt-BR')} · {projecao.mesesAteLimite} meses futuros até dez/2028. Projeção com a média dos {projecao.meses} meses com excedente, considerando a aprovação dos pendentes e sem novas transferências.</p>
                     </div>
                     {(recebido > 0 || enviado > 0) && (
                       <p className="text-sm text-muted-foreground">Transferências em {ano}: {recebido > 0 && <>recebido {formatCurrency(recebido)}</>}{recebido > 0 && enviado > 0 && ' · '}{enviado > 0 && <>enviado {formatCurrency(enviado)}</>}</p>
