@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, Users, CalendarDays, Trophy, AlertTriangle, ChevronDown, Info, Presentation, PiggyBank } from 'lucide-react';
 import { useMovimentacoesLucros } from '@/hooks/useMovimentacoesLucros';
+import { useAnaliseRefresh } from '@/hooks/useAnaliseRefresh';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ReferenceLine, XAxis, YAxis } from 'recharts';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ const compact = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)} m
 
 export default function AnaliseDistribuicoesPage() {
   const { clienteId } = useAuth();
+  useAnaliseRefresh(clienteId);
   const navigate = useNavigate();
   const anoAtual = new Date().getFullYear();
   const [ano, setAno] = useState(String(anoAtual));
@@ -32,13 +34,16 @@ export default function AnaliseDistribuicoesPage() {
   const { data: movs } = useMovimentacoesLucros(cliente?.ata_registrada ? clienteId : null);
 
   const { data: dists, isLoading } = useQuery({
-    queryKey: ['analise-dist', clienteId],
+    queryKey: ['distribuicoes', 'analise', clienteId],
+    staleTime: 0,
+    refetchOnMount: 'always',
     enabled: !!clienteId,
     queryFn: async () => {
+      if (!clienteId) return [];
       const { data, error } = await supabase
         .from('distribuicoes')
         .select('competencia, status, itens:distribuicao_itens(socio_id, valor)')
-        .eq('cliente_id', clienteId!)
+        .eq('cliente_id', clienteId)
         .in('status', ['ENVIADA_AO_CONTADOR', 'APROVADA'])
         .limit(5000);
       if (error) throw error;
@@ -47,10 +52,14 @@ export default function AnaliseDistribuicoesPage() {
   });
 
   const { data: confirmacoes } = useQuery({
-    queryKey: ['analise-conf', clienteId],
+    queryKey: ['confirmacoes', 'analise', clienteId],
+    staleTime: 0,
+    refetchOnMount: 'always',
     enabled: !!clienteId,
     queryFn: async () => {
-      const { data } = await supabase.from('confirmacoes_mes').select('competencia, resposta').eq('cliente_id', clienteId!);
+      if (!clienteId) return [];
+      const { data, error } = await supabase.from('confirmacoes_mes').select('competencia, resposta').eq('cliente_id', clienteId);
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -71,7 +80,8 @@ export default function AnaliseDistribuicoesPage() {
       for (const it of d.itens || []) {
         const s = socioInfo.get(it.socio_id);
         if (!porSocio.has(it.socio_id)) porSocio.set(it.socio_id, { id: it.socio_id, nome: s?.nome || 'Sócio', pj: (s as any)?.tipo_pessoa === 'PJ', meses: Array(12).fill(0), total: 0 });
-        const r = porSocio.get(it.socio_id)!;
+        const r = porSocio.get(it.socio_id);
+        if (!r) continue;
         r.meses[m] += Number(it.valor); r.total += Number(it.valor); mesTotal[m] += Number(it.valor);
       }
     }
