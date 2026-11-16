@@ -156,6 +156,10 @@ export default function LucrosAcumuladosPage() {
           const mesesInt = Math.floor(mesesRestantes);
           const dataEsgotamento = new Date();
           dataEsgotamento.setMonth(dataEsgotamento.getMonth() + Math.ceil(mesesRestantes));
+          // Lei 15.270/2025: a isenção via lucros acumulados vale apenas até dez/2028
+          const limiteLei = new Date(2028, 11, 1);
+          const passaDoLimite = dataEsgotamento > limiteLei;
+          if (passaDoLimite) dataEsgotamento.setTime(limiteLei.getTime());
           const mesAno = dataEsgotamento.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
           return (
