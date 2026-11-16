@@ -209,7 +209,7 @@ export default function AnaliseDistribuicoesPage() {
                         </BarChart>
                       </ChartContainer>
                     )}
-                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Info className="h-3 w-3" /> O que passa de R$ 50 mil por sócio pessoa física no mês é abatido deste saldo. Quando ele acabar, o excedente passa a ter 10% de IR.</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Info className="h-3 w-3" /> O que passa de R$ 50 mil por sócio pessoa física no mês é abatido deste saldo. Quando ele acabar, o excedente passa a ter 10% de IR. A isenção via lucros acumulados vale até dezembro de 2028 (Lei 15.270/2025) — o que sobrar de saldo após essa data não terá mais a isenção.</p>
                   </CardContent>
                 </Card>
               );
