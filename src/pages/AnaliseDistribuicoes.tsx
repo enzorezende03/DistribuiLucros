@@ -193,7 +193,7 @@ export default function AnaliseDistribuicoesPage() {
                       <Stat icon={PiggyBank} label="Saldo disponível hoje" value={formatCurrency(saldo)} />
                       <Stat icon={TrendingUp} label={`Abatido em ${ano}`} value={formatCurrency(totalAbat)} hint={`${mesesAbat} ${mesesAbat === 1 ? 'mês' : 'meses'} com excedente acima de R$ 50 mil`} />
                       <Stat icon={CalendarDays} label="Média abatida por mês" value={formatCurrency(media)} />
-                      <Stat icon={AlertTriangle} label="Previsão de esgotamento" value={saldo <= 0 ? 'Esgotado' : media > 0 ? prev.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : '—'} hint={saldo > 0 && media > 0 ? `cerca de ${Math.floor(mesesRest)} ${Math.floor(mesesRest) === 1 ? 'mês' : 'meses'} no ritmo atual` : undefined} />
+                      <Stat icon={AlertTriangle} label="Previsão de esgotamento" value={saldo <= 0 ? 'Esgotado' : media > 0 ? prevExibida.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : '—'} hint={saldo > 0 && media > 0 ? (passaDoLimite ? 'limite da isenção pela lei — o que sobrar após dez/2028 perde a isenção' : `cerca de ${Math.floor(mesesRest)} ${Math.floor(mesesRest) === 1 ? 'mês' : 'meses'} no ritmo atual`) : undefined} />
                     </div>
                     {(recebido > 0 || enviado > 0) && (
                       <p className="text-sm text-muted-foreground">Transferências em {ano}: {recebido > 0 && <>recebido {formatCurrency(recebido)}</>}{recebido > 0 && enviado > 0 && ' · '}{enviado > 0 && <>enviado {formatCurrency(enviado)}</>}</p>
