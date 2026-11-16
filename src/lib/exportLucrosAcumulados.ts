@@ -32,8 +32,12 @@ function computeProjecao(movimentacoes: MovimentacaoLucro[], saldoAtual: number)
   const mesesInt = Math.floor(mesesRestantes);
   const dataEsgotamento = new Date();
   dataEsgotamento.setMonth(dataEsgotamento.getMonth() + Math.ceil(mesesRestantes));
+  // Lei 15.270/2025: a isenção via lucros acumulados vale apenas até dez/2028
+  const limiteLei = new Date(2028, 11, 1);
+  const passaDoLimite = dataEsgotamento > limiteLei;
+  if (passaDoLimite) dataEsgotamento.setTime(limiteLei.getTime());
   const mesAno = dataEsgotamento.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  return { mediaMensal, mesesQtd: valores.length, mesesRestantes, mesesInt, mesAno };
+  return { mediaMensal, mesesQtd: valores.length, mesesRestantes, mesesInt, mesAno, passaDoLimite };
 }
 
 async function loadLogoDataUrl(): Promise<string> {
@@ -129,7 +133,7 @@ export async function exportLucrosAcumuladosPDF(params: ExportParams) {
       doc.setFontSize(8);
       doc.setTextColor(120);
       doc.text(
-        `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. A partir do esgotamento, distribuições acima de R$ 50.000/sócio no mês passarão a ter 10% de IR sobre o excedente.`,
+        `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. A partir do esgotamento, distribuições acima de R$ 50.000/sócio no mês passarão a ter 10% de IR sobre o excedente.${projecao.passaDoLimite ? ' A isenção via lucros acumulados vale até dez/2028 (Lei 15.270/2025) — o que sobrar após essa data não terá mais a isenção.' : ''}`,
         55,
         boxY + boxH - 8,
         { maxWidth: pageWidth - 110 }
@@ -265,7 +269,7 @@ export async function exportLucrosAcumuladosExcel(params: ExportParams) {
       ws.getCell(`A${headerRow}`).font = { bold: true };
       ws.getCell(`C${headerRow}`).value = projecao.mesAno.charAt(0).toUpperCase() + projecao.mesAno.slice(1);
       headerRow += 1;
-      ws.getCell(`A${headerRow}`).value = `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. Após esgotamento: 10% de IR sobre o excedente.`;
+      ws.getCell(`A${headerRow}`).value = `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. Após esgotamento: 10% de IR sobre o excedente.${projecao.passaDoLimite ? ' Isenção via lucros acumulados válida até dez/2028 (Lei 15.270/2025) — o que sobrar após essa data não terá mais a isenção.' : ''}`;
       ws.getCell(`A${headerRow}`).font = { italic: true, color: { argb: 'FF666666' }, size: 9 };
       ws.mergeCells(`A${headerRow}:F${headerRow}`);
       headerRow += 1;
