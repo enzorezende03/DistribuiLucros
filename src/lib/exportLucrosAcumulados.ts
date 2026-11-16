@@ -269,7 +269,7 @@ export async function exportLucrosAcumuladosExcel(params: ExportParams) {
       ws.getCell(`A${headerRow}`).font = { bold: true };
       ws.getCell(`C${headerRow}`).value = projecao.mesAno.charAt(0).toUpperCase() + projecao.mesAno.slice(1);
       headerRow += 1;
-      ws.getCell(`A${headerRow}`).value = `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. Após esgotamento: 10% de IR sobre o excedente.`;
+      ws.getCell(`A${headerRow}`).value = `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. Após esgotamento: 10% de IR sobre o excedente.${projecao.passaDoLimite ? ' Isenção via lucros acumulados válida até dez/2028 (Lei 15.270/2025) — o que sobrar após essa data não terá mais a isenção.' : ''}`;
       ws.getCell(`A${headerRow}`).font = { italic: true, color: { argb: 'FF666666' }, size: 9 };
       ws.mergeCells(`A${headerRow}:F${headerRow}`);
       headerRow += 1;
