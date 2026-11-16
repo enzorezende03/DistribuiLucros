@@ -71,7 +71,7 @@ export function useDistribuicoes(clienteId?: string | null, competencia?: string
     queryFn: async () => {
       // When no specific client is selected (admin viewing all), load more rows
       // so the search box can find clients beyond the most recent 50 distributions.
-      const rowLimit = clienteId ? 200 : 2000;
+      const rowLimit = clienteId ? 5000 : 2000;
       let query = supabase
         .from('distribuicoes')
         .select(`
