@@ -133,7 +133,7 @@ export async function exportLucrosAcumuladosPDF(params: ExportParams) {
       doc.setFontSize(8);
       doc.setTextColor(120);
       doc.text(
-        `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. A partir do esgotamento, distribuições acima de R$ 50.000/sócio no mês passarão a ter 10% de IR sobre o excedente.`,
+        `Baseada em ${projecao.mesesQtd} ${projecao.mesesQtd === 1 ? 'mês' : 'meses'} com excedente. A partir do esgotamento, distribuições acima de R$ 50.000/sócio no mês passarão a ter 10% de IR sobre o excedente.${projecao.passaDoLimite ? ' A isenção via lucros acumulados vale até dez/2028 (Lei 15.270/2025) — o que sobrar após essa data não terá mais a isenção.' : ''}`,
         55,
         boxY + boxH - 8,
         { maxWidth: pageWidth - 110 }
