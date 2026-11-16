@@ -1202,17 +1202,11 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             .eq('cliente_id', cliente.id);
           if (movsError) throw movsError;
           const rows = (movs || []) as any[];
-          const jaAbatido = rows
-            .filter((m) => m.tipo === 'SAIDA' && m.distribuicao_id && m.distribuicao && m.distribuicao.status !== 'CANCELADA')
-            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
-          const recebidas = rows
-            .filter((m) => m.tipo === 'ENTRADA' && m.cliente_origem_id)
-            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
-          const enviadas = rows
-            .filter((m) => m.tipo === 'SAIDA' && m.cliente_destino_id)
-            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
-          saldoInicial = (Number(cliente.saldo_lucros_acumulados) || 0) + jaAbatido - recebidas + enviadas;
-          if (saldoInicial < 0) saldoInicial = 0;
+          const variacao = rows.reduce((total: number, mov: any) => {
+            if (!mov.distribuicao_id && !mov.cliente_origem_id && !mov.cliente_destino_id) return total;
+            return total + (mov.tipo === 'ENTRADA' ? Number(mov.valor) : -Number(mov.valor));
+          }, 0);
+          saldoInicial = Math.max((Number(cliente.saldo_lucros_acumulados) || 0) - variacao, 0);
         } catch (e) {
           console.error('Erro ao calcular saldo inicial:', e);
         }
