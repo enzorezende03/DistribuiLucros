@@ -4,6 +4,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { calcularSaldoAta } from '@/lib/saldoAta';
 import { ImportDialog } from '@/components/ImportDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
@@ -1194,7 +1195,7 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
         // Load "Saldo inicial" = current saldo + already-abated amounts - transfers received + transfers sent
         let saldoInicial = Number(cliente.saldo_lucros_acumulados) || 0;
         try {
-          const { data: movs } = await supabase
+          const { data: movs, error: movsError } = await supabase
             .from('movimentacoes_lucros')
             .select('valor, tipo, distribuicao_id, cliente_origem_id, cliente_destino_id, distribuicao:distribuicoes(status)')
             .eq('cliente_id', cliente.id);
@@ -1300,30 +1301,21 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
             .from('movimentacoes_lucros')
             .select('valor, tipo, distribuicao_id, cliente_origem_id, cliente_destino_id, distribuicao:distribuicoes(status)')
             .eq('cliente_id', cliente.id);
+          if (movsError) throw movsError;
           const rows = (movs || []) as any[];
-          // Abatements already applied via non-cancelled distributions
-          const jaAbatido = rows
-            .filter((m) => m.tipo === 'SAIDA' && m.distribuicao_id && m.distribuicao && m.distribuicao.status !== 'CANCELADA')
-            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
-          // Transfers between companies must be preserved in the balance
-          const recebidas = rows
-            .filter((m) => m.tipo === 'ENTRADA' && m.cliente_origem_id)
-            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
-          const enviadas = rows
-            .filter((m) => m.tipo === 'SAIDA' && m.cliente_destino_id)
-            .reduce((acc: number, m: any) => acc + Number(m.valor), 0);
 
           // Remove only the previous manual "Saldo inicial" row (never transfers/abatements)
-          await supabase
+          const { error: deleteError } = await supabase
             .from('movimentacoes_lucros')
             .delete()
             .eq('cliente_id', cliente.id)
             .is('distribuicao_id', null)
             .is('cliente_origem_id', null)
             .is('cliente_destino_id', null);
+          if (deleteError) throw deleteError;
 
           if (newSaldoInicial > 0) {
-            await supabase.from('movimentacoes_lucros').insert({
+            const { error: insertError } = await supabase.from('movimentacoes_lucros').insert({
               cliente_id: cliente.id,
               tipo: 'ENTRADA',
               valor: newSaldoInicial,
@@ -1331,16 +1323,28 @@ function ClienteFormDialog({ open, onOpenChange, cliente }: ClienteFormDialogPro
               saldo_posterior: newSaldoInicial,
               descricao: 'Saldo inicial',
             });
+            if (insertError) throw insertError;
           }
 
           // Recompute remaining balance: initial + transfers in - transfers out - abatements
-          const saldoRestante = Math.max(newSaldoInicial + recebidas - enviadas - jaAbatido, 0);
-          await supabase
+          const saldoRestante = calcularSaldoAta(newSaldoInicial, rows);
+          const { error: saldoError } = await supabase
             .from('clientes')
             .update({ saldo_lucros_acumulados: saldoRestante })
             .eq('id', cliente.id);
+          if (saldoError) throw saldoError;
+          const { error: reconcileError } = await supabase.rpc('reconciliar_saldo_ata_cliente', { _cliente_id: cliente.id });
+          if (reconcileError) throw reconcileError;
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['clientes'] }),
+            queryClient.invalidateQueries({ queryKey: ['cliente'] }),
+            queryClient.invalidateQueries({ queryKey: ['movimentacoes_lucros'] }),
+            queryClient.invalidateQueries({ queryKey: ['alertas'] }),
+          ]);
         } catch (e) {
           console.error('Erro ao atualizar saldo inicial:', e);
+          toast.error('Não foi possível concluir o recálculo do saldo da ata. Tente salvar novamente.');
+          return;
         }
       }
 
