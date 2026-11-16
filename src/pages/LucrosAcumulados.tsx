@@ -193,10 +193,18 @@ export default function LucrosAcumuladosPage() {
                     <p className="text-xl font-bold text-amber-700 dark:text-amber-400 capitalize">
                       {mesAno}
                     </p>
+                    {passaDoLimite && (
+                      <p className="text-[11px] text-muted-foreground">
+                        limite da isenção pela lei
+                      </p>
+                    )}
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground border-t pt-3">
                   A partir do esgotamento, distribuições acima de R$ 50.000,00 por sócio no mês passarão a ter incidência de <strong>10% de IR</strong> sobre o excedente.
+                  {passaDoLimite && (
+                    <> A isenção via lucros acumulados vale até <strong>dezembro de 2028</strong> (Lei 15.270/2025) — o que sobrar de saldo após essa data não terá mais a isenção.</>
+                  )}
                 </p>
               </CardContent>
             </Card>
