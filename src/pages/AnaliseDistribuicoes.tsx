@@ -180,6 +180,10 @@ export default function AnaliseDistribuicoesPage() {
               const media = mesesAbat ? totalAbat / mesesAbat : 0;
               const mesesRest = media > 0 ? saldo / media : 0;
               const prev = new Date(); prev.setMonth(prev.getMonth() + Math.ceil(mesesRest));
+              // Lei 15.270/2025: a isenção via lucros acumulados vale apenas até dez/2028
+              const limiteLei = new Date(2028, 11, 1);
+              const passaDoLimite = prev > limiteLei;
+              const prevExibida = passaDoLimite ? limiteLei : prev;
               const chartAbat = MESES.slice(0, a.ultimoMes + 1).map((mes, i) => ({ mes, v: Math.max(abat[i], 0) }));
               return (
                 <Card className="print-slide">
