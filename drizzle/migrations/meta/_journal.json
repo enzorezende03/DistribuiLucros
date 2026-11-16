@@ -50,6 +50,13 @@
       "when": 1793995722180,
       "tag": "0006_espelho_distribuicao_holding",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794834537076,
+      "tag": "0007_reconciliar_ata_apos_cadastro_saldo",
+      "breakpoints": true
     }
   ]
 }

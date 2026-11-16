@@ -739,6 +739,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      reconciliar_saldo_ata_cliente: {
+        Args: { _cliente_id: string }
+        Returns: undefined
+      }
       solicitar_acesso_cnpj: { Args: { _cnpj: string }; Returns: Json }
       transferir_saldo_lucros: {
         Args: {
